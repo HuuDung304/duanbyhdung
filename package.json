@@ -1,0 +1,11 @@
+{
+  "name": "he-thong-quan-ly-diem-dai-doi-460",
+  "version": "2.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Hệ thống Quản lý Điểm và Hồ sơ Quân nhân Đại đội 460 (Supabase Cloud - High Concurrency)",
+  "scripts": {
+    "build": "node -e \"import('fs').then(fs=>{fs.mkdirSync('dist',{recursive:true});['index.html','quan_ly_diem_dai_doi.html','supabase_schema.sql','README.md'].forEach(f=>{if(fs.existsSync(f))fs.copyFileSync(f,'dist/'+f)});if(fs.existsSync('src'))fs.cpSync('src','dist/src',{recursive:true});console.log('Build static files to dist/ completed.');})\"",
+    "start": "npx serve ."
+  }
+}
