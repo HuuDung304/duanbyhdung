@@ -932,45 +932,46 @@ export function parseExcelDate(val, fallback = '') {
 let quickImportParsedRows = [];
 
 export function detectExcelColumnMapping(headerRow = []) {
-  const norm = headerRow.map(h => String(h || '').trim().toLowerCase());
-  const firstColIsStt = norm[0] === 'stt' || norm[0] === 'tt' || norm[0].startsWith('số tt');
-  const offset = firstColIsStt ? 1 : 0;
-
-  const findCol = (predicate, fallbackIdx) => {
+  const norm = headerRow.map(h => String(h || '').normalize('NFC').replace(/\s+/g, ' ').trim().toLowerCase());
+  const firstColIsStt = norm[0] === 'stt' || norm[0] === 'tt' || (norm[0] || '').startsWith('số tt');
+  const findCol = (predicate) => {
     const idx = norm.findIndex((h, i) => h && predicate(h, i));
     if (idx !== -1) return idx;
-    return fallbackIdx !== null && fallbackIdx !== undefined ? fallbackIdx + offset : -1;
+    return -1;
   };
 
   return {
     firstColIsStt,
-    code: findCol(h => h.includes('mã hv') || h.includes('mã học viên') || h.includes('mã qn') || h.includes('student_id') || h === 'mã' || h.includes('mã số'), firstColIsStt ? -1 : 0),
-    name: findCol(h => (h.includes('họ và tên') || h.includes('họ tên') || h.includes('full_name') || h === 'tên') && !h.includes('bố') && !h.includes('mẹ') && !h.includes('cha'), 1),
-    class: findCol(h => h === 'lớp' || h.includes('class_name') || h.startsWith('lớp ') || h.includes('(class'), 2),
-    rank: findCol(h => h.includes('cấp bậc') || h.includes('quân hàm') || h.includes('(rank)'), 3),
-    position: findCol(h => h.includes('chức vụ') || h.includes('position'), 4),
-    dob: findCol(h => (h.includes('ngày sinh') || h.includes('birth_date') || h.includes('năm sinh')) && !h.includes('bố') && !h.includes('mẹ') && !h.includes('cha'), 5),
-    enlistmentDate: findCol(h => h.includes('nhập ngũ') || h.includes('enlistment'), 6),
-    phone: findCol(h => h.includes('điện thoại') || h.includes('sđt') || h.includes('phone'), 7),
-    hometown: findCol(h => (h.includes('quê quán') || h.includes('nguyên quán') || h.includes('hometown')) && !h.includes('bố') && !h.includes('mẹ') && !h.includes('cha'), 8),
-    permanentAddress: findCol(h => h.includes('thường trú') || h.includes('hktt') || h.includes('permanent_address'), 9),
-    currentAddress: findCol(h => h.includes('nơi ở') || h.includes('chỗ ở') || h.includes('current_address'), 10),
-    politicalStatus: findCol(h => h.includes('chính trị') || h.includes('political_status') || (h.includes('đảng') && !h.includes('ngày')), 11),
-    party_joined_date: findCol(h => h.includes('vào đảng') || h.includes('dự bị') || h.includes('party_joined'), 12),
-    official_party_date: findCol(h => h.includes('chính thức') || h.includes('official_party'), 13),
-    father_name: findCol(h => (h.includes('họ tên bố') || h.includes('tên bố') || h.includes('father_name') || h.includes('họ tên cha')), 14),
-    father_birth_date: findCol(h => (h.includes('sinh bố') || h.includes('father_birth') || h.includes('sinh cha')), 15),
-    father_hometown: findCol(h => (h.includes('quê quán bố') || h.includes('father_hometown') || h.includes('quê bố')), 16),
-    father_job: findCol(h => (h.includes('nghề nghiệp bố') || h.includes('father_job') || h.includes('nghề bố')), 17),
-    mother_name: findCol(h => (h.includes('họ tên mẹ') || h.includes('tên mẹ') || h.includes('mother_name')), 18),
-    mother_birth_date: findCol(h => (h.includes('sinh mẹ') || h.includes('mother_birth')), 19),
-    mother_hometown: findCol(h => (h.includes('quê quán mẹ') || h.includes('mother_hometown') || h.includes('quê mẹ')), 20),
-    mother_job: findCol(h => (h.includes('nghề nghiệp mẹ') || h.includes('mother_job') || h.includes('nghề mẹ')), 21),
-    achievements: findCol(h => h.includes('thành tích') || h.includes('danh hiệu') || h.includes('khen thưởng') || h.includes('achievements'), 22)
+    code: findCol(h => h.includes('mã hv') || h.includes('mã học viên') || h.includes('mã qn') || h.includes('student_id') || h === 'mã' || h.includes('mã số')),
+    name: findCol(h => (h.includes('họ và tên') || h.includes('họ tên') || h.includes('full_name') || h === 'tên') && !h.includes('bố') && !h.includes('mẹ') && !h.includes('cha')),
+    class: findCol(h => h === 'lớp' || h.includes('class_name') || h.startsWith('lớp ') || h.includes('(class')),
+    rank: findCol(h => h.includes('cấp bậc') || h.includes('quân hàm') || h.includes('(rank)')),
+    position: findCol(h => h.includes('chức vụ') || h.includes('position')),
+    dob: findCol(h => (h.includes('ngày sinh') || h.includes('birth_date') || h.includes('năm sinh')) && !h.includes('bố') && !h.includes('mẹ') && !h.includes('cha')),
+    enlistmentDate: findCol(h => h.includes('nhập ngũ') || h.includes('enlistment')),
+    phone: findCol(h => h.includes('điện thoại') || h.includes('sđt') || h.includes('phone')),
+    hometown: findCol(h => (h.includes('quê quán') || h.includes('nguyên quán') || h.includes('hometown')) && !h.includes('bố') && !h.includes('mẹ') && !h.includes('cha')),
+    permanentAddress: findCol(h => h.includes('thường trú') || h.includes('hktt') || h.includes('permanent_address')),
+    currentAddress: findCol(h => h.includes('nơi ở') || h.includes('chỗ ở') || h.includes('current_address')),
+    politicalStatus: findCol(h => h.includes('chính trị') || h.includes('political_status') || (h.includes('đảng') && !h.includes('ngày'))),
+    party_joined_date: findCol(h => h.includes('vào đảng') || h.includes('dự bị') || h.includes('party_joined')),
+    official_party_date: findCol(h => h.includes('chính thức') || h.includes('official_party')),
+    father_name: findCol(h => (h.includes('họ tên bố') || h.includes('tên bố') || h.includes('father_name') || h.includes('họ tên cha'))),
+    father_birth_date: findCol(h => (h.includes('sinh bố') || h.includes('father_birth') || h.includes('sinh cha'))),
+    father_hometown: findCol(h => (h.includes('quê quán bố') || h.includes('father_hometown') || h.includes('quê bố'))),
+    father_job: findCol(h => (h.includes('nghề nghiệp bố') || h.includes('father_job') || h.includes('nghề bố'))),
+    mother_name: findCol(h => (h.includes('họ tên mẹ') || h.includes('tên mẹ') || h.includes('mother_name'))),
+    mother_birth_date: findCol(h => (h.includes('sinh mẹ') || h.includes('mother_birth'))),
+    mother_hometown: findCol(h => (h.includes('quê quán mẹ') || h.includes('mother_hometown') || h.includes('quê mẹ'))),
+    mother_job: findCol(h => (h.includes('nghề nghiệp mẹ') || h.includes('mother_job') || h.includes('nghề mẹ'))),
+    achievements: findCol(h => h.includes('thành tích') || h.includes('danh hiệu') || h.includes('khen thưởng') || h.includes('achievements'))
   };
 }
 
 export function handleQuickImportFileUpload(file) {
+  quickImportParsedRows = [];
+  const confirmButton = document.getElementById('btnExecuteQuickImport');
+  if (confirmButton) confirmButton.disabled = true;
   if (!file) return;
   const reader = new FileReader();
   reader.onload = function(e) {
@@ -1139,10 +1140,12 @@ export async function executeQuickImport() {
     showToast('Học viên không có quyền nhập danh sách quân số từ Excel!', 'error');
     return;
   }
-  if (!quickImportParsedRows || quickImportParsedRows.length === 0) return;
+  if (!quickImportParsedRows || quickImportParsedRows.length === 0 || document.getElementById('btnExecuteQuickImport')?.disabled) return;
   const classScope = getCurrentUserClassScope();
   const btnExec = document.getElementById('btnExecuteQuickImport');
   const originalBtnText = btnExec ? btnExec.textContent : 'Xác nhận Nhập Dữ liệu';
+  const previousState = structuredClone({ students: AppState.students, subjects: AppState.subjects,
+    grades: AppState.grades, languages: AppState.languages });
 
   if (btnExec) {
     btnExec.disabled = true;
@@ -1151,6 +1154,7 @@ export async function executeQuickImport() {
 
   try {
     const importedCount = quickImportParsedRows.length;
+    const importedStudents = [];
 
     quickImportParsedRows.forEach(item => {
       if (classScope) item.class = classScope;
@@ -1159,6 +1163,10 @@ export async function executeQuickImport() {
       const { isUpdate, ...cleanItem } = item;
 
       if (existing) {
+        if (classScope && existing.class !== classScope) {
+          throw new Error(`Mã học viên ${cleanCode} thuộc lớp khác, không thể nhập đè.`);
+        }
+        importedStudents.push(existing);
         Object.assign(existing, cleanItem, {
           code: cleanCode,
           role: cleanItem.position || existing.role || 'Học viên'
@@ -1181,6 +1189,7 @@ export async function executeQuickImport() {
           currentLangLevel: 'A2',
           itStandard: 'Đạt chuẩn CNTT cơ bản'
         });
+        importedStudents.push(AppState.students[AppState.students.length - 1]);
         if (!AppState.grades[newId]) AppState.grades[newId] = {};
         if (!AppState.languages[newId]) {
           AppState.languages[newId] = {
@@ -1194,21 +1203,20 @@ export async function executeQuickImport() {
     });
 
     // Chờ lưu toàn bộ học viên & ngoại ngữ lên bảng students + languages của Supabase hoàn tất
-    const bulkRes = await upsertStudentsBulkToSupabase(AppState.students, AppState.languages);
+    const bulkRes = await upsertStudentsBulkToSupabase(importedStudents, AppState.languages);
+    if (bulkRes?.error) throw new Error(bulkRes.error.message || 'Không thể lưu đầy đủ dữ liệu học viên');
     logAuditTrail('', '', 'Excel Nhập Nhanh', `${importedCount} học viên`, 'Nhập nhanh danh sách hồ sơ học viên từ Excel lên Supabase');
     await persistData(true);
 
+    hideModal('modalQuickImportExcel');
     populateStudentPicker();
     updateAllViews();
-    hideModal('modalQuickImportExcel');
     quickImportParsedRows = [];
 
-    if (bulkRes && bulkRes.error) {
-      showToast(`Đã lưu ${importedCount} học viên lên Cloud (chế độ tương thích bảng).`, 'info');
-    } else {
-      showToast(`Đã nhập và lưu thành công ${importedCount} học viên lên cơ sở dữ liệu Supabase!`, 'success');
-    }
+    showToast(`Đã nhập và lưu thành công ${importedCount} học viên lên cơ sở dữ liệu Supabase!`, 'success');
   } catch (err) {
+    Object.assign(AppState, previousState);
+    AppState.hasPendingCloudRefresh = true;
     console.error('Lỗi khi lưu dữ liệu Excel lên Supabase:', err);
     showToast('Có lỗi khi đồng bộ Excel lên Supabase: ' + (err.message || err), 'error');
   } finally {

@@ -2529,15 +2529,21 @@ async function executeWithRetry(queryFn, { maxAttempts = 3, baseDelayMs = 150, t
   let lastError = null;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
-      const result = await Promise.race([
-        Promise.resolve().then(() => queryFn()),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('SUPABASE_REQUEST_TIMEOUT')), timeoutMs)
-        )
-      ]);
+      let timeoutId;
+      let result;
+      try {
+        result = await Promise.race([
+          Promise.resolve().then(() => queryFn()),
+          new Promise((_, reject) => {
+            timeoutId = setTimeout(() => reject(new Error('SUPABASE_REQUEST_TIMEOUT')), timeoutMs);
+          })
+        ]);
+      } finally {
+        clearTimeout(timeoutId);
+      }
 
       if (result && result.error) {
-        const status = Number(result.error.status || result.error.code || 0);
+        const status = Number(result.status || result.error.status || result.error.code || 0);
         const msg = String(result.error.message || '').toLowerCase();
         const isTransient =
           status === 408 ||
@@ -2605,7 +2611,7 @@ function createRestFallbackClient(baseUrl, apiKey) {
     upsert(payload, opts = {}) {
       this.method = 'POST';
       this.bodyData = payload;
-      this.preferHeaders.push('resolution=merge-duplicates');
+      this.preferHeaders.push(opts.ignoreDuplicates ? 'resolution=ignore-duplicates' : 'resolution=merge-duplicates');
       if (opts && opts.onConflict) {
         this.queryParams.push(`on_conflict=${encodeURIComponent(opts.onConflict)}`);
       }
@@ -2638,11 +2644,18 @@ function createRestFallbackClient(baseUrl, apiKey) {
       return this;
     }
     order(col, { ascending = true } = {}) {
-      this.queryParams.push(`order=${encodeURIComponent(col)}.${ascending ? 'asc' : 'desc'}`);
+      const clause = `${encodeURIComponent(col)}.${ascending ? 'asc' : 'desc'}`;
+      const index = this.queryParams.findIndex(value => value.startsWith('order='));
+      if (index === -1) this.queryParams.push(`order=${clause}`);
+      else this.queryParams[index] += `,${clause}`;
       return this;
     }
     limit(n) {
       this.queryParams.push(`limit=${Number(n) || 1}`);
+      return this;
+    }
+    range(from, to) {
+      this.queryParams.push(`offset=${from}`, `limit=${to - from + 1}`);
       return this;
     }
     maybeSingle() {
@@ -2657,7 +2670,7 @@ function createRestFallbackClient(baseUrl, apiKey) {
     }
     async _exec() {
       if (typeof fetch !== 'function') {
-        return { data: this.isMaybeSingle || this.isSingle ? null : [], error: null };
+        return { data: null, error: new Error('FETCH_UNAVAILABLE') };
       }
       const qs = this.queryParams.length > 0 ? `?${this.queryParams.join('&')}` : '';
       const url = `${cleanUrl}/rest/v1/${this.table}${qs}`;
@@ -2947,7 +2960,7 @@ function mapDbRowToLanguage(row) {
  * - Tự động thích ứng nếu bảng trên Supabase thiếu một số cột mở rộng (lỗi PGRST204 / 42703).
  * - Kết hợp `executeWithRetry` để tự động thử lại nếu mạng chập chờn khi tải cao.
  */
-async function safeUpsertRows(client, tableName, rowsInput, primaryConflictCol = 'id', fallbackConflictCol = null) {
+async function safeUpsertRows(client, tableName, rowsInput, primaryConflictCol = 'id', fallbackConflictCol = null, ignoreDuplicates = false) {
   if (!rowsInput) return { data: [], error: null };
   const rowsArray = Array.isArray(rowsInput) ? rowsInput : [rowsInput];
   if (rowsArray.length === 0) return { data: [], error: null };
@@ -2957,7 +2970,7 @@ async function safeUpsertRows(client, tableName, rowsInput, primaryConflictCol =
 
   for (let attempt = 0; attempt < 18; attempt++) {
     const res = await executeWithRetry(
-      () => client.from(tableName).upsert(workingRows, { onConflict: conflictCol }),
+      () => client.from(tableName).upsert(workingRows, { onConflict: conflictCol, ignoreDuplicates }),
       { maxAttempts: 3, baseDelayMs: 140 }
     );
     if (!res || !res.error) {
@@ -2966,7 +2979,7 @@ async function safeUpsertRows(client, tableName, rowsInput, primaryConflictCol =
 
     const errMsg = String(res.error.message || res.error.details || JSON.stringify(res.error));
 
-    // 1. Kiểm tra nếu lỗi do thiếu cột trên bảng Supabase (PGRST204 hoặc 42703)
+    // 1. Dừng và báo rõ nếu schema thiếu cột (PGRST204 hoặc 42703)
     const missingColMatch =
       errMsg.match(/Could not find the '([^']+)' column/i) ||
       errMsg.match(/column "([^"]+)" of relation/i) ||
@@ -2974,13 +2987,11 @@ async function safeUpsertRows(client, tableName, rowsInput, primaryConflictCol =
 
     if (missingColMatch && missingColMatch[1]) {
       const missingCol = missingColMatch[1];
-      console.warn(`[Supabase Auto-Adapt] Bảng ${tableName} chưa có cột '${missingCol}', tự động bỏ qua cột này khi ghi.`);
-      workingRows = workingRows.map(r => {
-        const copy = { ...r };
-        delete copy[missingCol];
-        return copy;
-      });
-      continue;
+      console.warn(`[Supabase Auto-Adapt] Bảng ${tableName} chưa có cột '${missingCol}', dừng ghi để tránh mất dữ liệu.`);
+      // Never silently discard Excel columns and report a successful import.
+      return { data: null, error: { ...res.error,
+        message: `Bảng ${tableName} thiếu cột ${missingCol}. Cần cập nhật schema trước khi nhập dữ liệu.`
+      } };
     }
 
     // 2. Kiểm tra nếu lỗi xung đột khóa UNIQUE (23505) khi nhiều người ghi đồng thời
@@ -3004,7 +3015,25 @@ async function safeUpsertRows(client, tableName, rowsInput, primaryConflictCol =
 // ============================================================================
 
 // Single-flight Promise giúp gom các yêu cầu tải toàn bộ dữ liệu trùng lặp trên cùng 1 máy
-let inFlightLoadPromise = null;
+const inFlightLoads = new Map();
+
+// Read every page: Supabase limits the number of rows returned by one request.
+// A stable ordering prevents records moving between page boundaries.
+async function loadTablePages(client, table, orderColumns) {
+  const pageSize = 1000;
+  const rows = [];
+  for (let offset = 0; ; offset += pageSize) {
+    const result = await executeWithRetry(() => {
+      let query = client.from(table).select('*');
+      for (const column of orderColumns) query = query.order(column, { ascending: true });
+      return query.range(offset, offset + pageSize - 1);
+    });
+    if (result.error) throw new Error(`Không thể tải bảng ${table}`, { cause: result.error });
+    if (!Array.isArray(result.data)) throw new Error(`Dữ liệu bảng ${table} không hợp lệ`);
+    rows.push(...result.data);
+    if (result.data.length < pageSize) return { data: rows, error: null };
+  }
+}
 
 /**
  * 1. Tải toàn bộ dữ liệu thực tế từ 5 bảng trên Supabase.
@@ -3013,19 +3042,23 @@ let inFlightLoadPromise = null;
  *    - Nếu bảng trống, trả về mảng rỗng `[]` và object rỗng `{}` (Tuyệt đối không Auto-Seed).
  */
 async function loadAllDataFromSupabase(unitId = 'daidoi460') {
-  if (inFlightLoadPromise) {
-    return inFlightLoadPromise;
+  if (inFlightLoads.has(unitId)) {
+    return inFlightLoads.get(unitId);
   }
 
-  inFlightLoadPromise = (async () => {
+  const loadPromise = (async () => {
     const client = getSupabaseClient();
     const [studentsRes, subjectsRes, gradesRes, languagesRes, settingsRes] = await Promise.all([
-      executeWithRetry(() => client.from(TABLES.STUDENTS).select('*').order('code', { ascending: true })),
-      executeWithRetry(() => client.from(TABLES.SUBJECTS).select('*').order('semester', { ascending: true })),
-      executeWithRetry(() => client.from(TABLES.GRADES).select('*')),
-      executeWithRetry(() => client.from(TABLES.LANGUAGES).select('*')),
+      loadTablePages(client, TABLES.STUDENTS, ['code']),
+      loadTablePages(client, TABLES.SUBJECTS, ['semester', 'id']),
+      loadTablePages(client, TABLES.GRADES, ['student_id', 'subject_id']),
+      loadTablePages(client, TABLES.LANGUAGES, ['student_id']),
       executeWithRetry(() => client.from(TABLES.UNIT_SETTINGS).select('*').eq('unit_id', unitId).maybeSingle())
     ]);
+
+    if (settingsRes.error) {
+      throw new Error('Không thể tải cấu hình đơn vị', { cause: settingsRes.error });
+    }
 
     let students = Array.isArray(studentsRes.data)
       ? studentsRes.data.map(mapDbRowToStudent).filter(Boolean)
@@ -3072,10 +3105,11 @@ async function loadAllDataFromSupabase(unitId = 'daidoi460') {
     };
   })();
 
+  inFlightLoads.set(unitId, loadPromise);
   try {
-    return await inFlightLoadPromise;
+    return await loadPromise;
   } finally {
-    inFlightLoadPromise = null;
+    inFlightLoads.delete(unitId);
   }
 }
 
@@ -3165,27 +3199,24 @@ async function upsertStudentToSupabase(student, langObj = null) {
  * 4. Thêm/Cập nhật hàng loạt Học viên (Khi nhập nhanh từ file Excel)
  *    - Khử trùng lặp theo `code` trong cùng 1 file Excel
  *    - Tự động đối chiếu `id` hiện có trên bảng `students` để không bao giờ bị lỗi trùng `code` (23505)
- *    - Chia batch 50 bản ghi/lần và tự động tương thích Schema nếu bảng thiếu cột
+ *    - Chia batch 50 bản ghi/lần; báo lỗi nếu schema thiếu cột
  */
-async function upsertStudentsBulkToSupabase(studentsList = [], languagesMap = {}) {
+async function upsertStudentsBulkToSupabase(studentsList = [], languagesMap = {}, { createOnly = false } = {}) {
   if (!Array.isArray(studentsList) || studentsList.length === 0) return { data: [], error: null };
   const client = getSupabaseClient();
   beginSupabaseWrite();
   try {
     const existingCodeToId = new Map();
-    try {
-      const { data: existingRows } = await executeWithRetry(
-        () => client.from(TABLES.STUDENTS).select('id, code')
-      );
-      if (Array.isArray(existingRows)) {
-        existingRows.forEach(er => {
-          if (er && er.code && er.id) {
-            existingCodeToId.set(String(er.code).trim().toUpperCase(), String(er.id));
-          }
-        });
+    const codes = [...new Set(studentsList.filter(s => s && s.code)
+      .map(s => String(s.code).trim().toUpperCase()))];
+    // Only look up students in this import, avoiding full-roster reads per upload.
+    for (let offset = 0; offset < codes.length; offset += 100) {
+      const result = await executeWithRetry(() => client.from(TABLES.STUDENTS)
+        .select('id, code').in('code', codes.slice(offset, offset + 100)));
+      if (result.error) return result;
+      for (const row of result.data || []) {
+        existingCodeToId.set(String(row.code).trim().toUpperCase(), String(row.id));
       }
-    } catch (e) {
-      console.warn('Không thể tải danh sách mã HV hiện có, dùng ID xác định:', e);
     }
 
     const dedupedByCode = new Map();
@@ -3203,6 +3234,8 @@ async function upsertStudentsBulkToSupabase(studentsList = [], languagesMap = {}
         languagesMap[matchedDbId] = languagesMap[oldId];
       }
 
+      // Grade uploads must not overwrite a roster row created by another user.
+      if (createOnly && existingCodeToId.has(cleanCode)) return;
       const dbRow = mapStudentToDbRow(s);
       if (dbRow) {
         dbRow.id = matchedDbId;
@@ -3214,17 +3247,16 @@ async function upsertStudentsBulkToSupabase(studentsList = [], languagesMap = {}
     if (studentRows.length === 0) return { data: [], error: null };
 
     const BATCH_SIZE = 50;
-    let lastError = null;
     for (let i = 0; i < studentRows.length; i += BATCH_SIZE) {
       const chunk = studentRows.slice(i, i + BATCH_SIZE);
-      const res = await safeUpsertRows(client, TABLES.STUDENTS, chunk, 'code', 'id');
+      const res = await safeUpsertRows(client, TABLES.STUDENTS, chunk, 'code', createOnly ? null : 'id', createOnly);
       if (res && res.error) {
-        lastError = res.error;
-        console.warn('Supabase bulk students upsert chunk warning:', res.error);
+        return res;
       }
     }
 
-    const langRows = studentRows.map(sr => {
+    // Profile Excel files contain no language columns; preserve existing certificates.
+    const langRows = studentRows.filter(sr => !existingCodeToId.has(sr.code)).map(sr => {
       const l = (languagesMap && languagesMap[sr.id]) || {
         lang: 'Tiếng Nga',
         currentLevel: sr.current_lang_level || 'A2',
@@ -3240,10 +3272,11 @@ async function upsertStudentsBulkToSupabase(studentsList = [], languagesMap = {}
 
     for (let i = 0; i < langRows.length; i += BATCH_SIZE) {
       const chunk = langRows.slice(i, i + BATCH_SIZE);
-      await safeUpsertRows(client, TABLES.LANGUAGES, chunk, 'student_id');
+      const res = await safeUpsertRows(client, TABLES.LANGUAGES, chunk, 'student_id', null, true);
+      if (res.error) return res;
     }
 
-    return { data: studentRows, error: lastError };
+    return { data: studentRows, error: null };
   } finally {
     endSupabaseWrite();
   }
@@ -3316,6 +3349,7 @@ async function upsertSubjectsBulkToSupabase(subjectsList = []) {
     for (let i = 0; i < rows.length; i += BATCH_SIZE) {
       const chunk = rows.slice(i, i + BATCH_SIZE);
       lastRes = await safeUpsertRows(client, TABLES.SUBJECTS, chunk, 'id');
+      if (lastRes.error) return lastRes;
     }
     return lastRes;
   } finally {
@@ -3441,6 +3475,7 @@ async function upsertGradesBulkToSupabase(gradeEntries = []) {
     for (let i = 0; i < rows.length; i += BATCH_SIZE) {
       const chunk = rows.slice(i, i + BATCH_SIZE);
       lastRes = await safeUpsertRows(client, TABLES.GRADES, chunk, 'student_id,subject_id', 'id');
+      if (lastRes.error) return lastRes;
     }
     return lastRes;
   } finally {
@@ -3506,13 +3541,16 @@ function subscribeSupabaseRealtime(onDatabaseChanged) {
     }
 
     const triggerChange = (tableName, payload) => {
-      if (isSupabaseWriteBusy()) return;
       clearTimeout(realtimeDebounceTimer);
-      realtimeDebounceTimer = setTimeout(() => {
-        if (!isSupabaseWriteBusy() && typeof onDatabaseChanged === 'function') {
-          onDatabaseChanged(tableName, payload);
+      const notifyWhenIdle = () => {
+        // Queue remote changes received during a local Excel upload instead of dropping them.
+        if (isSupabaseWriteBusy()) {
+          realtimeDebounceTimer = setTimeout(notifyWhenIdle, 450);
+          return;
         }
-      }, 450);
+        if (typeof onDatabaseChanged === 'function') onDatabaseChanged(tableName, payload);
+      };
+      realtimeDebounceTimer = setTimeout(notifyWhenIdle, 450);
     };
 
     realtimeChannelInstance = client
@@ -4407,6 +4445,7 @@ async function initData() {
     }
   } catch (err) {
     console.warn('Lỗi tải dữ liệu ban đầu từ Supabase:', err);
+    showToast('Không tải được dữ liệu từ Supabase. Kiểm tra kết nối trước khi chỉnh sửa.', 'error');
   } finally {
     AppState.isLoadingCloud = false;
     if (!isAnyEditFormActive()) {
@@ -4677,8 +4716,9 @@ function showToast(message, type = 'error') {
     <svg class="w-4 h-4 flex-shrink-0 text-rose-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
     </svg>
-    <span>${message}</span>
+    <span></span>
   `;
+  toast.querySelector('span').textContent = String(message);
   container.appendChild(toast);
   setTimeout(() => {
     toast.classList.remove('translate-y-2', 'opacity-0');
@@ -7270,6 +7310,10 @@ function downloadExcelTemplate() {
 }
 let parsedImportData = null;
 function handleExcelFileUpload(file) {
+  parsedImportData = null;
+  const confirmButton = document.getElementById('btnConfirmImport');
+  if (confirmButton) confirmButton.disabled = true;
+  if (!file) return;
   const reader = new FileReader();
   reader.onload = function(e) {
     try {
@@ -7373,11 +7417,13 @@ async function executeExcelImport() {
     showToast('Học viên không có quyền nhập điểm từ file Excel!', 'error');
     return;
   }
-  if (!parsedImportData) return;
+  if (!parsedImportData || document.getElementById('btnConfirmImport')?.disabled) return;
   const { headers, rows, fileSemesterHint, fileYearHint, fileClassHint } = parsedImportData;
   const classScope = getCurrentUserClassScope();
   const btnConfirm = document.getElementById('btnConfirmImport');
   const origText = btnConfirm ? btnConfirm.textContent : 'Nhập Dữ Liệu';
+  const previousState = structuredClone({ students: AppState.students, subjects: AppState.subjects,
+    grades: AppState.grades, languages: AppState.languages });
 
   if (btnConfirm) {
     btnConfirm.disabled = true;
@@ -7387,13 +7433,14 @@ async function executeExcelImport() {
   try {
     let updatedCount = 0;
     let createdStudentsCount = 0;
+    const createdStudents = [];
     const newSubjectsMap = new Map();
 
     const activeYearNum = fileYearHint || parseInt(AppState.currentSheetSemester, 10) || 1;
     const sem1OfYear = 2 * activeYearNum - 1;
     const sem2OfYear = 2 * activeYearNum;
 
-    const normHeaders = headers.map(h => String(h || '').trim().toLowerCase());
+    const normHeaders = headers.map(h => String(h || '').normalize('NFC').replace(/\s+/g, ' ').trim().toLowerCase());
     const firstColIsStt = normHeaders[0] === 'stt' || normHeaders[0] === 'tt';
     const offset = firstColIsStt ? 1 : 0;
 
@@ -7424,7 +7471,7 @@ async function executeExcelImport() {
 
     headers.forEach((h, colIdx) => {
       if (!h || reservedCols.has(colIdx)) return;
-      const lowerH = h.toLowerCase().trim();
+      const lowerH = String(h).toLowerCase().trim();
       if (
         lowerH === 'stt' ||
         lowerH === 'tt' ||
@@ -7545,8 +7592,7 @@ async function executeExcelImport() {
           A1: 'Đ', A21: 'Đ', A22: 'Đ', B11: 'CT', B12: 'CT'
         };
         createdStudentsCount++;
-      } else if (classCol >= 0 && row[classCol] && DEFAULT_CLASSES.includes(rowCls) && !classScope) {
-        student.class = rowCls;
+        createdStudents.push(student);
       }
 
       if (classScope && student.class !== classScope) return;
@@ -7563,8 +7609,10 @@ async function executeExcelImport() {
         }
         // Hỗ trợ cả định dạng điểm có kèm điểm chữ như "8.5 (A)" hoặc "7,5"
         const cleanScoreToken = String(rawScore).trim().split(/\s*\(/)[0].replace(',', '.');
-        const num = parseFloat(cleanScoreToken);
-        if (isNaN(num) || num < 0 || num > 10) return;
+        const num = Number(cleanScoreToken);
+        if (!Number.isFinite(num) || num < 0 || num > 10) {
+          throw new Error(`Điểm không hợp lệ tại dòng dữ liệu ${rIdx + 1}, cột ${desc.rawHeader}: ${rawScore}`);
+        }
 
         const targetSubject = resolveSubjectByCompositeKey({
           headerInfo: desc.headerInfo,
@@ -7588,19 +7636,40 @@ async function executeExcelImport() {
       });
     });
 
+    if (bulkGradeEntries.length === 0) {
+      throw new Error('Không tìm thấy ô điểm hợp lệ. Kiểm tra tiêu đề cột và dữ liệu Excel.');
+    }
+
     // 1. Lưu học viên trước để đảm bảo khóa ngoại student_id trên bảng grades
-    if (createdStudentsCount > 0 || AppState.students.length > 0) {
-      await upsertStudentsBulkToSupabase(AppState.students, AppState.languages);
+    if (createdStudents.length > 0) {
+      const originalIds = createdStudents.map(student => student.id);
+      const result = await upsertStudentsBulkToSupabase(createdStudents, AppState.languages, { createOnly: true });
+      if (result?.error) throw new Error(result.error.message || 'Không thể lưu học viên');
+      // A concurrent import may have created the same code with an existing ID.
+      const remappedIds = new Map();
+      createdStudents.forEach((student, index) => {
+        const oldId = originalIds[index];
+        if (oldId !== student.id) {
+          remappedIds.set(oldId, student.id);
+          AppState.grades[student.id] = AppState.grades[oldId] || {};
+          delete AppState.grades[oldId];
+        }
+      });
+      bulkGradeEntries.forEach(entry => {
+        entry.studentId = remappedIds.get(entry.studentId) || entry.studentId;
+      });
     }
 
     // 2. Lưu các môn học mới được nhận diện tự động theo khóa kết hợp (course_name + class_code + semester)
     if (newSubjectsMap.size > 0) {
-      await upsertSubjectsBulkToSupabase(Array.from(newSubjectsMap.values()));
+      const result = await upsertSubjectsBulkToSupabase(Array.from(newSubjectsMap.values()));
+      if (result?.error) throw new Error(result.error.message || 'Không thể lưu môn học');
     }
 
     // 3. Lưu toàn bộ điểm số lên bảng grades của Supabase
     if (bulkGradeEntries.length > 0) {
-      await upsertGradesBulkToSupabase(bulkGradeEntries);
+      const result = await upsertGradesBulkToSupabase(bulkGradeEntries);
+      if (result?.error) throw new Error(result.error.message || 'Không thể lưu điểm');
     }
 
     logAuditTrail(
@@ -7611,11 +7680,13 @@ async function executeExcelImport() {
       'Nhập dữ liệu điểm từ file Excel theo khóa kết hợp (Tên môn + Lớp + Học kỳ) lên Supabase'
     );
     await persistData(true);
-    updateAllViews();
     hideModal('modalImportExcel');
+    updateAllViews();
     parsedImportData = null;
     showToast(`Đã lưu thành công ${updatedCount} điểm số lên Supabase!`, 'success');
   } catch (err) {
+    Object.assign(AppState, previousState);
+    AppState.hasPendingCloudRefresh = true;
     console.error('Lỗi khi nhập Excel điểm lên Supabase:', err);
     showToast('Có lỗi khi lưu điểm từ Excel lên Supabase: ' + (err.message || err), 'error');
   } finally {
@@ -8067,8 +8138,12 @@ function connectFirebaseRealtime() {
   if (dot) dot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
   if (lbl) lbl.textContent = `Supabase (${CloudSync.supabaseProjectRef})`;
 
-  CloudSync.realtimeChannel = subscribeSupabaseRealtime(async () => {
-    if (CloudSync.isIncomingSync) return;
+  let refreshQueued = false;
+  const refreshCloudData = async () => {
+    if (CloudSync.isIncomingSync) {
+      refreshQueued = true;
+      return;
+    }
     // Chặn đồng bộ ngược dữ liệu: Khi bất kỳ modal hoặc form chỉnh sửa nào đang mở,
     // tuyệt đối không tải đè dữ liệu từ Supabase hoặc làm mới bảng ở chế độ ngầm.
     if (isAnyEditFormActive()) {
@@ -8092,9 +8167,14 @@ function connectFirebaseRealtime() {
     } catch (err) {
       console.warn('Supabase realtime refresh error:', err);
     } finally {
-      setTimeout(() => { CloudSync.isIncomingSync = false; }, 250);
+      CloudSync.isIncomingSync = false;
+      if (refreshQueued) {
+        refreshQueued = false;
+        void refreshCloudData();
+      }
     }
-  });
+  };
+  CloudSync.realtimeChannel = subscribeSupabaseRealtime(refreshCloudData);
 }
 function pushDataToCloud(immediate = false) {
   if (CloudSync.isIncomingSync) return Promise.resolve();
@@ -8984,44 +9064,45 @@ function parseExcelDate(val, fallback = '') {
 
 let quickImportParsedRows = [];
 function detectExcelColumnMapping(headerRow = []) {
-  const norm = headerRow.map(h => String(h || '').trim().toLowerCase());
-  const firstColIsStt = norm[0] === 'stt' || norm[0] === 'tt' || norm[0].startsWith('số tt');
-  const offset = firstColIsStt ? 1 : 0;
-
-  const findCol = (predicate, fallbackIdx) => {
+  const norm = headerRow.map(h => String(h || '').normalize('NFC').replace(/\s+/g, ' ').trim().toLowerCase());
+  const firstColIsStt = norm[0] === 'stt' || norm[0] === 'tt' || (norm[0] || '').startsWith('số tt');
+  const findCol = (predicate) => {
     const idx = norm.findIndex((h, i) => h && predicate(h, i));
     if (idx !== -1) return idx;
-    return fallbackIdx !== null && fallbackIdx !== undefined ? fallbackIdx + offset : -1;
+    return -1;
   };
 
   return {
     firstColIsStt,
-    code: findCol(h => h.includes('mã hv') || h.includes('mã học viên') || h.includes('mã qn') || h.includes('student_id') || h === 'mã' || h.includes('mã số'), firstColIsStt ? -1 : 0),
-    name: findCol(h => (h.includes('họ và tên') || h.includes('họ tên') || h.includes('full_name') || h === 'tên') && !h.includes('bố') && !h.includes('mẹ') && !h.includes('cha'), 1),
-    class: findCol(h => h === 'lớp' || h.includes('class_name') || h.startsWith('lớp ') || h.includes('(class'), 2),
-    rank: findCol(h => h.includes('cấp bậc') || h.includes('quân hàm') || h.includes('(rank)'), 3),
-    position: findCol(h => h.includes('chức vụ') || h.includes('position'), 4),
-    dob: findCol(h => (h.includes('ngày sinh') || h.includes('birth_date') || h.includes('năm sinh')) && !h.includes('bố') && !h.includes('mẹ') && !h.includes('cha'), 5),
-    enlistmentDate: findCol(h => h.includes('nhập ngũ') || h.includes('enlistment'), 6),
-    phone: findCol(h => h.includes('điện thoại') || h.includes('sđt') || h.includes('phone'), 7),
-    hometown: findCol(h => (h.includes('quê quán') || h.includes('nguyên quán') || h.includes('hometown')) && !h.includes('bố') && !h.includes('mẹ') && !h.includes('cha'), 8),
-    permanentAddress: findCol(h => h.includes('thường trú') || h.includes('hktt') || h.includes('permanent_address'), 9),
-    currentAddress: findCol(h => h.includes('nơi ở') || h.includes('chỗ ở') || h.includes('current_address'), 10),
-    politicalStatus: findCol(h => h.includes('chính trị') || h.includes('political_status') || (h.includes('đảng') && !h.includes('ngày')), 11),
-    party_joined_date: findCol(h => h.includes('vào đảng') || h.includes('dự bị') || h.includes('party_joined'), 12),
-    official_party_date: findCol(h => h.includes('chính thức') || h.includes('official_party'), 13),
-    father_name: findCol(h => (h.includes('họ tên bố') || h.includes('tên bố') || h.includes('father_name') || h.includes('họ tên cha')), 14),
-    father_birth_date: findCol(h => (h.includes('sinh bố') || h.includes('father_birth') || h.includes('sinh cha')), 15),
-    father_hometown: findCol(h => (h.includes('quê quán bố') || h.includes('father_hometown') || h.includes('quê bố')), 16),
-    father_job: findCol(h => (h.includes('nghề nghiệp bố') || h.includes('father_job') || h.includes('nghề bố')), 17),
-    mother_name: findCol(h => (h.includes('họ tên mẹ') || h.includes('tên mẹ') || h.includes('mother_name')), 18),
-    mother_birth_date: findCol(h => (h.includes('sinh mẹ') || h.includes('mother_birth')), 19),
-    mother_hometown: findCol(h => (h.includes('quê quán mẹ') || h.includes('mother_hometown') || h.includes('quê mẹ')), 20),
-    mother_job: findCol(h => (h.includes('nghề nghiệp mẹ') || h.includes('mother_job') || h.includes('nghề mẹ')), 21),
-    achievements: findCol(h => h.includes('thành tích') || h.includes('danh hiệu') || h.includes('khen thưởng') || h.includes('achievements'), 22)
+    code: findCol(h => h.includes('mã hv') || h.includes('mã học viên') || h.includes('mã qn') || h.includes('student_id') || h === 'mã' || h.includes('mã số')),
+    name: findCol(h => (h.includes('họ và tên') || h.includes('họ tên') || h.includes('full_name') || h === 'tên') && !h.includes('bố') && !h.includes('mẹ') && !h.includes('cha')),
+    class: findCol(h => h === 'lớp' || h.includes('class_name') || h.startsWith('lớp ') || h.includes('(class')),
+    rank: findCol(h => h.includes('cấp bậc') || h.includes('quân hàm') || h.includes('(rank)')),
+    position: findCol(h => h.includes('chức vụ') || h.includes('position')),
+    dob: findCol(h => (h.includes('ngày sinh') || h.includes('birth_date') || h.includes('năm sinh')) && !h.includes('bố') && !h.includes('mẹ') && !h.includes('cha')),
+    enlistmentDate: findCol(h => h.includes('nhập ngũ') || h.includes('enlistment')),
+    phone: findCol(h => h.includes('điện thoại') || h.includes('sđt') || h.includes('phone')),
+    hometown: findCol(h => (h.includes('quê quán') || h.includes('nguyên quán') || h.includes('hometown')) && !h.includes('bố') && !h.includes('mẹ') && !h.includes('cha')),
+    permanentAddress: findCol(h => h.includes('thường trú') || h.includes('hktt') || h.includes('permanent_address')),
+    currentAddress: findCol(h => h.includes('nơi ở') || h.includes('chỗ ở') || h.includes('current_address')),
+    politicalStatus: findCol(h => h.includes('chính trị') || h.includes('political_status') || (h.includes('đảng') && !h.includes('ngày'))),
+    party_joined_date: findCol(h => h.includes('vào đảng') || h.includes('dự bị') || h.includes('party_joined')),
+    official_party_date: findCol(h => h.includes('chính thức') || h.includes('official_party')),
+    father_name: findCol(h => (h.includes('họ tên bố') || h.includes('tên bố') || h.includes('father_name') || h.includes('họ tên cha'))),
+    father_birth_date: findCol(h => (h.includes('sinh bố') || h.includes('father_birth') || h.includes('sinh cha'))),
+    father_hometown: findCol(h => (h.includes('quê quán bố') || h.includes('father_hometown') || h.includes('quê bố'))),
+    father_job: findCol(h => (h.includes('nghề nghiệp bố') || h.includes('father_job') || h.includes('nghề bố'))),
+    mother_name: findCol(h => (h.includes('họ tên mẹ') || h.includes('tên mẹ') || h.includes('mother_name'))),
+    mother_birth_date: findCol(h => (h.includes('sinh mẹ') || h.includes('mother_birth'))),
+    mother_hometown: findCol(h => (h.includes('quê quán mẹ') || h.includes('mother_hometown') || h.includes('quê mẹ'))),
+    mother_job: findCol(h => (h.includes('nghề nghiệp mẹ') || h.includes('mother_job') || h.includes('nghề mẹ'))),
+    achievements: findCol(h => h.includes('thành tích') || h.includes('danh hiệu') || h.includes('khen thưởng') || h.includes('achievements'))
   };
 }
 function handleQuickImportFileUpload(file) {
+  quickImportParsedRows = [];
+  const confirmButton = document.getElementById('btnExecuteQuickImport');
+  if (confirmButton) confirmButton.disabled = true;
   if (!file) return;
   const reader = new FileReader();
   reader.onload = function(e) {
@@ -9189,10 +9270,12 @@ async function executeQuickImport() {
     showToast('Học viên không có quyền nhập danh sách quân số từ Excel!', 'error');
     return;
   }
-  if (!quickImportParsedRows || quickImportParsedRows.length === 0) return;
+  if (!quickImportParsedRows || quickImportParsedRows.length === 0 || document.getElementById('btnExecuteQuickImport')?.disabled) return;
   const classScope = getCurrentUserClassScope();
   const btnExec = document.getElementById('btnExecuteQuickImport');
   const originalBtnText = btnExec ? btnExec.textContent : 'Xác nhận Nhập Dữ liệu';
+  const previousState = structuredClone({ students: AppState.students, subjects: AppState.subjects,
+    grades: AppState.grades, languages: AppState.languages });
 
   if (btnExec) {
     btnExec.disabled = true;
@@ -9201,6 +9284,7 @@ async function executeQuickImport() {
 
   try {
     const importedCount = quickImportParsedRows.length;
+    const importedStudents = [];
 
     quickImportParsedRows.forEach(item => {
       if (classScope) item.class = classScope;
@@ -9209,6 +9293,10 @@ async function executeQuickImport() {
       const { isUpdate, ...cleanItem } = item;
 
       if (existing) {
+        if (classScope && existing.class !== classScope) {
+          throw new Error(`Mã học viên ${cleanCode} thuộc lớp khác, không thể nhập đè.`);
+        }
+        importedStudents.push(existing);
         Object.assign(existing, cleanItem, {
           code: cleanCode,
           role: cleanItem.position || existing.role || 'Học viên'
@@ -9231,6 +9319,7 @@ async function executeQuickImport() {
           currentLangLevel: 'A2',
           itStandard: 'Đạt chuẩn CNTT cơ bản'
         });
+        importedStudents.push(AppState.students[AppState.students.length - 1]);
         if (!AppState.grades[newId]) AppState.grades[newId] = {};
         if (!AppState.languages[newId]) {
           AppState.languages[newId] = {
@@ -9244,21 +9333,20 @@ async function executeQuickImport() {
     });
 
     // Chờ lưu toàn bộ học viên & ngoại ngữ lên bảng students + languages của Supabase hoàn tất
-    const bulkRes = await upsertStudentsBulkToSupabase(AppState.students, AppState.languages);
+    const bulkRes = await upsertStudentsBulkToSupabase(importedStudents, AppState.languages);
+    if (bulkRes?.error) throw new Error(bulkRes.error.message || 'Không thể lưu đầy đủ dữ liệu học viên');
     logAuditTrail('', '', 'Excel Nhập Nhanh', `${importedCount} học viên`, 'Nhập nhanh danh sách hồ sơ học viên từ Excel lên Supabase');
     await persistData(true);
 
+    hideModal('modalQuickImportExcel');
     populateStudentPicker();
     updateAllViews();
-    hideModal('modalQuickImportExcel');
     quickImportParsedRows = [];
 
-    if (bulkRes && bulkRes.error) {
-      showToast(`Đã lưu ${importedCount} học viên lên Cloud (chế độ tương thích bảng).`, 'info');
-    } else {
-      showToast(`Đã nhập và lưu thành công ${importedCount} học viên lên cơ sở dữ liệu Supabase!`, 'success');
-    }
+    showToast(`Đã nhập và lưu thành công ${importedCount} học viên lên cơ sở dữ liệu Supabase!`, 'success');
   } catch (err) {
+    Object.assign(AppState, previousState);
+    AppState.hasPendingCloudRefresh = true;
     console.error('Lỗi khi lưu dữ liệu Excel lên Supabase:', err);
     showToast('Có lỗi khi đồng bộ Excel lên Supabase: ' + (err.message || err), 'error');
   } finally {

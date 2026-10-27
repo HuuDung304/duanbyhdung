@@ -107,15 +107,21 @@ export async function executeWithRetry(queryFn, { maxAttempts = 3, baseDelayMs =
   let lastError = null;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
-      const result = await Promise.race([
-        Promise.resolve().then(() => queryFn()),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('SUPABASE_REQUEST_TIMEOUT')), timeoutMs)
-        )
-      ]);
+      let timeoutId;
+      let result;
+      try {
+        result = await Promise.race([
+          Promise.resolve().then(() => queryFn()),
+          new Promise((_, reject) => {
+            timeoutId = setTimeout(() => reject(new Error('SUPABASE_REQUEST_TIMEOUT')), timeoutMs);
+          })
+        ]);
+      } finally {
+        clearTimeout(timeoutId);
+      }
 
       if (result && result.error) {
-        const status = Number(result.error.status || result.error.code || 0);
+        const status = Number(result.status || result.error.status || result.error.code || 0);
         const msg = String(result.error.message || '').toLowerCase();
         const isTransient =
           status === 408 ||
@@ -183,7 +189,7 @@ function createRestFallbackClient(baseUrl, apiKey) {
     upsert(payload, opts = {}) {
       this.method = 'POST';
       this.bodyData = payload;
-      this.preferHeaders.push('resolution=merge-duplicates');
+      this.preferHeaders.push(opts.ignoreDuplicates ? 'resolution=ignore-duplicates' : 'resolution=merge-duplicates');
       if (opts && opts.onConflict) {
         this.queryParams.push(`on_conflict=${encodeURIComponent(opts.onConflict)}`);
       }
@@ -216,11 +222,18 @@ function createRestFallbackClient(baseUrl, apiKey) {
       return this;
     }
     order(col, { ascending = true } = {}) {
-      this.queryParams.push(`order=${encodeURIComponent(col)}.${ascending ? 'asc' : 'desc'}`);
+      const clause = `${encodeURIComponent(col)}.${ascending ? 'asc' : 'desc'}`;
+      const index = this.queryParams.findIndex(value => value.startsWith('order='));
+      if (index === -1) this.queryParams.push(`order=${clause}`);
+      else this.queryParams[index] += `,${clause}`;
       return this;
     }
     limit(n) {
       this.queryParams.push(`limit=${Number(n) || 1}`);
+      return this;
+    }
+    range(from, to) {
+      this.queryParams.push(`offset=${from}`, `limit=${to - from + 1}`);
       return this;
     }
     maybeSingle() {
@@ -235,7 +248,7 @@ function createRestFallbackClient(baseUrl, apiKey) {
     }
     async _exec() {
       if (typeof fetch !== 'function') {
-        return { data: this.isMaybeSingle || this.isSingle ? null : [], error: null };
+        return { data: null, error: new Error('FETCH_UNAVAILABLE') };
       }
       const qs = this.queryParams.length > 0 ? `?${this.queryParams.join('&')}` : '';
       const url = `${cleanUrl}/rest/v1/${this.table}${qs}`;
@@ -535,7 +548,7 @@ export function mapDbRowToLanguage(row) {
  * - Tự động thích ứng nếu bảng trên Supabase thiếu một số cột mở rộng (lỗi PGRST204 / 42703).
  * - Kết hợp `executeWithRetry` để tự động thử lại nếu mạng chập chờn khi tải cao.
  */
-async function safeUpsertRows(client, tableName, rowsInput, primaryConflictCol = 'id', fallbackConflictCol = null) {
+async function safeUpsertRows(client, tableName, rowsInput, primaryConflictCol = 'id', fallbackConflictCol = null, ignoreDuplicates = false) {
   if (!rowsInput) return { data: [], error: null };
   const rowsArray = Array.isArray(rowsInput) ? rowsInput : [rowsInput];
   if (rowsArray.length === 0) return { data: [], error: null };
@@ -545,7 +558,7 @@ async function safeUpsertRows(client, tableName, rowsInput, primaryConflictCol =
 
   for (let attempt = 0; attempt < 18; attempt++) {
     const res = await executeWithRetry(
-      () => client.from(tableName).upsert(workingRows, { onConflict: conflictCol }),
+      () => client.from(tableName).upsert(workingRows, { onConflict: conflictCol, ignoreDuplicates }),
       { maxAttempts: 3, baseDelayMs: 140 }
     );
     if (!res || !res.error) {
@@ -554,7 +567,7 @@ async function safeUpsertRows(client, tableName, rowsInput, primaryConflictCol =
 
     const errMsg = String(res.error.message || res.error.details || JSON.stringify(res.error));
 
-    // 1. Kiểm tra nếu lỗi do thiếu cột trên bảng Supabase (PGRST204 hoặc 42703)
+    // 1. Dừng và báo rõ nếu schema thiếu cột (PGRST204 hoặc 42703)
     const missingColMatch =
       errMsg.match(/Could not find the '([^']+)' column/i) ||
       errMsg.match(/column "([^"]+)" of relation/i) ||
@@ -562,13 +575,11 @@ async function safeUpsertRows(client, tableName, rowsInput, primaryConflictCol =
 
     if (missingColMatch && missingColMatch[1]) {
       const missingCol = missingColMatch[1];
-      console.warn(`[Supabase Auto-Adapt] Bảng ${tableName} chưa có cột '${missingCol}', tự động bỏ qua cột này khi ghi.`);
-      workingRows = workingRows.map(r => {
-        const copy = { ...r };
-        delete copy[missingCol];
-        return copy;
-      });
-      continue;
+      console.warn(`[Supabase Auto-Adapt] Bảng ${tableName} chưa có cột '${missingCol}', dừng ghi để tránh mất dữ liệu.`);
+      // Never silently discard Excel columns and report a successful import.
+      return { data: null, error: { ...res.error,
+        message: `Bảng ${tableName} thiếu cột ${missingCol}. Cần cập nhật schema trước khi nhập dữ liệu.`
+      } };
     }
 
     // 2. Kiểm tra nếu lỗi xung đột khóa UNIQUE (23505) khi nhiều người ghi đồng thời
@@ -592,7 +603,25 @@ async function safeUpsertRows(client, tableName, rowsInput, primaryConflictCol =
 // ============================================================================
 
 // Single-flight Promise giúp gom các yêu cầu tải toàn bộ dữ liệu trùng lặp trên cùng 1 máy
-let inFlightLoadPromise = null;
+const inFlightLoads = new Map();
+
+// Read every page: Supabase limits the number of rows returned by one request.
+// A stable ordering prevents records moving between page boundaries.
+async function loadTablePages(client, table, orderColumns) {
+  const pageSize = 1000;
+  const rows = [];
+  for (let offset = 0; ; offset += pageSize) {
+    const result = await executeWithRetry(() => {
+      let query = client.from(table).select('*');
+      for (const column of orderColumns) query = query.order(column, { ascending: true });
+      return query.range(offset, offset + pageSize - 1);
+    });
+    if (result.error) throw new Error(`Không thể tải bảng ${table}`, { cause: result.error });
+    if (!Array.isArray(result.data)) throw new Error(`Dữ liệu bảng ${table} không hợp lệ`);
+    rows.push(...result.data);
+    if (result.data.length < pageSize) return { data: rows, error: null };
+  }
+}
 
 /**
  * 1. Tải toàn bộ dữ liệu thực tế từ 5 bảng trên Supabase.
@@ -601,19 +630,23 @@ let inFlightLoadPromise = null;
  *    - Nếu bảng trống, trả về mảng rỗng `[]` và object rỗng `{}` (Tuyệt đối không Auto-Seed).
  */
 export async function loadAllDataFromSupabase(unitId = 'daidoi460') {
-  if (inFlightLoadPromise) {
-    return inFlightLoadPromise;
+  if (inFlightLoads.has(unitId)) {
+    return inFlightLoads.get(unitId);
   }
 
-  inFlightLoadPromise = (async () => {
+  const loadPromise = (async () => {
     const client = getSupabaseClient();
     const [studentsRes, subjectsRes, gradesRes, languagesRes, settingsRes] = await Promise.all([
-      executeWithRetry(() => client.from(TABLES.STUDENTS).select('*').order('code', { ascending: true })),
-      executeWithRetry(() => client.from(TABLES.SUBJECTS).select('*').order('semester', { ascending: true })),
-      executeWithRetry(() => client.from(TABLES.GRADES).select('*')),
-      executeWithRetry(() => client.from(TABLES.LANGUAGES).select('*')),
+      loadTablePages(client, TABLES.STUDENTS, ['code']),
+      loadTablePages(client, TABLES.SUBJECTS, ['semester', 'id']),
+      loadTablePages(client, TABLES.GRADES, ['student_id', 'subject_id']),
+      loadTablePages(client, TABLES.LANGUAGES, ['student_id']),
       executeWithRetry(() => client.from(TABLES.UNIT_SETTINGS).select('*').eq('unit_id', unitId).maybeSingle())
     ]);
+
+    if (settingsRes.error) {
+      throw new Error('Không thể tải cấu hình đơn vị', { cause: settingsRes.error });
+    }
 
     let students = Array.isArray(studentsRes.data)
       ? studentsRes.data.map(mapDbRowToStudent).filter(Boolean)
@@ -660,10 +693,11 @@ export async function loadAllDataFromSupabase(unitId = 'daidoi460') {
     };
   })();
 
+  inFlightLoads.set(unitId, loadPromise);
   try {
-    return await inFlightLoadPromise;
+    return await loadPromise;
   } finally {
-    inFlightLoadPromise = null;
+    inFlightLoads.delete(unitId);
   }
 }
 
@@ -753,27 +787,24 @@ export async function upsertStudentToSupabase(student, langObj = null) {
  * 4. Thêm/Cập nhật hàng loạt Học viên (Khi nhập nhanh từ file Excel)
  *    - Khử trùng lặp theo `code` trong cùng 1 file Excel
  *    - Tự động đối chiếu `id` hiện có trên bảng `students` để không bao giờ bị lỗi trùng `code` (23505)
- *    - Chia batch 50 bản ghi/lần và tự động tương thích Schema nếu bảng thiếu cột
+ *    - Chia batch 50 bản ghi/lần; báo lỗi nếu schema thiếu cột
  */
-export async function upsertStudentsBulkToSupabase(studentsList = [], languagesMap = {}) {
+export async function upsertStudentsBulkToSupabase(studentsList = [], languagesMap = {}, { createOnly = false } = {}) {
   if (!Array.isArray(studentsList) || studentsList.length === 0) return { data: [], error: null };
   const client = getSupabaseClient();
   beginSupabaseWrite();
   try {
     const existingCodeToId = new Map();
-    try {
-      const { data: existingRows } = await executeWithRetry(
-        () => client.from(TABLES.STUDENTS).select('id, code')
-      );
-      if (Array.isArray(existingRows)) {
-        existingRows.forEach(er => {
-          if (er && er.code && er.id) {
-            existingCodeToId.set(String(er.code).trim().toUpperCase(), String(er.id));
-          }
-        });
+    const codes = [...new Set(studentsList.filter(s => s && s.code)
+      .map(s => String(s.code).trim().toUpperCase()))];
+    // Only look up students in this import, avoiding full-roster reads per upload.
+    for (let offset = 0; offset < codes.length; offset += 100) {
+      const result = await executeWithRetry(() => client.from(TABLES.STUDENTS)
+        .select('id, code').in('code', codes.slice(offset, offset + 100)));
+      if (result.error) return result;
+      for (const row of result.data || []) {
+        existingCodeToId.set(String(row.code).trim().toUpperCase(), String(row.id));
       }
-    } catch (e) {
-      console.warn('Không thể tải danh sách mã HV hiện có, dùng ID xác định:', e);
     }
 
     const dedupedByCode = new Map();
@@ -791,6 +822,8 @@ export async function upsertStudentsBulkToSupabase(studentsList = [], languagesM
         languagesMap[matchedDbId] = languagesMap[oldId];
       }
 
+      // Grade uploads must not overwrite a roster row created by another user.
+      if (createOnly && existingCodeToId.has(cleanCode)) return;
       const dbRow = mapStudentToDbRow(s);
       if (dbRow) {
         dbRow.id = matchedDbId;
@@ -802,17 +835,16 @@ export async function upsertStudentsBulkToSupabase(studentsList = [], languagesM
     if (studentRows.length === 0) return { data: [], error: null };
 
     const BATCH_SIZE = 50;
-    let lastError = null;
     for (let i = 0; i < studentRows.length; i += BATCH_SIZE) {
       const chunk = studentRows.slice(i, i + BATCH_SIZE);
-      const res = await safeUpsertRows(client, TABLES.STUDENTS, chunk, 'code', 'id');
+      const res = await safeUpsertRows(client, TABLES.STUDENTS, chunk, 'code', createOnly ? null : 'id', createOnly);
       if (res && res.error) {
-        lastError = res.error;
-        console.warn('Supabase bulk students upsert chunk warning:', res.error);
+        return res;
       }
     }
 
-    const langRows = studentRows.map(sr => {
+    // Profile Excel files contain no language columns; preserve existing certificates.
+    const langRows = studentRows.filter(sr => !existingCodeToId.has(sr.code)).map(sr => {
       const l = (languagesMap && languagesMap[sr.id]) || {
         lang: 'Tiếng Nga',
         currentLevel: sr.current_lang_level || 'A2',
@@ -828,10 +860,11 @@ export async function upsertStudentsBulkToSupabase(studentsList = [], languagesM
 
     for (let i = 0; i < langRows.length; i += BATCH_SIZE) {
       const chunk = langRows.slice(i, i + BATCH_SIZE);
-      await safeUpsertRows(client, TABLES.LANGUAGES, chunk, 'student_id');
+      const res = await safeUpsertRows(client, TABLES.LANGUAGES, chunk, 'student_id', null, true);
+      if (res.error) return res;
     }
 
-    return { data: studentRows, error: lastError };
+    return { data: studentRows, error: null };
   } finally {
     endSupabaseWrite();
   }
@@ -904,6 +937,7 @@ export async function upsertSubjectsBulkToSupabase(subjectsList = []) {
     for (let i = 0; i < rows.length; i += BATCH_SIZE) {
       const chunk = rows.slice(i, i + BATCH_SIZE);
       lastRes = await safeUpsertRows(client, TABLES.SUBJECTS, chunk, 'id');
+      if (lastRes.error) return lastRes;
     }
     return lastRes;
   } finally {
@@ -1029,6 +1063,7 @@ export async function upsertGradesBulkToSupabase(gradeEntries = []) {
     for (let i = 0; i < rows.length; i += BATCH_SIZE) {
       const chunk = rows.slice(i, i + BATCH_SIZE);
       lastRes = await safeUpsertRows(client, TABLES.GRADES, chunk, 'student_id,subject_id', 'id');
+      if (lastRes.error) return lastRes;
     }
     return lastRes;
   } finally {
@@ -1095,13 +1130,16 @@ export function subscribeSupabaseRealtime(onDatabaseChanged) {
     }
 
     const triggerChange = (tableName, payload) => {
-      if (isSupabaseWriteBusy()) return;
       clearTimeout(realtimeDebounceTimer);
-      realtimeDebounceTimer = setTimeout(() => {
-        if (!isSupabaseWriteBusy() && typeof onDatabaseChanged === 'function') {
-          onDatabaseChanged(tableName, payload);
+      const notifyWhenIdle = () => {
+        // Queue remote changes received during a local Excel upload instead of dropping them.
+        if (isSupabaseWriteBusy()) {
+          realtimeDebounceTimer = setTimeout(notifyWhenIdle, 450);
+          return;
         }
-      }, 450);
+        if (typeof onDatabaseChanged === 'function') onDatabaseChanged(tableName, payload);
+      };
+      realtimeDebounceTimer = setTimeout(notifyWhenIdle, 450);
     };
 
     realtimeChannelInstance = client

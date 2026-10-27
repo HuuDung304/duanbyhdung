@@ -917,6 +917,7 @@ export async function initData() {
     }
   } catch (err) {
     console.warn('Lỗi tải dữ liệu ban đầu từ Supabase:', err);
+    showToast('Không tải được dữ liệu từ Supabase. Kiểm tra kết nối trước khi chỉnh sửa.', 'error');
   } finally {
     AppState.isLoadingCloud = false;
     if (!isAnyEditFormActive()) {
@@ -1206,8 +1207,9 @@ export function showToast(message, type = 'error') {
     <svg class="w-4 h-4 flex-shrink-0 text-rose-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
     </svg>
-    <span>${message}</span>
+    <span></span>
   `;
+  toast.querySelector('span').textContent = String(message);
   container.appendChild(toast);
   setTimeout(() => {
     toast.classList.remove('translate-y-2', 'opacity-0');
@@ -3818,6 +3820,10 @@ export function downloadExcelTemplate() {
 export let parsedImportData = null;
 
 export function handleExcelFileUpload(file) {
+  parsedImportData = null;
+  const confirmButton = document.getElementById('btnConfirmImport');
+  if (confirmButton) confirmButton.disabled = true;
+  if (!file) return;
   const reader = new FileReader();
   reader.onload = function(e) {
     try {
@@ -3921,11 +3927,13 @@ export async function executeExcelImport() {
     showToast('Học viên không có quyền nhập điểm từ file Excel!', 'error');
     return;
   }
-  if (!parsedImportData) return;
+  if (!parsedImportData || document.getElementById('btnConfirmImport')?.disabled) return;
   const { headers, rows, fileSemesterHint, fileYearHint, fileClassHint } = parsedImportData;
   const classScope = getCurrentUserClassScope();
   const btnConfirm = document.getElementById('btnConfirmImport');
   const origText = btnConfirm ? btnConfirm.textContent : 'Nhập Dữ Liệu';
+  const previousState = structuredClone({ students: AppState.students, subjects: AppState.subjects,
+    grades: AppState.grades, languages: AppState.languages });
 
   if (btnConfirm) {
     btnConfirm.disabled = true;
@@ -3935,13 +3943,14 @@ export async function executeExcelImport() {
   try {
     let updatedCount = 0;
     let createdStudentsCount = 0;
+    const createdStudents = [];
     const newSubjectsMap = new Map();
 
     const activeYearNum = fileYearHint || parseInt(AppState.currentSheetSemester, 10) || 1;
     const sem1OfYear = 2 * activeYearNum - 1;
     const sem2OfYear = 2 * activeYearNum;
 
-    const normHeaders = headers.map(h => String(h || '').trim().toLowerCase());
+    const normHeaders = headers.map(h => String(h || '').normalize('NFC').replace(/\s+/g, ' ').trim().toLowerCase());
     const firstColIsStt = normHeaders[0] === 'stt' || normHeaders[0] === 'tt';
     const offset = firstColIsStt ? 1 : 0;
 
@@ -3972,7 +3981,7 @@ export async function executeExcelImport() {
 
     headers.forEach((h, colIdx) => {
       if (!h || reservedCols.has(colIdx)) return;
-      const lowerH = h.toLowerCase().trim();
+      const lowerH = String(h).toLowerCase().trim();
       if (
         lowerH === 'stt' ||
         lowerH === 'tt' ||
@@ -4093,8 +4102,7 @@ export async function executeExcelImport() {
           A1: 'Đ', A21: 'Đ', A22: 'Đ', B11: 'CT', B12: 'CT'
         };
         createdStudentsCount++;
-      } else if (classCol >= 0 && row[classCol] && DEFAULT_CLASSES.includes(rowCls) && !classScope) {
-        student.class = rowCls;
+        createdStudents.push(student);
       }
 
       if (classScope && student.class !== classScope) return;
@@ -4111,8 +4119,10 @@ export async function executeExcelImport() {
         }
         // Hỗ trợ cả định dạng điểm có kèm điểm chữ như "8.5 (A)" hoặc "7,5"
         const cleanScoreToken = String(rawScore).trim().split(/\s*\(/)[0].replace(',', '.');
-        const num = parseFloat(cleanScoreToken);
-        if (isNaN(num) || num < 0 || num > 10) return;
+        const num = Number(cleanScoreToken);
+        if (!Number.isFinite(num) || num < 0 || num > 10) {
+          throw new Error(`Điểm không hợp lệ tại dòng dữ liệu ${rIdx + 1}, cột ${desc.rawHeader}: ${rawScore}`);
+        }
 
         const targetSubject = resolveSubjectByCompositeKey({
           headerInfo: desc.headerInfo,
@@ -4136,19 +4146,40 @@ export async function executeExcelImport() {
       });
     });
 
+    if (bulkGradeEntries.length === 0) {
+      throw new Error('Không tìm thấy ô điểm hợp lệ. Kiểm tra tiêu đề cột và dữ liệu Excel.');
+    }
+
     // 1. Lưu học viên trước để đảm bảo khóa ngoại student_id trên bảng grades
-    if (createdStudentsCount > 0 || AppState.students.length > 0) {
-      await upsertStudentsBulkToSupabase(AppState.students, AppState.languages);
+    if (createdStudents.length > 0) {
+      const originalIds = createdStudents.map(student => student.id);
+      const result = await upsertStudentsBulkToSupabase(createdStudents, AppState.languages, { createOnly: true });
+      if (result?.error) throw new Error(result.error.message || 'Không thể lưu học viên');
+      // A concurrent import may have created the same code with an existing ID.
+      const remappedIds = new Map();
+      createdStudents.forEach((student, index) => {
+        const oldId = originalIds[index];
+        if (oldId !== student.id) {
+          remappedIds.set(oldId, student.id);
+          AppState.grades[student.id] = AppState.grades[oldId] || {};
+          delete AppState.grades[oldId];
+        }
+      });
+      bulkGradeEntries.forEach(entry => {
+        entry.studentId = remappedIds.get(entry.studentId) || entry.studentId;
+      });
     }
 
     // 2. Lưu các môn học mới được nhận diện tự động theo khóa kết hợp (course_name + class_code + semester)
     if (newSubjectsMap.size > 0) {
-      await upsertSubjectsBulkToSupabase(Array.from(newSubjectsMap.values()));
+      const result = await upsertSubjectsBulkToSupabase(Array.from(newSubjectsMap.values()));
+      if (result?.error) throw new Error(result.error.message || 'Không thể lưu môn học');
     }
 
     // 3. Lưu toàn bộ điểm số lên bảng grades của Supabase
     if (bulkGradeEntries.length > 0) {
-      await upsertGradesBulkToSupabase(bulkGradeEntries);
+      const result = await upsertGradesBulkToSupabase(bulkGradeEntries);
+      if (result?.error) throw new Error(result.error.message || 'Không thể lưu điểm');
     }
 
     logAuditTrail(
@@ -4159,11 +4190,13 @@ export async function executeExcelImport() {
       'Nhập dữ liệu điểm từ file Excel theo khóa kết hợp (Tên môn + Lớp + Học kỳ) lên Supabase'
     );
     await persistData(true);
-    updateAllViews();
     hideModal('modalImportExcel');
+    updateAllViews();
     parsedImportData = null;
     showToast(`Đã lưu thành công ${updatedCount} điểm số lên Supabase!`, 'success');
   } catch (err) {
+    Object.assign(AppState, previousState);
+    AppState.hasPendingCloudRefresh = true;
     console.error('Lỗi khi nhập Excel điểm lên Supabase:', err);
     showToast('Có lỗi khi lưu điểm từ Excel lên Supabase: ' + (err.message || err), 'error');
   } finally {
@@ -4624,8 +4657,12 @@ export function connectFirebaseRealtime() {
   if (dot) dot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
   if (lbl) lbl.textContent = `Supabase (${CloudSync.supabaseProjectRef})`;
 
-  CloudSync.realtimeChannel = subscribeSupabaseRealtime(async () => {
-    if (CloudSync.isIncomingSync) return;
+  let refreshQueued = false;
+  const refreshCloudData = async () => {
+    if (CloudSync.isIncomingSync) {
+      refreshQueued = true;
+      return;
+    }
     // Chặn đồng bộ ngược dữ liệu: Khi bất kỳ modal hoặc form chỉnh sửa nào đang mở,
     // tuyệt đối không tải đè dữ liệu từ Supabase hoặc làm mới bảng ở chế độ ngầm.
     if (isAnyEditFormActive()) {
@@ -4649,9 +4686,14 @@ export function connectFirebaseRealtime() {
     } catch (err) {
       console.warn('Supabase realtime refresh error:', err);
     } finally {
-      setTimeout(() => { CloudSync.isIncomingSync = false; }, 250);
+      CloudSync.isIncomingSync = false;
+      if (refreshQueued) {
+        refreshQueued = false;
+        void refreshCloudData();
+      }
     }
-  });
+  };
+  CloudSync.realtimeChannel = subscribeSupabaseRealtime(refreshCloudData);
 }
 
 export function pushDataToCloud(immediate = false) {

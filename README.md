@@ -39,3 +39,14 @@ Giao diện đăng nhập được chia thành 4 nhóm tài khoản cố định
         ├── students.js
         └── main.js
 ```
+
+## Phát triển và kiểm thử luồng nhập Excel
+
+- Chạy `npm test` (Node.js 18 trở lên) để kiểm tra nhập điểm, lỗi ghi từng lô, phân trang và đồng bộ Realtime. Các bài kiểm thử dùng API giả lập, không sửa dữ liệu Supabase thật.
+- Chạy `npm run build` để cập nhật thư mục `dist/`. Trang HTML hiện chứa bundle nhúng; thay đổi module phải được đồng bộ với các bản bundle và trang HTML tương ứng. Bộ kiểm thử chạy trên cả các phiên bản này.
+- Nhập điểm chỉ tạo học viên chưa tồn tại và ghi các ô điểm có trong file; nhập hồ sơ chỉ ghi các học viên trong file. Cột tùy chọn không có trong tiêu đề sẽ không lấy nhầm dữ liệu từ cột khác. Điểm trống hoặc `-` được bỏ qua, điểm không hợp lệ được báo lỗi.
+- Nếu Supabase thiếu cột, quá trình nhập dừng với tên bảng/cột cần kiểm tra. Không tự bỏ cột để tiếp tục ghi. Đối chiếu schema thực tế trước khi chạy thay đổi cơ sở dữ liệu.
+- Mỗi lô ghi là một yêu cầu riêng, chưa phải giao dịch cho toàn bộ file. Khi lỗi, một số lô trước đó có thể đã lưu; giao diện giữ file để thử lại và khôi phục dữ liệu cục bộ. Upsert theo khóa học viên/môn giúp việc thử lại không tạo thêm bản ghi điểm trùng.
+- Hai người sửa cùng một ô điểm vẫn áp dụng lần ghi cuối cùng. Cơ chế phát hiện xung đột/duyệt thay đổi cho cùng một bản ghi cần được triển khai thêm phía cơ sở dữ liệu; không coi các kiểm thử giả lập là kiểm thử tải trên Supabase thật.
+
+Kiểm thử trình duyệt tùy chọn: với máy chủ tĩnh đang chạy ở cổng 3000, chạy `NODE_PATH=/workspace/onboarding-tools/node_modules node tests/browser-import.cjs` nếu Playwright, SheetJS (`xlsx`) và Chromium đã được cài. Kiểm thử mở hai phiên trình duyệt, nhập hai file `.xlsx` đồng thời và kiểm tra các bản ghi đã lưu cùng bảng hiển thị. Toàn bộ dịch vụ bên ngoài được giả lập; kiểm thử không kiểm tra giao diện CSS hay tải thực tế của Supabase.
