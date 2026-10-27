@@ -1,9 +1,15 @@
 -- =====================================================================================
 -- HỆ THỐNG QUẢN LÝ ĐIỂM VÀ HỒ SƠ QUÂN NHÂN ĐẠI ĐỘI 460 - TIỂU ĐOÀN 4
--- SUPABASE SQL SCHEMA & MIGRATION (KHẮC PHỤC LỖI NHẬP EXCEL & CẢNH BÁO RLS ADVISOR)
+-- SUPABASE SQL SCHEMA & MIGRATION (BỔ SUNG CỘT, KHÓA UPSERT VÀ REALTIME)
 -- Project Reference : wxiimjbseovuxmvolswh
 -- Supabase URL      : https://wxiimjbseovuxmvolswh.supabase.co
 -- =====================================================================================
+
+-- Chạy toàn bộ script trong Supabase SQL Editor.
+-- Bổ sung schema/khóa nếu thiếu; không xóa hàng, không đổi kiểu cột,
+-- không thay GRANT, policy hoặc cấu hình RLS hiện tại.
+-- Nếu dữ liệu trùng khóa, transaction dừng để bạn kiểm tra, không tự xóa dữ liệu.
+BEGIN;
 
 -- 1. BẢNG HỌC VIÊN / HỒ SƠ QUÂN NHÂN (students)
 CREATE TABLE IF NOT EXISTS public.students (
@@ -104,6 +110,13 @@ CREATE TABLE IF NOT EXISTS public.grades (
   UNIQUE (student_id, subject_id)
 );
 
+-- CREATE TABLE IF NOT EXISTS không sửa các bảng đã tồn tại.
+ALTER TABLE public.grades ADD COLUMN IF NOT EXISTS id TEXT;
+ALTER TABLE public.grades ADD COLUMN IF NOT EXISTS student_id TEXT;
+ALTER TABLE public.grades ADD COLUMN IF NOT EXISTS subject_id TEXT;
+ALTER TABLE public.grades ADD COLUMN IF NOT EXISTS score NUMERIC(4,2);
+ALTER TABLE public.grades ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT now();
+
 CREATE INDEX IF NOT EXISTS idx_grades_student_id ON public.grades (student_id);
 CREATE INDEX IF NOT EXISTS idx_grades_subject_id ON public.grades (subject_id);
 
@@ -142,41 +155,79 @@ CREATE TABLE IF NOT EXISTS public.unit_settings (
   updated_at TIMESTAMPTZ DEFAULT now()
 );
 
+ALTER TABLE public.unit_settings ADD COLUMN IF NOT EXISTS required_lang_standard TEXT DEFAULT 'A2';
+ALTER TABLE public.unit_settings ADD COLUMN IF NOT EXISTS locks JSONB DEFAULT '{}'::jsonb;
+ALTER TABLE public.unit_settings ADD COLUMN IF NOT EXISTS audit_logs JSONB DEFAULT '[]'::jsonb;
+ALTER TABLE public.unit_settings ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT now();
+
+-- PostgREST on_conflict cần UNIQUE/PRIMARY KEY đúng các cột bên dưới.
+-- Tái sử dụng khóa có sẵn, không tạo chỉ mục UNIQUE trùng chức năng.
+DO $migration$
+DECLARE
+  requirement RECORD;
+  required_keys SMALLINT[];
+  quoted_columns TEXT;
+BEGIN
+  FOR requirement IN
+    SELECT * FROM (VALUES
+      ('students', 'uq_students_code_import', ARRAY['code']),
+      ('grades', 'uq_grades_student_subject_import', ARRAY['student_id', 'subject_id']),
+      ('languages', 'uq_languages_student_import', ARRAY['student_id']),
+      ('unit_settings', 'uq_unit_settings_unit_import', ARRAY['unit_id'])
+    ) AS requirements(table_name, index_name, column_names)
+  LOOP
+    SELECT array_agg(a.attnum ORDER BY a.attnum)
+      INTO required_keys
+      FROM pg_attribute AS a
+      WHERE a.attrelid = format('public.%I', requirement.table_name)::regclass
+        AND a.attname = ANY(requirement.column_names) AND NOT a.attisdropped;
+
+    IF cardinality(required_keys) IS DISTINCT FROM cardinality(requirement.column_names) THEN
+      RAISE EXCEPTION 'Bảng % thiếu cột khóa bắt buộc; kiểm tra schema trước khi tiếp tục.', requirement.table_name;
+    END IF;
+
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_index AS i
+      WHERE i.indrelid = format('public.%I', requirement.table_name)::regclass
+        AND i.indisunique AND i.indisvalid AND i.indimmediate
+        AND i.indpred IS NULL AND i.indexprs IS NULL
+        AND ARRAY(
+          SELECT k.attnum FROM unnest(i.indkey) WITH ORDINALITY AS k(attnum, position)
+          WHERE k.position <= i.indnkeyatts ORDER BY k.attnum
+        ) = required_keys
+    ) THEN
+      SELECT string_agg(quote_ident(c), ', ') INTO quoted_columns
+        FROM unnest(requirement.column_names) AS columns(c);
+      EXECUTE format('CREATE UNIQUE INDEX %I ON public.%I (%s)',
+        requirement.index_name, requirement.table_name, quoted_columns);
+    END IF;
+  END LOOP;
+END
+$migration$;
+
 INSERT INTO public.unit_settings (unit_id, required_lang_standard, locks, audit_logs)
 VALUES ('daidoi460', 'A2', '{}'::jsonb, '[]'::jsonb)
 ON CONFLICT (unit_id) DO NOTHING;
 
--- =====================================================================================
--- BẬT RLS KÈM POLICY FULL QUYỀN CHO ANON & AUTHENTICATED
--- (Khắc phục triệt để 8 cảnh báo đỏ "Policy Exists RLS Disabled" trên Supabase Advisor)
--- =====================================================================================
-ALTER TABLE public.students ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.subjects ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.grades ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.languages ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.unit_settings ENABLE ROW LEVEL SECURITY;
+-- Thêm bảng vào publication sẵn có để các phiên khác nhận được cập nhật.
+-- Không tự tạo publication nếu môi trường không có Supabase Realtime.
+DO $realtime$
+DECLARE
+  target_table TEXT;
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_publication WHERE pubname = 'supabase_realtime' AND NOT puballtables) THEN
+    FOREACH target_table IN ARRAY ARRAY['students', 'subjects', 'grades', 'languages', 'unit_settings']
+    LOOP
+      IF NOT EXISTS (
+        SELECT 1 FROM pg_publication_tables
+        WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = target_table
+      ) THEN
+        EXECUTE format('ALTER PUBLICATION supabase_realtime ADD TABLE public.%I', target_table);
+      END IF;
+    END LOOP;
+  END IF;
+END
+$realtime$;
 
-GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
-GRANT ALL PRIVILEGES ON TABLE public.students TO anon, authenticated, service_role;
-GRANT ALL PRIVILEGES ON TABLE public.subjects TO anon, authenticated, service_role;
-GRANT ALL PRIVILEGES ON TABLE public.grades TO anon, authenticated, service_role;
-GRANT ALL PRIVILEGES ON TABLE public.languages TO anon, authenticated, service_role;
-GRANT ALL PRIVILEGES ON TABLE public.unit_settings TO anon, authenticated, service_role;
-
-DROP POLICY IF EXISTS "allow_anon_all_students" ON public.students;
-CREATE POLICY "allow_anon_all_students" ON public.students FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
-
-DROP POLICY IF EXISTS "allow_anon_all_subjects" ON public.subjects;
-CREATE POLICY "allow_anon_all_subjects" ON public.subjects FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
-
-DROP POLICY IF EXISTS "allow_anon_all_grades" ON public.grades;
-CREATE POLICY "allow_anon_all_grades" ON public.grades FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
-
-DROP POLICY IF EXISTS "allow_anon_all_languages" ON public.languages;
-CREATE POLICY "allow_anon_all_languages" ON public.languages FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
-
-DROP POLICY IF EXISTS "allow_anon_all_unit_settings" ON public.unit_settings;
-CREATE POLICY "allow_anon_all_unit_settings" ON public.unit_settings FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
-
--- Làm mới bộ nhớ đệm Schema của PostgREST ngay lập tức
 NOTIFY pgrst, 'reload schema';
+COMMIT;

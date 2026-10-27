@@ -1,6 +1,12 @@
 [build]
-  command = ""
-  publish = "."
+  command = "npm run build"
+  publish = "dist"
+
+# Preserve bookmarks to the former duplicate HTML page.
+[[redirects]]
+  from = "/quan_ly_diem_dai_doi.html"
+  to = "/"
+  status = 301
 
 [[redirects]]
   from = "/*"

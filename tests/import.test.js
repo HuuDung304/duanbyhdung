@@ -3,12 +3,9 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 
-const variants = ['src/js/supabase.js', 'supabase.js', 'quan_ly_diem_dai_doi.js', 'index.html', 'quan_ly_diem_dai_doi.html'];
+const variants = ['src/js/supabase.js'];
 function supabase(file, handler = () => new Response('[]')) {
   let source = readFileSync(file, 'utf8');
-  if (!file.endsWith('supabase.js')) {
-    source = source.split('// --- MODULE: src/js/supabase.js ---')[1].split('// --- MODULE: src/js/grades.js ---')[0];
-  }
   source = source.replace(/^export default .*;$/gm, '').replace(/^export /gm, '');
   const timers = new Set();
   const requests = [];
@@ -123,7 +120,7 @@ function importContext(file = 'src/js/grades.js', overrides = {}) {
   return { context, messages, writes, button };
 }
 
-for (const variant of ['src/js/grades.js', 'grades.js', 'quan_ly_diem_dai_doi.js', 'index.html', 'quan_ly_diem_dai_doi.html']) {
+for (const variant of ['src/js/grades.js']) {
   test(`${variant}: imports comma decimals, writes only imported students, prevents double submit`, async () => {
     const { context, messages, writes } = importContext(variant);
     context.AppState.students.push({ id: 'unrelated', code: 'OTHER', name: 'Khác', class: 'OTQS1' });
@@ -156,7 +153,7 @@ for (const variant of ['src/js/grades.js', 'grades.js', 'quan_ly_diem_dai_doi.js
   });
 }
 
-for (const variant of ['src/js/students.js', 'students.js', 'quan_ly_diem_dai_doi.js', 'index.html', 'quan_ly_diem_dai_doi.html']) {
+for (const variant of ['src/js/students.js']) {
   test(`${variant}: absent optional columns do not read other fields`, () => {
     const source = readFileSync(variant, 'utf8');
     const start = source.indexOf('function detectExcelColumnMapping(');
@@ -219,7 +216,7 @@ for (const variant of variants) {
   });
 }
 
-for (const variant of ['src/js/grades.js', 'grades.js', 'quan_ly_diem_dai_doi.js', 'index.html', 'quan_ly_diem_dai_doi.html']) {
+for (const variant of ['src/js/grades.js']) {
   test(`${variant}: closes the import dialog before rendering the saved rows`, async () => {
     const order = [];
     const { context } = importContext(variant, {
@@ -259,7 +256,7 @@ for (const variant of ['src/js/grades.js', 'grades.js', 'quan_ly_diem_dai_doi.js
   });
 }
 
-for (const variant of ['src/js/grades.js', 'grades.js', 'quan_ly_diem_dai_doi.js', 'index.html', 'quan_ly_diem_dai_doi.html']) {
+for (const variant of ['src/js/grades.js']) {
   test(`${variant}: Excel validation errors are displayed as text, not HTML`, () => {
     const source = readFileSync(variant, 'utf8');
     const start = source.indexOf('function showToast(');

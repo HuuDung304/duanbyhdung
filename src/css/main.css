@@ -33,7 +33,27 @@ body {
   background: #64748b;
 }
 
-/* Tab Content Visibility Utility */
+/* Tab Content & Modal Overlay Visibility Guard */
+.hidden {
+  display: none !important;
+}
+
+.fixed.hidden {
+  display: none !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  z-index: -1 !important;
+}
+
+#toastContainer {
+  pointer-events: none !important;
+}
+
+#toastContainer > * {
+  pointer-events: auto;
+}
+
 .tab-content.hidden {
   display: none !important;
 }
