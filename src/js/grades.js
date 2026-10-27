@@ -3945,6 +3945,17 @@ export async function executeExcelImport() {
     let createdStudentsCount = 0;
     const createdStudents = [];
     const newSubjectsMap = new Map();
+    const studentsByCode = new Map();
+    const studentsByName = new Map();
+    const studentsByNameAndClass = new Map();
+    const indexStudent = student => {
+      studentsByCode.set(String(student.code).toUpperCase(), student);
+      const name = String(student.name).toLowerCase();
+      if (!studentsByName.has(name)) studentsByName.set(name, student);
+      const scopedName = `${student.class}\0${name}`;
+      if (!studentsByNameAndClass.has(scopedName)) studentsByNameAndClass.set(scopedName, student);
+    };
+    AppState.students.forEach(indexStudent);
 
     const activeYearNum = fileYearHint || parseInt(AppState.currentSheetSemester, 10) || 1;
     const sem1OfYear = 2 * activeYearNum - 1;
@@ -4016,6 +4027,7 @@ export async function executeExcelImport() {
         subjectColumnDescriptors.push({
           colIdx,
           rawHeader: h,
+          resolvedByClass: new Map(),
           positionalSemHint,
           headerInfo
         });
@@ -4046,9 +4058,8 @@ export async function executeExcelImport() {
       }
 
       if ((!studentCode || /^\d{1,3}$/.test(studentCode)) && studentName) {
-        const byName = AppState.students.find(
-          s => s.name.toLowerCase() === studentName.toLowerCase() && (!rowCls || s.class === rowCls)
-        ) || AppState.students.find(s => s.name.toLowerCase() === studentName.toLowerCase());
+        const byName = studentsByNameAndClass.get(`${rowCls}\0${studentName.toLowerCase()}`)
+          || studentsByName.get(studentName.toLowerCase());
         if (byName) {
           studentCode = byName.code.toUpperCase();
         } else {
@@ -4057,7 +4068,7 @@ export async function executeExcelImport() {
       }
       if (!studentCode) return;
 
-      let student = AppState.students.find(s => s.code.toLowerCase() === studentCode.toLowerCase());
+      let student = studentsByCode.get(studentCode);
 
       // Nếu học viên trong file Excel chưa có trong danh sách, tự động tạo mới học viên đó
       if (!student) {
@@ -4094,6 +4105,7 @@ export async function executeExcelImport() {
           itStandard: 'Đạt chuẩn CNTT cơ bản'
         };
         AppState.students.push(student);
+        indexStudent(student);
         AppState.grades[newId] = {};
         AppState.languages[newId] = {
           lang: 'Tiếng Nga',
@@ -4124,14 +4136,18 @@ export async function executeExcelImport() {
           throw new Error(`Điểm không hợp lệ tại dòng dữ liệu ${rIdx + 1}, cột ${desc.rawHeader}: ${rawScore}`);
         }
 
-        const targetSubject = resolveSubjectByCompositeKey({
-          headerInfo: desc.headerInfo,
-          studentClass: student.class,
-          semesterHint: desc.positionalSemHint,
-          yearHint: activeYearNum,
-          autoCreate: true,
-          newSubjectsMap
-        });
+        let targetSubject = desc.resolvedByClass.get(student.class);
+        if (!targetSubject) {
+          targetSubject = resolveSubjectByCompositeKey({
+            headerInfo: desc.headerInfo,
+            studentClass: student.class,
+            semesterHint: desc.positionalSemHint,
+            yearHint: activeYearNum,
+            autoCreate: true,
+            newSubjectsMap
+          });
+          if (targetSubject) desc.resolvedByClass.set(student.class, targetSubject);
+        }
 
         if (targetSubject && targetSubject.id) {
           const rounded = Math.round(num * 10) / 10;

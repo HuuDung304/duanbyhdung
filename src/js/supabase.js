@@ -187,6 +187,7 @@ function createRestFallbackClient(baseUrl, apiKey) {
       return this;
     }
     upsert(payload, opts = {}) {
+      this.preferHeaders[0] = 'return=minimal';
       this.method = 'POST';
       this.bodyData = payload;
       this.preferHeaders.push(opts.ignoreDuplicates ? 'resolution=ignore-duplicates' : 'resolution=merge-duplicates');
@@ -271,7 +272,7 @@ function createRestFallbackClient(baseUrl, apiKey) {
           return { data: null, error: parsedErr };
         }
         const text = await res.text();
-        const parsed = text ? JSON.parse(text) : [];
+        const parsed = text ? JSON.parse(text) : (this.method === 'GET' ? [] : null);
         if (this.isMaybeSingle || this.isSingle) {
           const item = Array.isArray(parsed) ? (parsed[0] || null) : parsed;
           return { data: item, error: null };
@@ -542,10 +543,10 @@ export function mapDbRowToLanguage(row) {
 }
 
 /**
- * Hàm Upsert thông minh chống Race Condition & tự động thích ứng Schema:
+ * Hàm Upsert dùng khóa UNIQUE và báo rõ lỗi schema:
  * - Tận dụng ràng buộc UNIQUE trên database (`id`, `code`, `student_id,subject_id`) để gộp an toàn
  *   khi 70-80 người cùng thao tác đồng thời.
- * - Tự động thích ứng nếu bảng trên Supabase thiếu một số cột mở rộng (lỗi PGRST204 / 42703).
+ * - Dừng khi thiếu cột (PGRST204 / 42703), không bỏ dữ liệu để tiếp tục.
  * - Kết hợp `executeWithRetry` để tự động thử lại nếu mạng chập chờn khi tải cao.
  */
 async function safeUpsertRows(client, tableName, rowsInput, primaryConflictCol = 'id', fallbackConflictCol = null, ignoreDuplicates = false) {
@@ -556,7 +557,7 @@ async function safeUpsertRows(client, tableName, rowsInput, primaryConflictCol =
   let workingRows = rowsArray.map(r => ({ ...r }));
   let conflictCol = primaryConflictCol;
 
-  for (let attempt = 0; attempt < 18; attempt++) {
+  for (let attempt = 0; attempt < 2; attempt++) {
     const res = await executeWithRetry(
       () => client.from(tableName).upsert(workingRows, { onConflict: conflictCol, ignoreDuplicates }),
       { maxAttempts: 3, baseDelayMs: 140 }
@@ -602,17 +603,53 @@ async function safeUpsertRows(client, tableName, rowsInput, primaryConflictCol =
 // CÁC HÀM TRUY VẤN TRỰC TIẾP TRÊN SUPABASE (SELECT, INSERT, UPDATE, DELETE)
 // ============================================================================
 
+// Limit both record count and UTF-8 payload size. Keep requests sequential so one
+// browser does not multiply concurrent writes when many users import together.
+function createWriteBatches(rows, maxRows = 500, maxBytes = 256 * 1024) {
+  const encoder = new TextEncoder();
+  const batches = [];
+  let batch = [];
+  let bytes = 2; // JSON array brackets
+  for (const row of rows) {
+    const rowBytes = encoder.encode(JSON.stringify(row)).byteLength;
+    if (rowBytes + 2 > maxBytes) {
+      throw new Error(`Một bản ghi vượt giới hạn ${maxBytes / 1024} KiB; hãy rút gọn nội dung trước khi nhập.`);
+    }
+    if (batch.length && (batch.length >= maxRows || bytes + rowBytes + 1 > maxBytes)) {
+      batches.push(batch);
+      batch = [];
+      bytes = 2;
+    }
+    batch.push(row);
+    bytes += rowBytes + 1;
+  }
+  if (batch.length) batches.push(batch);
+  return batches;
+}
+
+async function upsertBatches(client, table, rows, conflict, fallback = null, ignoreDuplicates = false, maxRows = 500) {
+  const batches = createWriteBatches(rows, maxRows);
+  let processedCount = 0;
+  for (let index = 0; index < batches.length; index++) {
+    const result = await safeUpsertRows(client, table, batches[index], conflict, fallback, ignoreDuplicates);
+    if (result?.error) return { ...result, processedCount, failedBatch: index + 1 };
+    processedCount += batches[index].length;
+  }
+  // processedCount counts acknowledged inputs, including ignored duplicates.
+  return { data: null, error: null, processedCount };
+}
+
 // Single-flight Promise giúp gom các yêu cầu tải toàn bộ dữ liệu trùng lặp trên cùng 1 máy
 const inFlightLoads = new Map();
 
 // Read every page: Supabase limits the number of rows returned by one request.
 // A stable ordering prevents records moving between page boundaries.
-async function loadTablePages(client, table, orderColumns) {
+async function loadTablePages(client, table, orderColumns, columns = '*') {
   const pageSize = 1000;
   const rows = [];
   for (let offset = 0; ; offset += pageSize) {
     const result = await executeWithRetry(() => {
-      let query = client.from(table).select('*');
+      let query = client.from(table).select(columns);
       for (const column of orderColumns) query = query.order(column, { ascending: true });
       return query.range(offset, offset + pageSize - 1);
     });
@@ -639,9 +676,9 @@ export async function loadAllDataFromSupabase(unitId = 'daidoi460') {
     const [studentsRes, subjectsRes, gradesRes, languagesRes, settingsRes] = await Promise.all([
       loadTablePages(client, TABLES.STUDENTS, ['code']),
       loadTablePages(client, TABLES.SUBJECTS, ['semester', 'id']),
-      loadTablePages(client, TABLES.GRADES, ['student_id', 'subject_id']),
+      loadTablePages(client, TABLES.GRADES, ['student_id', 'subject_id'], 'student_id,subject_id,score'),
       loadTablePages(client, TABLES.LANGUAGES, ['student_id']),
-      executeWithRetry(() => client.from(TABLES.UNIT_SETTINGS).select('*').eq('unit_id', unitId).maybeSingle())
+      executeWithRetry(() => client.from(TABLES.UNIT_SETTINGS).select('unit_id,required_lang_standard,locks,audit_logs').eq('unit_id', unitId).maybeSingle())
     ]);
 
     if (settingsRes.error) {
@@ -787,7 +824,7 @@ export async function upsertStudentToSupabase(student, langObj = null) {
  * 4. Thêm/Cập nhật hàng loạt Học viên (Khi nhập nhanh từ file Excel)
  *    - Khử trùng lặp theo `code` trong cùng 1 file Excel
  *    - Tự động đối chiếu `id` hiện có trên bảng `students` để không bao giờ bị lỗi trùng `code` (23505)
- *    - Chia batch 50 bản ghi/lần; báo lỗi nếu schema thiếu cột
+ *    - Chia lô tối đa 200 học viên/256 KiB; báo lỗi nếu schema thiếu cột
  */
 export async function upsertStudentsBulkToSupabase(studentsList = [], languagesMap = {}, { createOnly = false } = {}) {
   if (!Array.isArray(studentsList) || studentsList.length === 0) return { data: [], error: null };
@@ -834,14 +871,9 @@ export async function upsertStudentsBulkToSupabase(studentsList = [], languagesM
     const studentRows = Array.from(dedupedByCode.values());
     if (studentRows.length === 0) return { data: [], error: null };
 
-    const BATCH_SIZE = 50;
-    for (let i = 0; i < studentRows.length; i += BATCH_SIZE) {
-      const chunk = studentRows.slice(i, i + BATCH_SIZE);
-      const res = await safeUpsertRows(client, TABLES.STUDENTS, chunk, 'code', createOnly ? null : 'id', createOnly);
-      if (res && res.error) {
-        return res;
-      }
-    }
+    const studentsResult = await upsertBatches(client, TABLES.STUDENTS, studentRows,
+      'code', createOnly ? null : 'id', createOnly, 200);
+    if (studentsResult.error) return studentsResult;
 
     // Profile Excel files contain no language columns; preserve existing certificates.
     const langRows = studentRows.filter(sr => !existingCodeToId.has(sr.code)).map(sr => {
@@ -858,11 +890,9 @@ export async function upsertStudentsBulkToSupabase(studentsList = [], languagesM
       return mapLanguageToDbRow(sr.id, l);
     });
 
-    for (let i = 0; i < langRows.length; i += BATCH_SIZE) {
-      const chunk = langRows.slice(i, i + BATCH_SIZE);
-      const res = await safeUpsertRows(client, TABLES.LANGUAGES, chunk, 'student_id', null, true);
-      if (res.error) return res;
-    }
+    const languagesResult = await upsertBatches(client, TABLES.LANGUAGES, langRows,
+      'student_id', null, true, 250);
+    if (languagesResult.error) return languagesResult;
 
     return { data: studentRows, error: null };
   } finally {
@@ -932,14 +962,7 @@ export async function upsertSubjectsBulkToSupabase(subjectsList = []) {
   const client = getSupabaseClient();
   beginSupabaseWrite();
   try {
-    const BATCH_SIZE = 50;
-    let lastRes = { data: [], error: null };
-    for (let i = 0; i < rows.length; i += BATCH_SIZE) {
-      const chunk = rows.slice(i, i + BATCH_SIZE);
-      lastRes = await safeUpsertRows(client, TABLES.SUBJECTS, chunk, 'id');
-      if (lastRes.error) return lastRes;
-    }
-    return lastRes;
+    return await upsertBatches(client, TABLES.SUBJECTS, rows, 'id', null, false, 250);
   } finally {
     endSupabaseWrite();
   }
@@ -1058,14 +1081,7 @@ export async function upsertGradesBulkToSupabase(gradeEntries = []) {
 
   beginSupabaseWrite();
   try {
-    const BATCH_SIZE = 100;
-    let lastRes = { data: [], error: null };
-    for (let i = 0; i < rows.length; i += BATCH_SIZE) {
-      const chunk = rows.slice(i, i + BATCH_SIZE);
-      lastRes = await safeUpsertRows(client, TABLES.GRADES, chunk, 'student_id,subject_id', 'id');
-      if (lastRes.error) return lastRes;
-    }
-    return lastRes;
+    return await upsertBatches(client, TABLES.GRADES, rows, 'student_id,subject_id', 'id');
   } finally {
     endSupabaseWrite();
   }

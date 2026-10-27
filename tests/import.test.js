@@ -10,7 +10,7 @@ function supabase(file, handler = () => new Response('[]')) {
   const timers = new Set();
   const requests = [];
   const context = vm.createContext({
-    console: { warn() {}, error() {} }, URL, Date,
+    console: { warn() {}, error() {} }, URL, Date, TextEncoder,
     fetch: async (url, options) => {
       const request = { url: new URL(url), options };
       requests.push(request);
@@ -73,7 +73,7 @@ for (const variant of variants) {
       }
       return ok([]);
     });
-    const result = await api.upsertGradesBulkToSupabase(Array.from({ length: 101 }, (_, i) => ({ studentId: 'hv_one', subjectId: `s${i}`, score: 7 })));
+    const result = await api.upsertGradesBulkToSupabase(Array.from({ length: 501 }, (_, i) => ({ studentId: 'hv_one', subjectId: `s${i}`, score: 7 })));
     assert.match(result.error.message, /thiếu cột score/);
     assert.equal(writes, 1);
   });
@@ -274,3 +274,74 @@ for (const variant of ['src/js/grades.js']) {
     assert.ok(!toast.innerHTML.includes(maliciousCell));
   });
 }
+
+test('10,000 grade rows use 20 bounded requests, preserve scores and request minimal responses', async () => {
+  let active = 0;
+  let peak = 0;
+  const { api, requests } = supabase('src/js/supabase.js', async ({ options }) => {
+    active++;
+    peak = Math.max(peak, active);
+    await Promise.resolve();
+    active--;
+    assert.match(options.headers.Prefer, /return=minimal/);
+    return new Response(null, { status: 204 });
+  });
+  const rows = Array.from({ length: 10000 }, (_, i) => ({ studentId: 'hv_one', subjectId: `s${i}`, score: i % 11 }));
+  const result = await api.upsertGradesBulkToSupabase(rows);
+  assert.equal(result.error, null);
+  assert.equal(result.processedCount, 10000);
+  assert.equal(requests.length, 20);
+  assert.equal(peak, 1);
+  const written = requests.flatMap(request => JSON.parse(request.options.body));
+  assert.equal(written.length, 10000);
+  assert.equal(written.at(-1).score, rows.at(-1).score);
+  for (const request of requests) assert.ok(Buffer.byteLength(request.options.body) <= 256 * 1024);
+});
+
+test('UTF-8 profile payloads are split by bytes and retain every imported student', async () => {
+  const { api, requests } = supabase('src/js/supabase.js', () => ok([]));
+  const rows = Array.from({ length: 70 }, (_, i) => ({ code: `HV${i}`, name: 'Đ'.repeat(4000), class: 'OTQS1' }));
+  const result = await api.upsertStudentsBulkToSupabase(rows);
+  assert.equal(result.error, null);
+  const writes = requests.filter(request => request.options.method === 'POST' && request.url.pathname.endsWith('/students'));
+  assert.ok(writes.length > 1);
+  assert.equal(writes.flatMap(request => JSON.parse(request.options.body)).length, 70);
+  for (const request of writes) assert.ok(Buffer.byteLength(request.options.body) <= 256 * 1024);
+});
+
+test('a failed second grade batch reports acknowledged inputs and stops further writes', async () => {
+  let writes = 0;
+  const { api } = supabase('src/js/supabase.js', () => ++writes === 2 ? failure() : ok([]));
+  const result = await api.upsertGradesBulkToSupabase(Array.from({ length: 1200 }, (_, i) => ({ studentId: 'hv', subjectId: `s${i}`, score: 8 })));
+  assert.ok(result.error);
+  assert.equal(result.processedCount, 500);
+  assert.equal(result.failedBatch, 2);
+  assert.equal(writes, 2);
+});
+
+test('downloads project only grade fields used by reports while preserving pagination', async () => {
+  const { api, requests } = supabase('src/js/supabase.js');
+  await api.loadAllDataFromSupabase();
+  const grades = requests.find(request => request.url.pathname.endsWith('/grades'));
+  assert.equal(grades.url.searchParams.get('select'), 'student_id,subject_id,score');
+});
+
+test('import resolves a subject once per column/class rather than once per score cell', async () => {
+  let resolutions = 0;
+  const { context, writes } = importContext('src/js/grades.js', {
+    resolveSubjectByCompositeKey: () => { resolutions++; return { id: 'math' }; },
+  });
+  context.AppState.students = Array.from({ length: 1000 }, (_, i) => ({ id: `hv_${i}`, code: `HV${i}`, name: `Học viên ${i}`, class: 'OTQS1' }));
+  context.parsedImportData.rows = context.AppState.students.map(student => [student.code, student.name, student.class, '7,5']);
+  await context.executeExcelImport();
+  assert.equal(resolutions, 1);
+  assert.equal(writes.length, 1);
+  assert.equal(writes[0].length, 1000);
+  assert.equal(writes[0].at(-1).score, 7.5);
+});
+
+test('oversized individual profiles fail before any write instead of exceeding the payload limit', async () => {
+  const { api, requests } = supabase('src/js/supabase.js', () => ok([]));
+  await assert.rejects(api.upsertStudentsBulkToSupabase([{ code: 'HV01', name: 'Đ'.repeat(150000) }]), /vượt giới hạn 256 KiB/);
+  assert.equal(requests.filter(request => request.options.method === 'POST').length, 0);
+});

@@ -58,3 +58,9 @@ Script bổ sung bảng/cột còn thiếu, bảo đảm khóa UNIQUE cần cho 
 Nếu có mã học viên trùng hoặc điểm trùng cặp học viên/môn, PostgreSQL sẽ dừng và rollback toàn bộ script. Giữ nguyên dữ liệu và kiểm tra thông báo lỗi trước khi xử lý; script không tự xóa dòng trùng. Các cột đã bị bỏ qua trong lần nhập trước cần nhập lại từ file gốc sau khi sửa schema.
 
 URL cũ `/quan_ly_diem_dai_doi.html` được Netlify chuyển hướng sang trang chính; các file bản sao đã được xóa. SQL, tài liệu và kiểm thử không nằm trong `dist/`.
+
+## Hiệu năng đọc/ghi dữ liệu
+
+Nhập điểm dùng bảng tra cứu học viên và cache môn học theo cột/lớp trong từng lần nhập, tránh quét lại danh sách cho mọi ô điểm. Cache không được dùng lại giữa các lần nhập. Ghi theo lô tuần tự: tối đa 500 điểm, 200 hồ sơ hoặc 250 môn/chứng chỉ; mỗi payload tối đa 256 KiB tính theo UTF-8. Bản ghi đơn vượt giới hạn được báo lỗi trước khi ghi lô đó. REST dự phòng dùng `return=minimal`, không tải ngược bản ghi vừa ghi.
+
+Đọc điểm chỉ lấy `student_id,subject_id,score`, vẫn phân trang để giữ đủ dữ liệu cho bảng và xuất Excel. Kết quả kiểm thử giả lập: 10.000 điểm dùng 20 yêu cầu ghi thay vì 100 như trước; 1.000 ô cùng môn/lớp chỉ đối chiếu danh mục môn một lần thay vì 1.000 lần. Đây là số yêu cầu/lượt tra cứu, không phải cam kết thời gian trên Supabase thật. Bản tối ưu này không yêu cầu thay đổi schema mới; các khóa upsert vẫn theo `supabase_schema.sql`.

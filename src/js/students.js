@@ -1155,11 +1155,12 @@ export async function executeQuickImport() {
   try {
     const importedCount = quickImportParsedRows.length;
     const importedStudents = [];
+    const studentsByCode = new Map(AppState.students.map(student => [student.code.toUpperCase(), student]));
 
     quickImportParsedRows.forEach(item => {
       if (classScope) item.class = classScope;
       const cleanCode = String(item.code || '').trim().toUpperCase();
-      const existing = AppState.students.find(x => x.code.toUpperCase() === cleanCode);
+      const existing = studentsByCode.get(cleanCode);
       const { isUpdate, ...cleanItem } = item;
 
       if (existing) {
@@ -1189,7 +1190,9 @@ export async function executeQuickImport() {
           currentLangLevel: 'A2',
           itStandard: 'Đạt chuẩn CNTT cơ bản'
         });
-        importedStudents.push(AppState.students[AppState.students.length - 1]);
+        const addedStudent = AppState.students[AppState.students.length - 1];
+        studentsByCode.set(cleanCode, addedStudent);
+        importedStudents.push(addedStudent);
         if (!AppState.grades[newId]) AppState.grades[newId] = {};
         if (!AppState.languages[newId]) {
           AppState.languages[newId] = {

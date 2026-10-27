@@ -32,7 +32,7 @@ const assert=require('node:assert/strict');
    return route.fulfill({contentType:url.hostname==='cdn.jsdelivr.net'?'text/javascript':'text/css',body:''});
   });
   const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')console.error('browser console:',m.text())});
-  await page.goto('http://127.0.0.1:3000',{waitUntil:'networkidle'});
+  await page.goto(process.env.TEST_BASE_URL||'http://127.0.0.1:3000',{waitUntil:'networkidle'});
   await page.evaluate(()=>{document.getElementById('loginAdminUser').value='huudung';document.getElementById('loginAdminPass').value='hd304';document.getElementById('formAdminLogin').dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));});
   await page.waitForFunction(()=>window.AppState?.role==='admin');
   return page;
