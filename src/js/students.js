@@ -113,10 +113,10 @@ export function renderStudentView() {
   setElText('studentMetricYear', rank);
   setElText('studentMetricRank', debts.length > 0 ? `Rớt ${debts.length} học phần (< 4.0)` : `Đạt 100% học phần`);
   const langEval = evaluateLangLevelStatus(student.currentLangLevel || 'Chưa đạt', AppState.requiredLangStandard);
-  setElText('studentMetricLang', `${student.currentLangLevel || 'Chưa đạt'} (${langEval.isPassed ? 'Đạt chuẩn' : 'Chưa đạt'})`);
+  setElText('studentMetricLang', `Trình độ hiện tại: ${langEval.actualLevel}`);
   const languageMetric = document.getElementById('studentMetricLang');
   if (languageMetric) languageMetric.style.color = langEval.isPassed ? '#047857' : '#be123c';
-  setElText('studentMetricLangSub', `Chuẩn yêu cầu hiện tại: ${langEval.requiredStandard} • ${langEval.statusText}`);
+  setElText('studentMetricLangSub', `${langEval.isPassed ? 'Đạt' : 'Chưa đạt'} yêu cầu hiện tại ${langEval.requiredStandard}`);
   setElText('studentMetricAchievements', achList.length > 0 ? achList.join(' • ') : 'Chưa có danh hiệu');
   setElText('studentMetricAchievementsSub', `${achList.length} danh hiệu lưu trữ`);
 

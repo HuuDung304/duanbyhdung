@@ -119,6 +119,15 @@ const assert = require('node:assert/strict');
   const officerWrites = writes.length - before;
   // The cadet's own form has year-only parents and the same status-dependent dates.
   await page.evaluate(() => { window.AuthState.setUser({ type: 'student', code: 'HVTEST', studentId: 'hv_test', class: 'OTQS1' }); window.switchTab('tab-profiles'); });
+  await page.evaluate(async () => {
+    const { renderStudentView } = await import('/src/js/students.js');
+    window.AppState.students[0].currentLangLevel = 'A2.1';
+    window.AppState.requiredLangStandard = 'A2';
+    renderStudentView();
+  });
+  assert.equal(await page.locator('#studentMetricLang').textContent(), 'Trình độ hiện tại: A2.1');
+  assert.equal(await page.locator('#studentMetricLangSub').textContent(), 'Chưa đạt yêu cầu hiện tại A2');
+  assert.equal(await page.locator('#studentMetricLang').evaluate(element => getComputedStyle(element).color), 'rgb(190, 18, 60)');
   assert.equal(await page.locator('#inlineFatherDob').inputValue(), '1975');
   assert.equal(await page.locator('#inlineProfPartyJoined').isDisabled(), true);
   assert.equal(await page.locator('#inlineProfItStandard,#inlineFatherDobMode,#inlineMotherDobMode').count(), 0);
