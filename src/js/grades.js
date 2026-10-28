@@ -1852,7 +1852,7 @@ export function renderMasterTable() {
 
   const thSemCol = document.getElementById('masterThScoreLabel');
   if (thSemCol) {
-    thSemCol.textContent = semFilter === 'all' ? 'ĐTB Toàn Khóa' : `ĐTB Học Kỳ ${semFilter}`;
+    thSemCol.textContent = semFilter === 'all' ? 'ĐTB Cả Năm' : `ĐTB Học Kỳ ${semFilter}`;
   }
 
   let filtered = getScopedStudents();
@@ -3598,7 +3598,7 @@ export function exportMasterExcel() {
   const semFilter = AppState.masterFilters.semester || 'all';
   const headers = [
     'STT', 'Mã HV', 'Họ và Tên', 'Cấp bậc', 'Lớp', 'Ngày sinh',
-    'ĐTB HK1', 'ĐTB HK2', semFilter === 'all' ? 'ĐTB Toàn khóa' : `ĐTB Học kỳ ${semFilter}`,
+    'ĐTB HK1', 'ĐTB HK2', semFilter === 'all' ? 'ĐTB Cả Năm' : `ĐTB Học kỳ ${semFilter}`,
     'Xếp loại Học lực', 'Học phần rớt (< 4.0)'
   ];
 
