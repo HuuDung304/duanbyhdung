@@ -1550,6 +1550,37 @@ export function updatePartyDatesDisplay(status, joinedId = 'profFormPartyJoinedD
   }
 }
 
+export function exportCadetRoster() {
+  if (!['admin', 'company_officer'].includes(AppState.role) && !AppState.role?.startsWith('class_leader_')) {
+    showToast('Tài khoản không có quyền tải danh sách trích ngang.', 'error'); return;
+  }
+  const students = getScopedStudents();
+  if (!students.length) { showToast('Chưa có học viên để xuất danh sách.', 'error'); return; }
+  const enlistment = value => {
+    const text = String(value || '').trim();
+    const iso = text.match(/^(\d{4})-(\d{1,2})(?:-\d{2})?$/);
+    const month = text.match(/^(\d{1,2})[/-](\d{4})$/);
+    if (iso && Number(iso[2]) >= 1 && Number(iso[2]) <= 12) return `${iso[2].padStart(2, '0')}/${iso[1]}`;
+    if (month && Number(month[1]) >= 1 && Number(month[1]) <= 12) return `${month[1].padStart(2, '0')}/${month[2]}`;
+    return text;
+  };
+  const relative = (student, key, label) => {
+    const fields = [[label, student[`${key}_name`]], ['Nghề nghiệp', student[`${key}_job`]], ['Quê quán', student[`${key}_hometown`]]];
+    return fields.some(([, value]) => String(value || '').trim()) ? fields.map(([title, value]) => `${title}: ${value || ''}`).join('\n') : '';
+  };
+  const headers = ['STT', 'Mã HV', 'Họ và Tên', 'Cấp bậc', 'Lớp', 'Chức vụ', 'Ngày sinh', 'Nhập ngũ', 'Quê quán', 'Nơi ở hiện nay', 'Số điện thoại', 'Thân nhân', '', 'Ghi chú'];
+  const rows = students.map((student, index) => [index + 1, String(student.code || ''), student.name, student.rank || '', student.class,
+    student.position || student.role || '', normalizeDateVN(student.dob, ''), enlistment(student.enlistmentDate), student.hometown || '', student.currentAddress || '',
+    String(student.phone || ''), relative(student, 'father', 'Bố'), relative(student, 'mother', 'Mẹ'), '']);
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+  ws['!merges'] = [{ s: { r: 0, c: 11 }, e: { r: 0, c: 12 } }];
+  ws['!reportHeaderRows'] = [1];
+  ws['!cols'] = [7, 18, 28, 15, 12, 18, 18, 16, 30, 30, 20, 32, 32, 28].map(wch => ({ wch }));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Danh_sach_trich_ngang');
+  writeReportWorkbook(wb, 'Danh sách trích ngang.xlsx');
+}
+
 export function exportStudentProfiles(className, filterStatus, position) {
   const classScope = getCurrentUserClassScope();
   const targetClass = (AppState.role === 'student' ? getScopedStudents()[0]?.class : null) || classScope || className || document.getElementById('profileFilterClass')?.value || 'all';

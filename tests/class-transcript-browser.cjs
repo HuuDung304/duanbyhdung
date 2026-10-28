@@ -14,7 +14,7 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
    for(const type of ['admin','company_officer','class_account']) {
     await page.evaluate(type=>window.AuthState.setUser({type,class:'OTQS1',displayName:'Kiểm thử'}),type);
     await page.evaluate(()=>window.switchTab('tab-reports'));
-    assert.equal(await page.locator('button[id^="btnExport"]').count(),2);
+    assert.equal(await page.locator('button[id^="btnExport"]').count(),3);
     const selector=page.locator('#reportsClassSelect');
     if(type==='class_account') {
      assert.equal(await selector.isDisabled(),true); assert.equal(await selector.inputValue(),'OTQS1');
@@ -27,6 +27,17 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
     assert.deepEqual(await page.locator('#cumulativeTableBody .select-cumul-lang').first().locator('option').evaluateAll(items=>items.map(item=>item.value)),['A1','A21','A2','B11','B1']);
     assert.deepEqual(await page.locator('#tab-cumulative .required-lang-standard-select').first().locator('option').evaluateAll(items=>items.map(item=>item.value)),['A1','A21','A2','B11','B1']);
     await page.evaluate(()=>window.switchTab('tab-reports'));
+    await page.evaluate(()=>Object.assign(window.AppState.students.find(s=>s.id==='s1'),{phone:'0912345678',enlistmentDate:'9/2024',father_name:'Nguyễn Văn A',father_job:'Công nhân',father_hometown:'Hà Tĩnh',mother_name:'Trần Thị B',mother_job:'Giáo viên',mother_hometown:'Hà Nội'}));
+    const rosterPending=page.waitForEvent('download'); await page.locator('#btnExportCadetRoster').click();
+    const rosterFile=await rosterPending; assert.equal(rosterFile.suggestedFilename(),'Danh sách trích ngang.xlsx');
+    const rosterBook=XLSX.read(fs.readFileSync(await rosterFile.path()),{type:'buffer'}),rosterSheet=rosterBook.Sheets[rosterBook.SheetNames[0]];
+    const cadets=XLSX.utils.sheet_to_json(rosterSheet,{header:1,defval:''});
+    assert.deepEqual(cadets[0],['STT','Mã HV','Họ và Tên','Cấp bậc','Lớp','Chức vụ','Ngày sinh','Nhập ngũ','Quê quán','Nơi ở hiện nay','Số điện thoại','Thân nhân','','Ghi chú']);
+    assert.equal(cadets.length,type==='class_account'?3:4);
+    const cadet=cadets.find(row=>row[1]==='HV001'); assert.equal(cadet[6],'01/02/2003');assert.equal(cadet[7],'09/2024');assert.equal(cadet[10],'0912345678');
+    assert.match(cadet[11],/Bố: Nguyễn Văn A\nNghề nghiệp: Công nhân\nQuê quán: Hà Tĩnh/);assert.match(cadet[12],/Mẹ: Trần Thị B/);assert.equal(cadet[13],'');
+    assert.equal(rosterSheet['!merges'][0].s.c,11); assert.equal(rosterSheet['!merges'][0].e.c,12);
+    assert.equal(cadets.some(row=>row[1]==='HV003'),type!=='class_account');
     const russianPending=page.waitForEvent('download');await page.locator('#btnExportLangExcel').click();
     const russian=await russianPending;assert.equal(russian.suggestedFilename(),'Danh sách tiếng Nga.xlsx');
     const russianBook=XLSX.read(fs.readFileSync(await russian.path()),{type:'buffer'});

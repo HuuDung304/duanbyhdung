@@ -99,6 +99,7 @@ import {
   openStudentProfileModal,
   updatePartyDatesDisplay,
   exportStudentProfiles,
+  exportCadetRoster,
   validateAndFormatParentDob,
   openCadetDetailPage,
   closeCadetDetailPage
@@ -1117,6 +1118,7 @@ function registerGlobalEventDelegation() {
 
     // --- H. XUẤT / NHẬP EXCEL ---
     if (target.closest('#tab-reports button')) syncReportExportScope();
+    if (target.closest('#btnExportCadetRoster')) { e.preventDefault(); exportCadetRoster(); return; }
     if (target.closest('#btnExportAchievements')) { e.preventDefault(); exportAcademicAchievementsExcel(); return; }
 
     if (target.closest('#btnExportClassExcel')) {
