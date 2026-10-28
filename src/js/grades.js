@@ -3543,13 +3543,21 @@ export function exportLanguageExcel() {
   const students = getScopedStudents();
   if (!students.length) { showToast('Chưa có học viên để xuất danh sách.', 'error'); return; }
   const scope = getCurrentUserClassScope();
-  const standard = AppState.requiredLangStandard || 'A2';
+  const standard = evaluateLangLevelStatus('Chưa đạt', AppState.requiredLangStandard).requiredStandard;
   const { roster } = collectLanguageStatistics(students, AppState.languages || {}, standard, evaluateLangLevelStatus, scope ? [scope] : DEFAULT_CLASSES);
   const headers = ['STT', 'MÃ HỌC VIÊN', 'HỌ VÀ TÊN', 'NGÀY THÁNG NĂM SINH', 'TRÌNH ĐỘ THỰC TẾ', 'GHI CHÚ'];
   const rows = roster.map(({ student, level }, index) => [index + 1, String(student.code || ''), student.name, normalizeDateVN(student.dob, ''), level, '']);
   const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+  const passed = roster.filter(item => item.passed).length;
+  const total = roster.length;
+  XLSX.utils.sheet_add_aoa(ws, [
+    [`Yêu cầu: (${standard})`, 'SỐ LƯỢNG', 'TỶ LỆ'],
+    ['ĐẠT', passed, total ? passed / total : 0],
+    ['CHƯA ĐẠT', total - passed, total ? (total - passed) / total : 0]
+  ], { origin: 'H4' });
+  ws.J5.z = '0.0%'; ws.J6.z = '0.0%';
   ws['!reportHeaderRows'] = [1];
-  ws['!cols'] = [{ wch: 7 }, { wch: 20 }, { wch: 30 }, { wch: 24 }, { wch: 22 }, { wch: 30 }];
+  ws['!cols'] = [{ wch: 7 }, { wch: 20 }, { wch: 30 }, { wch: 24 }, { wch: 22 }, { wch: 30 }, { wch: 4 }, { wch: 24 }, { wch: 14 }, { wch: 14 }];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Danh_sach_tieng_Nga');
   writeReportWorkbook(wb, 'Danh sách tiếng Nga.xlsx');
