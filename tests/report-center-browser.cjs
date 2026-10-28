@@ -1,0 +1,50 @@
+// Export-center, OOXML formatting and account-menu checks against a REST fixture only.
+const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'),assert=require('node:assert/strict');
+(async()=>{
+ const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||'/usr/bin/chromium',args:['--no-sandbox']});
+ try{
+  for(const width of [1440,390]){
+   const tables={students:[{id:'s1',code:'HV001',name:'Nguyễn Minh Anh',class:'OTQS1',dob:'2003-02-01',current_lang_level:'A2',achievements:['Chiến sĩ tiên tiến 2025']},{id:'s2',code:'HV002',name:'Trần Hải Nam',class:'OTQS1',dob:'2004-03-02',current_lang_level:'A1'},{id:'s3',code:'HV003',name:'Lê Minh Đức',class:'TTG1',dob:'2002-04-03',current_lang_level:'B1.1'}],subjects:[{id:'math',code:'MATH',name:'Toán cao cấp',credits:3,semester:1,category:'common'},{id:'phys',code:'PHYS',name:'Vật lý đại cương',credits:2,semester:2,category:'common'}],grades:[{student_id:'s1',subject_id:'math',score:9},{student_id:'s1',subject_id:'phys',score:3.99},{student_id:'s2',subject_id:'math',score:4}],languages:[],unit_settings:[{unit_id:'daidoi460',required_lang_standard:'A2',locks:{},audit_logs:[]}]};
+   const context=await browser.newContext({viewport:{width,height:1000},acceptDownloads:true});
+   await context.addInitScript(()=>sessionStorage.setItem('dd460_auth_session',JSON.stringify({type:'admin',displayName:'Admin kiểm thử'})));
+   await context.route('**/*',route=>{const u=new URL(route.request().url());if(u.hostname==='127.0.0.1')return route.continue();if(u.hostname==='cdn.tailwindcss.com')return route.fulfill({contentType:'text/javascript',body:'window.tailwind={};'});if(u.pathname.includes('/xlsx@'))return route.fulfill({contentType:'text/javascript',body:fs.readFileSync(require.resolve('xlsx/dist/xlsx.full.min.js'),'utf8')});if(u.hostname.endsWith('.supabase.co'))return route.fulfill({json:tables[u.pathname.split('/').pop()]||[],headers:{'access-control-allow-origin':'*'}});return route.fulfill({contentType:u.hostname==='cdn.jsdelivr.net'?'text/javascript':'text/css',body:''});});
+   const page=await context.newPage(),errors=[];page.on('pageerror',error=>errors.push(error.message));
+   await page.goto(process.env.TEST_BASE_URL||'http://127.0.0.1:3018',{waitUntil:'networkidle'});if(process.env.REPORT_TEST_CSS_PATH)await page.addStyleTag({path:process.env.REPORT_TEST_CSS_PATH});
+   await page.waitForFunction(()=>window.AppState?.students.length===3);
+   assert.equal(await page.locator('#btnStudentSelfEdit').count(),0);
+   assert.equal(await page.locator('.bento-account #btnLogout').count(),0);
+   assert.equal(await page.locator('#sidebarAccountMenu #btnLogout').count(),1);
+   assert.equal(await page.locator('button[id^="btnExport"]').evaluateAll(buttons=>buttons.every(button=>button.closest('#tab-reports'))),true);
+   await page.evaluate(()=>window.switchTab('tab-reports'));
+   assert.equal(await page.locator('#tab-reports .report-export-card:visible').count(),5);
+   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+   const download=async id=>{const pending=page.waitForEvent('download');await page.locator(id).click();const file=await pending;const data=fs.readFileSync(await file.path());const archive=XLSX.CFB.read(data,{type:'buffer'});const styles=new TextDecoder().decode(archive.FileIndex.find(f=>f.name==='styles.xml').content);assert.match(styles,/name val="Times New Roman"/);assert.doesNotMatch(styles,/name val="Calibri"/);assert.match(styles,/<left style="thin">/);assert.match(styles,/<right style="thin">/);assert.match(styles,/horizontal="center" vertical="center" wrapText="1"/);return XLSX.read(data,{type:'buffer'});};
+   await page.evaluate(()=>{window.AppState.students[0].currentLangLevel='A1, A2, B11';});
+   const language=await download('#btnExportLanguageSummary');
+   const list=XLSX.utils.sheet_to_json(language.Sheets.Danh_Sach_Hoc_Vien,{header:1,defval:''});
+   assert.equal(list[4][2],'Ngày sinh');assert.equal(list.find(row=>row[0]==='HV001')[2],'01/02/2003');assert.equal(list.find(row=>row[0]==='HV001')[4],'B11');
+   assert.deepEqual(list.slice(5).map(row=>row[5]),['Đạt','Đạt','Chưa đạt']);
+   await page.locator('#reportsClassSelect').selectOption('TTG1');const scoped=await download('#btnExportLanguageSummary');assert.equal(XLSX.utils.sheet_to_json(scoped.Sheets.Danh_Sach_Hoc_Vien,{header:1}).length,6);
+   await page.locator('#reportsClassSelect').selectOption('all');
+   for(const id of ['#btnExportProfileExcel','#btnExportClassExcel','#btnExportFailedStudents','#btnExportAchievements','#btnExportReportExcel','#btnExportCumulativeExcel','#btnExportMasterExcel']){
+    const book=await download(id);assert.ok(book.SheetNames.length>0);
+    if(id==='#btnExportAchievements')assert.ok(XLSX.utils.sheet_to_json(book.Sheets.Thanh_Tich_Hoc_Tap,{header:1}).flat().some(value=>String(value).includes('Chiến sĩ tiên tiến')));
+   }
+   await page.evaluate(()=>window.AuthState.setUser({type:'class_account',class:'OTQS1',displayName:'OTQS1'}));await page.evaluate(()=>window.switchTab('tab-reports'));
+   assert.equal(await page.locator('#reportsClassSelect').isDisabled(),true);
+   const classBook=await download('#btnExportLanguageSummary');assert.equal(XLSX.utils.sheet_to_json(classBook.Sheets.Danh_Sach_Hoc_Vien,{header:1}).length,7);
+   await page.evaluate(()=>window.AuthState.setUser({type:'student',studentId:'s1',code:'HV001',class:'OTQS1',displayName:'Nguyễn Minh Anh'}));
+   assert.equal(await page.locator('.nav-tab[data-tab="tab-cumulative"]').isVisible(),false);
+   await page.evaluate(()=>window.switchTab('tab-cumulative'));assert.equal(await page.evaluate(()=>window.AppState.activeTab),'tab-sheet');
+   await page.evaluate(()=>window.switchTab('tab-reports'));assert.equal(await page.locator('#tab-reports .report-export-card:visible').count(),2);
+   const personal=await download('#btnExportClassExcel');assert.ok(personal.SheetNames.includes('Bang_Diem_Ca_Nhan'));assert.ok(personal.SheetNames.includes('Diem_Tich_Luy'));
+   const cumulative=XLSX.utils.sheet_to_json(personal.Sheets.Diem_Tich_Luy,{header:1});assert.equal(cumulative[4].length,13);assert.equal(cumulative[5][1],'HV001');assert.ok(!cumulative.flat().includes('HV002'));
+   const ownProfile=await download('#btnExportProfileExcel');const ownRows=XLSX.utils.sheet_to_json(ownProfile.Sheets[ownProfile.SheetNames[0]],{header:1}).flat();assert.ok(ownRows.includes('HV001'));assert.ok(!ownRows.includes('HV002'));
+   const avatar=page.locator('.sidebar-account-trigger');await avatar.click();assert.equal(await page.locator('#btnLogout').isVisible(),true);assert.equal(await page.locator('#btnLogout').evaluate(e=>{const r=e.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth&&r.top>=0;}),true);await page.keyboard.press('Escape');assert.equal(await avatar.getAttribute('aria-expanded'),'false');
+   await avatar.focus();await page.keyboard.press('Enter');await page.keyboard.press('Tab');assert.equal(await page.evaluate(()=>document.activeElement.id),'btnLogout');await page.keyboard.press('Enter');
+   assert.equal(await page.locator('.u040').isVisible(),false);assert.deepEqual(errors,[]);
+   console.log(`PASS: ${width}px report center, formatted real XLSX files, highest language/date, class/self scope, combined personal transcript, footer logout keyboard.`);
+   await context.close();
+  }
+ }finally{await browser.close();}
+})().catch(e=>{console.error(e);process.exit(1)});

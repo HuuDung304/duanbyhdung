@@ -49,6 +49,7 @@ const fs = require('node:fs');
       if(className==='XMCB')assert.match(debtText,/HV004/);else assert.doesNotMatch(debtText,/HV004/);
     }
     await page.locator('#dashboardClassFilter').selectOption('all');
+    await page.evaluate(()=>window.switchTab('tab-reports'));
     const downloadPromise=page.waitForEvent('download');
     await page.locator('#btnExportReportExcel').click();
     const download=await downloadPromise;const bytes=fs.readFileSync(await download.path());

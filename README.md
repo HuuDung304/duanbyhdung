@@ -40,6 +40,16 @@ Nút chính dùng gradient, nút phụ nền trắng/viền mảnh, nút xóa n�
 
 Kiểm thử giao diện: `tests/digital-ui-browser.cjs`; đặt `TEST_BASE_URL` tới máy chủ tĩnh và `DIGITAL_TEST_CSS_PATH` tới CSS Tailwind được biên dịch từ cùng cấu hình CDN nếu cần kiểm tra ngoại tuyến. Kiểm thử dùng dữ liệu giả lập, không ghi lên Supabase thật.
 
+## Trung tâm Xuất báo cáo và menu tài khoản
+
+Toàn bộ nút xuất được gom vào **Xuất báo cáo** ở sidebar: ngoại ngữ, thông tin quân nhân, bảng điểm, học viên rớt môn và thành tích học tập. Admin/cán bộ chọn toàn đại đội hoặc từng lớp; tài khoản lớp chỉ xuất lớp mình; học viên chỉ xuất hồ sơ và bảng điểm cá nhân. Năm học được chọn trong trung tâm xuất. Báo cáo thành tích có điểm hệ 10/hệ 4, xếp loại và danh hiệu thực tế; báo cáo giao ban đầy đủ vẫn có tại cùng mục.
+
+Tất cả file báo cáo dùng Times New Roman 12, tiêu đề đậm, kẻ viền mảnh, căn giữa ngang/dọc và ngắt dòng. Định dạng được ghi trực tiếp vào OOXML, giữ các định dạng số hiện có và thiết lập A4 ngang. Báo cáo ngoại ngữ dùng **ngày sinh**, chỉ một trình độ cao nhất (ví dụ A21, A2, B11, B1); vẫn xếp đạt trước, chưa đạt sau. File bảng điểm cá nhân có cả sheet `Bang_Diem_Ca_Nhan` và `Diem_Tich_Luy` với đầy đủ các cột tích lũy trước đây.
+
+Với học viên, tab Điểm tích lũy riêng được ẩn và truy cập trực tiếp cũng chuyển về bảng điểm. Nút sửa hồ sơ trên thẻ cá nhân lớn được bỏ; học viên sửa tại **Hồ sơ quân nhân**. Nút đăng xuất chỉ xuất hiện khi bấm ô avatar cuối sidebar, hỗ trợ Enter/Tab/Escape và dùng chính hàm đăng xuất hiện có.
+
+Kiểm tra với `tests/report-center-browser.cjs`: đọc lại XLSX thực tế để xác nhận dữ liệu, font, viền, căn giữa, phạm vi lớp/cá nhân, transcript gộp và đăng xuất trên desktop/mobile. Các kiểm thử dùng REST giả lập.
+
 ## 1. Hệ thống Tài khoản & Phân quyền (RBAC)
 
 Giao diện đăng nhập được chia thành 4 nhóm tài khoản cố định (đã xóa bỏ hoàn toàn chức năng cấp quyền):

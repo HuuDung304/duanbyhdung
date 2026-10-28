@@ -25,6 +25,7 @@ const {chromium}=require('playwright');const fs=require('node:fs');const assert=
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
    if(colorScheme==='light'&&reducedMotion==='no-preference')await page.screenshot({path:`/tmp/digital-overview-${width}.png`});
    await page.evaluate(()=>window.switchTab('tab-sheet'));
+   await page.evaluate(()=>window.switchTab('tab-reports'));
    const button=page.locator('#btnExportClassExcel');const original=await button.innerHTML();
    assert.match(await button.evaluate(e=>getComputedStyle(e).backgroundImage),/gradient/);
    assert.equal(await button.evaluate(e=>getComputedStyle(e).color),'rgb(255, 255, 255)');
@@ -33,6 +34,7 @@ const {chromium}=require('playwright');const fs=require('node:fs');const assert=
    assert.equal(await button.evaluate(e=>getComputedStyle(e,'::before').animationName),reducedMotion==='reduce'?'none':'digital-spin');
    await page.evaluate(async()=>{window.digitalRelease();await window.digitalTask;});
    assert.equal(await button.isDisabled(),false);assert.equal(await button.innerHTML(),original);assert.equal(await button.getAttribute('aria-busy'),null);
+   await page.evaluate(()=>window.switchTab('tab-sheet'));
    const input=page.locator('.grid-cell-input').first();await input.focus();
    assert.equal(await input.evaluate(e=>getComputedStyle(e).color),'rgb(30, 58, 138)');
    assert.equal(await input.evaluate(e=>getComputedStyle(e).fontWeight),'800');

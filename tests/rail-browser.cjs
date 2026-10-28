@@ -91,7 +91,7 @@ const assert = require('node:assert/strict');
         });
         await page.waitForFunction(() => document.querySelector('.u040-page-heading h2').textContent === 'Bảng Điểm');
         assert.equal(await page.locator('.u040-it:visible').count(), 3);
-        await page.locator('.u040-it[data-tab="tab-cumulative"]').focus();
+        await page.locator('.u040-it[data-tab="tab-reports"]').focus();
         await page.keyboard.press('ArrowDown');
         assert.equal(await page.evaluate(() => document.activeElement.dataset.tab), 'tab-sheet');
         assert.match(await page.locator('.u040-me small').textContent(), /Học viên/);

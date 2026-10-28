@@ -102,7 +102,7 @@ function timeframeGpa4(students, frame) {
 }
 function quickMenu() {
   const menu = $('bentoQuickMenu'); if (!menu) return;
-  const actions = [['Bảng điểm lớp', 'tab-sheet'], ['Hồ sơ quân nhân', 'tab-profiles'], ['Xuất báo cáo học tập', 'export']];
+  const actions = [['Bảng điểm lớp', 'tab-sheet'], ['Hồ sơ quân nhân', 'tab-profiles'], ['Xuất báo cáo', 'tab-reports']];
   menu.replaceChildren();
   for (const [label, tab] of actions) {
     if (!allowedTab(tab === 'export' ? 'tab-dashboard' : tab)) continue;

@@ -113,7 +113,7 @@ body {
 }
 
   </style>
-  <link rel="stylesheet" href="./src/css/bento-dashboard.css?v=c6899c1c095f">
+  <link rel="stylesheet" href="./src/css/bento-dashboard.css?v=0d88ed13a5f7">
 </head>
 <body class="bento-app bg-slate-100 text-slate-800 min-h-screen flex flex-col">
 
@@ -132,10 +132,7 @@ body {
           <span class="text-slate-600">|</span>
 
           <span class="text-slate-600">|</span>
-          <button type="button" id="btnCornerLogout" class="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-400 hover:text-rose-300 hover:underline transition cursor-pointer" title="Đăng xuất khỏi hệ thống">
-            <svg class="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-            <span>Đăng xuất</span>
-          </button>
+
         </div>
 
         <!-- Góc trên bên phải: Thông tin đơn vị -->
@@ -247,6 +244,7 @@ body {
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
         Cài Đặt
       </button>
+      <button type="button" data-tab="tab-reports" class="nav-tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M5 15v5h14v-5"/></svg><span>Xuất báo cáo</span></button>
     </div>
   </nav>
 
@@ -276,10 +274,7 @@ body {
         </div>
 
         <div class="flex items-center gap-2">
-          <button type="button" id="btnStudentSelfEdit" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-gold-500 hover:bg-gold-600 text-slate-950 font-bold text-xs transition shadow-sm" title="Chỉnh sửa hồ sơ cá nhân, thân nhân và danh hiệu">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-            Sửa Hồ Sơ Của Tôi
-          </button>
+
         </div>
       </div>
 
@@ -416,10 +411,7 @@ body {
             <svg class="w-4 h-4 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
             Nhập từ Excel
           </button>
-          <button id="btnExportClassExcel" class="inline-flex items-center gap-1.5 text-xs font-semibold bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-2 rounded-lg shadow-sm transition">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-            Xuất Excel Lớp
-          </button>
+
 
         </div>
       </div>
@@ -521,10 +513,7 @@ body {
               <svg class="w-4 h-4 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
               Nhập Excel Hồ Sơ
             </button>
-            <button id="btnExportProfileExcel" class="inline-flex items-center gap-1.5 text-xs font-semibold bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-2 rounded-lg shadow-sm transition">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-              Xuất Excel (A4 Ngang)
-            </button>
+
 
           </div>
         </div>
@@ -649,9 +638,7 @@ body {
             <button id="btnAddCadetCumulBtn" class="leader-allowed inline-flex items-center gap-1.5 text-xs font-bold bg-army-700 hover:bg-army-800 text-white px-3.5 py-2 rounded-lg shadow-sm transition">
               + Thêm Học Viên
             </button>
-            <button id="btnExportCumulativeExcel" class="inline-flex items-center gap-1.5 text-xs font-semibold bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-2 rounded-lg shadow-sm transition">
-              Xuất Bảng Điểm Tích Lũy (.xlsx)
-            </button>
+
 
           </div>
         </div>
@@ -780,9 +767,7 @@ body {
             <button id="btnAddCadetMasterBtn" class="leader-allowed inline-flex items-center gap-1.5 text-xs font-bold bg-army-700 hover:bg-army-800 text-white px-3.5 py-2 rounded-lg shadow-sm transition">
               + Thêm Học Viên
             </button>
-            <button id="btnExportMasterExcel" class="inline-flex items-center gap-1.5 text-xs font-semibold bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-2 rounded-lg shadow-sm transition">
-              Xuất Bảng Tổng Hợp (.xlsx)
-            </button>
+
 
           </div>
         </div>
@@ -919,10 +904,7 @@ body {
                 <option value="XMCB">Lớp XMCB</option>
               </select>
             </div>
-            <button id="btnExportReportExcel" class="inline-flex items-center gap-1.5 text-xs font-extrabold bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded-lg shadow-sm transition cursor-pointer">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-              Xuất file Báo cáo Tình hình Học tập (.xlsx)
-            </button>
+
           </div>
         </div>
       </div>
@@ -973,14 +955,14 @@ body {
             <span class="text-xs text-rose-700 font-semibold">lượt rớt</span>
           </div>
           <div class="text-[10px] text-rose-600 font-medium mt-1">Tính tích lũy từ đầu khóa đến nay (Học phần điểm &lt; 4.0)</div>
-          <button type="button" id="btnExportFailedStudents" class="dashboard-failed-export">Xuất học viên rớt môn (.xlsx)</button>
+
         </div>
       </div>
 
       <article id="dashboardLanguageSummary" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
         <div class="language-summary-head">
           <div><h3>Tỷ lệ đạt chuẩn ngoại ngữ</h3><p>Thống kê theo quân số hiện có của từng lớp. Chưa có trình độ được tính là chưa đạt.</p></div>
-          <div class="language-summary-actions"><label for="dashboardLanguageStandard">Chuẩn hiện tại</label><select id="dashboardLanguageStandard" class="required-lang-standard-select" aria-label="Chuẩn ngoại ngữ hiện tại"></select><button type="button" id="btnExportLanguageSummary">Xuất thống kê ngoại ngữ (.xlsx)</button></div>
+          <div class="language-summary-actions"><label for="dashboardLanguageStandard">Chuẩn hiện tại</label><select id="dashboardLanguageStandard" class="required-lang-standard-select" aria-label="Chuẩn ngoại ngữ hiện tại"></select></div>
         </div>
         <p id="dashboardOverviewScope" class="language-summary-note"></p>
         <div class="overflow-x-auto"><table class="language-summary-table"><thead><tr><th scope="col">Lớp</th><th scope="col">Quân số</th><th scope="col">Đạt chuẩn</th><th scope="col">Tỷ lệ đạt</th><th scope="col">Chưa đạt</th><th scope="col">Tỷ lệ chưa đạt</th></tr></thead><tbody id="dashboardLanguageSummaryBody"></tbody></table></div>
@@ -1139,10 +1121,7 @@ body {
             <option value="XMCB">Lớp XMCB</option>
           </select>
 
-          <button id="btnExportLangExcel" class="inline-flex items-center gap-1.5 text-xs font-semibold bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-2 rounded-lg shadow-sm transition">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-            Xuất Bảng Ngoại Ngữ
-          </button>
+
         </div>
       </div>
 
@@ -1252,6 +1231,23 @@ body {
       </details>
     </section>
 
+    <section id="tab-reports" class="tab-content hidden space-y-4">
+      <div class="report-export-heading"><h2>Xuất báo cáo</h2><p>Excel dùng Times New Roman, kẻ bảng, căn giữa và tự xuống dòng.</p><div class="report-export-controls"><label for="reportsClassSelect">Phạm vi</label><select id="reportsClassSelect"></select><label for="reportsYearSelect">Năm học bảng điểm</label><select id="reportsYearSelect"><option value="1">Năm 1</option><option value="2">Năm 2</option><option value="3">Năm 3</option><option value="4">Năm 4</option><option value="5">Năm 5</option></select></div></div>
+      <div class="report-export-grid">
+<article class="report-export-card export-unit-only"><h3>Ngoại ngữ</h3><p>Mã học viên, họ tên, ngày sinh, lớp và trình độ cao nhất; học viên đạt chuẩn được xếp trước.</p><div><button type="button" id="btnExportLanguageSummary">Xuất thống kê ngoại ngữ (.xlsx)</button></div></article><article class="report-export-card "><h3>Thông tin quân nhân</h3><p>Hồ sơ lý lịch, Đoàn–Đảng, gia đình và thông tin cá nhân.</p><div><button id="btnExportProfileExcel" class="inline-flex items-center gap-1.5 text-xs font-semibold bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-2 rounded-lg shadow-sm transition">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+              Xuất Excel (A4 Ngang)
+            </button></div></article><article class="report-export-card "><h3>Bảng điểm</h3><p>Bảng điểm theo năm học; tài khoản học viên xuất bảng điểm cá nhân kèm điểm tích lũy.</p><div><button id="btnExportClassExcel" class="inline-flex items-center gap-1.5 text-xs font-semibold bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-2 rounded-lg shadow-sm transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            Xuất Excel Lớp
+          </button><button id="btnExportCumulativeExcel" class="export-unit-only inline-flex items-center gap-1.5 text-xs font-semibold bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-2 rounded-lg shadow-sm transition">
+              Xuất Bảng Điểm Tích Lũy (.xlsx)
+            </button><button id="btnExportMasterExcel" class="export-unit-only inline-flex items-center gap-1.5 text-xs font-semibold bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-2 rounded-lg shadow-sm transition">
+              Xuất Bảng Tổng Hợp (.xlsx)
+            </button></div></article><article class="report-export-card export-unit-only"><h3>Học viên rớt môn</h3><p>Tên đầy đủ môn rớt, tín chỉ từng môn và tổng tín chỉ rớt.</p><div><button type="button" id="btnExportFailedStudents" class="dashboard-failed-export">Xuất học viên rớt môn (.xlsx)</button></div></article><article class="report-export-card export-unit-only"><h3>Thành tích học tập</h3><p>Điểm tích lũy, xếp loại và danh hiệu đã ghi nhận.</p><div><button id="btnExportReportExcel" class="inline-flex items-center gap-1.5 text-xs font-extrabold bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded-lg shadow-sm transition cursor-pointer">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+              Xuất file Báo cáo Tình hình Học tập (.xlsx)
+            </button><button type="button" id="btnExportAchievements" class="bg-army-700">Xuất thành tích học tập (.xlsx)</button></div></article></div></section>
   </main>
 
   <!-- ========================================== -->
@@ -2289,24 +2285,25 @@ body {
 {
   "imports": {
     "./src/js/access-controls.js": "./src/js/access-controls.js?v=0c31f2921589",
-    "./src/js/auth.js": "./src/js/auth.js?v=64b72b6e8c0a",
-    "./src/js/components/bento-dashboard.js": "./src/js/components/bento-dashboard.js?v=2394f4d2d5f6",
+    "./src/js/auth.js": "./src/js/auth.js?v=b13830e58bee",
+    "./src/js/components/bento-dashboard.js": "./src/js/components/bento-dashboard.js?v=6d74bcbb4323",
     "./src/js/components/destructive-confirm.js": "./src/js/components/destructive-confirm.js?v=d3493f707a09",
     "./src/js/components/expanding-rail.js": "./src/js/components/expanding-rail.js?v=30e2d9c62544",
     "./src/js/components/notched-field.js": "./src/js/components/notched-field.js?v=553608c192ae",
-    "./src/js/dashboard-statistics.js": "./src/js/dashboard-statistics.js?v=21c4e0117651",
-    "./src/js/grades.js": "./src/js/grades.js?v=ac92410822e4",
-    "./src/js/main.js": "./src/js/main.js?v=625ae443a095",
+    "./src/js/components/report-center.js": "./src/js/components/report-center.js?v=f01b518c3a91",
+    "./src/js/dashboard-statistics.js": "./src/js/dashboard-statistics.js?v=2c12c43c6749",
+    "./src/js/grades.js": "./src/js/grades.js?v=cbc1fc514142",
+    "./src/js/main.js": "./src/js/main.js?v=572a76ee6167",
     "./src/js/profile-rules.js": "./src/js/profile-rules.js?v=3a3bbf350b00",
-    "./src/js/report-workbook.js": "./src/js/report-workbook.js?v=6439de73c06f",
-    "./src/js/students.js": "./src/js/students.js?v=e0ce7a2a857c",
+    "./src/js/report-workbook.js": "./src/js/report-workbook.js?v=905d0e767b16",
+    "./src/js/students.js": "./src/js/students.js?v=6e9d3aff382d",
     "./src/js/supabase.js": "./src/js/supabase.js?v=2e9f5cfd5ca9"
   }
 }
   </script>
-  <script type="module" src="./src/js/main.js?v=625ae443a095"></script>
+  <script type="module" src="./src/js/main.js?v=572a76ee6167"></script>
   <script type="module" src="./src/js/components/expanding-rail.js?v=30e2d9c62544"></script>
   <script type="module" src="./src/js/components/notched-field.js?v=553608c192ae"></script>
-  <script type="module" src="./src/js/components/bento-dashboard.js?v=2394f4d2d5f6"></script>
+  <script type="module" src="./src/js/components/bento-dashboard.js?v=6d74bcbb4323"></script>
 </body>
 </html>

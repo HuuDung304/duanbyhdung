@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {studentBirthYear,collectLanguageStatistics,failedStudentExportRows} from '../src/js/dashboard-statistics.js';
+import {highestLanguageLevel,studentBirthYear,collectLanguageStatistics,failedStudentExportRows} from '../src/js/dashboard-statistics.js';
 
 test('birth years are extracted from persisted ISO or Vietnamese dates without guessing missing years',()=>{
   for(const value of ['2003-05-09','09/05/2003','9.5.2003','2003-05-09T00:00:00Z',2003])assert.equal(studentBirthYear(value),2003);
@@ -22,4 +22,12 @@ test('failed student export totals only failed credits and preserves full course
   assert.deepEqual(rows[0].slice(0,4),['001','Nguyễn An',2003,'OTQS1']);assert.equal(rows[0][5],5);
   assert.match(rows[0][4],/Toán cao cấp \(3 tín chỉ\)/);assert.match(rows[0][4],/Vật lý đại cương \(2 tín chỉ\)/);
   assert.deepEqual(failedStudentExportRows([],subject=>subject.name),[]);
+});
+
+
+test('language export selects one highest level and accepts abbreviated level codes',()=>{
+  assert.equal(highestLanguageLevel('A1, A21, A2'),'A2');
+  assert.equal(highestLanguageLevel('A2; B11; B1'),'B1');
+  assert.equal(highestLanguageLevel('B11'),'B1.1');
+  assert.equal(highestLanguageLevel(null),'Chưa đạt');
 });

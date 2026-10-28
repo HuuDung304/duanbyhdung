@@ -1565,7 +1565,7 @@ export function renderStudentVerticalGrades() {
   const container = document.getElementById('studentVerticalGradesWrapper');
   if (!container) return;
 
-  const student = getLoggedInStudent() || AppState.students.find(s => s.id === AppState.studentViewingId) || AppState.students[0];
+  const student = getLoggedInStudent() || (AppState.role !== 'student' ? AppState.students.find(s => s.id === AppState.studentViewingId) || AppState.students[0] : null);
   if (!student) {
     container.innerHTML = `<div class="p-8 text-center text-slate-400">Không tìm thấy thông tin bảng điểm học viên.</div>`;
     return;
@@ -3612,7 +3612,7 @@ export function toggleCurrentSheetLock() {
 
 // --- 13. XUẤT / NHẬP EXCEL ---
 export function exportStudentPersonalExcel() {
-  const student = getLoggedInStudent() || AppState.students.find(s => s.id === AppState.studentViewingId) || AppState.students[0];
+  const student = getLoggedInStudent() || (AppState.role !== 'student' ? AppState.students.find(s => s.id === AppState.studentViewingId) || AppState.students[0] : null);
   if (!student) {
     showToast('Không tìm thấy thông tin học viên để xuất bảng điểm!', 'error');
     return;
@@ -3656,9 +3656,18 @@ export function exportStudentPersonalExcel() {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Bang_Diem_Ca_Nhan');
 
+  const year = Number(AppState.cumulativeSelectedYear) || 1;
+  const cumulative = XLSX.utils.aoa_to_sheet([
+    ['BẢNG ĐIỂM TÍCH LŨY CÁ NHÂN'], [`Năm học ${year} · Tích lũy toàn khóa`], [], [],
+    ['STT','Mã HV','Họ và Tên','Cấp bậc','Lớp','Tín chỉ tích lũy','DTB HK1 (10)','DTB HKII (10)','ĐTB Tích Lũy (Hệ 10)','Xếp loại (Hệ 10)','Điểm Hệ 4 (/4.0)','Trình độ ngoại ngữ hiện tại','Số học phần rớt (< 4.0)'],
+    [1,student.code,student.name,student.rank,student.class,`${calculateCreditsPassed(student.id)} / ${getTotalCourseCredits(student.class)} TC`,calculateSemesterGPA(student.id,year*2-1).toFixed(2),calculateSemesterGPA(student.id,year*2).toFixed(2),calculateYearGPA(student.id).toFixed(2),getClassification(calculateYearGPA(student.id)),calculateCumulativeGPA4(student.id).toFixed(2),student.currentLangLevel || 'Chưa đạt',getDebtSubjects(student.id).length]
+  ]);
+  cumulative['!cols'] = Array.from({ length: 13 }, (_, i) => ({ wch: i === 2 ? 30 : 20 }));
+  XLSX.utils.book_append_sheet(wb,cumulative,'Diem_Tich_Luy');
+
   // Định dạng tên file bắt buộc: Bảng điểm(thông tin cá nhân) - [Họ và tên học viên].xlsx
   const exactFilename = `Bảng điểm(thông tin cá nhân) - ${student.name}.xlsx`;
-  XLSX.writeFile(wb, exactFilename);
+  writeReportWorkbook(wb, exactFilename);
 }
 
 export function exportClassExcel() {
@@ -3719,7 +3728,7 @@ export function exportClassExcel() {
 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, `Diem_${cls}_Nam${yearNum}`);
-  XLSX.writeFile(wb, `Bang_Diem_${cls}_Nam_Hoc_${yearNum}.xlsx`);
+  writeReportWorkbook(wb, `Bang_Diem_${cls}_Nam_Hoc_${yearNum}.xlsx`);
 }
 
 export function exportMasterExcel() {
@@ -3764,7 +3773,7 @@ export function exportMasterExcel() {
 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Tong_Hop_Dai_Doi');
-  XLSX.writeFile(wb, 'Tong_Hop_Diem_Dai_Doi_460.xlsx');
+  writeReportWorkbook(wb, 'Tong_Hop_Diem_Dai_Doi_460.xlsx');
 }
 
 export function exportLanguageExcel() {
@@ -3796,14 +3805,17 @@ export function exportLanguageExcel() {
   const ws = XLSX.utils.aoa_to_sheet(rows);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Chung_Chi_Ngoai_Ngu');
-  XLSX.writeFile(wb, 'Chung_Chi_Ngoai_Ngu_Dai_Doi_460.xlsx');
+  writeReportWorkbook(wb, 'Chung_Chi_Ngoai_Ngu_Dai_Doi_460.xlsx');
 }
 
 export function getDashboardLanguageData() {
   const scope = getCurrentUserClassScope();
-  const classes = scope ? [scope] : DEFAULT_CLASSES;
+  let classes = scope ? [scope] : DEFAULT_CLASSES;
   const standard = evaluateLangLevelStatus('Chưa đạt', AppState.requiredLangStandard).requiredStandard;
-  return { standard, scope, ...collectLanguageStatistics(getScopedStudents(), AppState.languages || {}, standard, evaluateLangLevelStatus, classes) };
+  const selected = AppState.activeTab === 'tab-reports' ? document.getElementById('reportsClassSelect')?.value || 'all' : 'all';
+  if (!scope && selected !== 'all') classes = [selected];
+  const students = getScopedStudents().filter(student => scope || selected === 'all' || student.class === selected);
+  return { standard, scope: scope || (selected !== 'all' ? selected : null), ...collectLanguageStatistics(students, AppState.languages || {}, standard, evaluateLangLevelStatus, classes) };
 }
 
 export function renderDashboardLanguageSummary() {
@@ -3843,8 +3855,8 @@ export function exportDashboardLanguageExcel() {
     ...rows.map(item => [item.className, item.total, item.passed, Number(item.passedRate.toFixed(1)), item.notPassed, Number(item.notPassedRate.toFixed(1))])
   ]);
   const list = XLSX.utils.aoa_to_sheet([...preamble,
-    ['Mã học viên', 'Họ và tên', 'Năm sinh', 'Lớp', 'Trình độ hiện tại', 'Trạng thái'],
-    ...roster.map(({ student, level, passed }) => [student.code, student.name, studentBirthYear(student.dob), student.class, level, passed ? 'Đạt' : 'Chưa đạt'])
+    ['Mã học viên', 'Họ và tên', 'Ngày sinh', 'Lớp', 'Trình độ hiện tại', 'Trạng thái'],
+    ...roster.map(({ student, level, passed }) => [student.code, student.name, normalizeDateVN(student.dob, ''), student.class, level.replaceAll('.', ''), passed ? 'Đạt' : 'Chưa đạt'])
   ]);
   summary['!cols'] = [{ wch: 16 }, { wch: 12 }, { wch: 18 }, { wch: 20 }, { wch: 20 }, { wch: 22 }];
   list['!cols'] = [{ wch: 18 }, { wch: 30 }, { wch: 12 }, { wch: 14 }, { wch: 22 }, { wch: 18 }];
@@ -3857,17 +3869,33 @@ export function exportDashboardLanguageExcel() {
 export function exportFailedStudentsExcel() {
   if (!['admin', 'company_officer'].includes(AppState.role) && !AppState.role?.startsWith('class_leader_')) { showToast('Tài khoản không có quyền xuất thống kê đơn vị.', 'error'); return; }
   const scope = getCurrentUserClassScope();
-  const stats = computeReportAcademicStats(getScopedStudents());
+  const selected = scope || (AppState.activeTab === 'tab-reports' ? document.getElementById('reportsClassSelect')?.value : 'all') || 'all';
+  const exportScope = scope || (selected !== 'all' ? selected : null);
+  const stats = computeReportAcademicStats(getScopedStudents().filter(student => selected === 'all' || student.class === selected));
   const records = failedStudentExportRows(stats.debtCadetsList, getFullSubjectName);
   const sheet = XLSX.utils.aoa_to_sheet([
-    ['ĐẠI ĐỘI 460'], ['DANH SÁCH HỌC VIÊN RỚT MÔN'], [`Phạm vi: ${scope || 'Toàn Đại đội 460'}`], ['Chỉ học phần dưới 4,00; tổng tín chỉ là tổng tín chỉ các học phần rớt.'],
+    ['ĐẠI ĐỘI 460'], ['DANH SÁCH HỌC VIÊN RỚT MÔN'], [`Phạm vi: ${exportScope || 'Toàn Đại đội 460'}`], ['Chỉ học phần dưới 4,00; tổng tín chỉ là tổng tín chỉ các học phần rớt.'],
     ['Mã học viên', 'Họ và tên', 'Năm sinh', 'Lớp', 'Môn học rớt (tín chỉ)', 'Tổng số tín chỉ rớt'], ...records
   ]);
   sheet['!cols'] = [{ wch: 18 }, { wch: 30 }, { wch: 12 }, { wch: 14 }, { wch: 65 }, { wch: 22 }];
   sheet['!rows'] = Array.from({ length: records.length + 5 }, (_, index) => ({ hpt: index < 5 ? 20 : Math.max(24, String(records[index - 5][4]).split('\n').length * 18) }));
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, sheet, 'Hoc_Vien_Rot_Mon');
-  writeReportWorkbook(workbook, `Hoc_Vien_Rot_Mon_${scope || 'Dai_Doi_460'}.xlsx`);
+  writeReportWorkbook(workbook, `Hoc_Vien_Rot_Mon_${exportScope || 'Dai_Doi_460'}.xlsx`);
+}
+
+export function exportAcademicAchievementsExcel() {
+  if (!['admin','company_officer'].includes(AppState.role) && !AppState.role?.startsWith('class_leader_')) return;
+  const selected = getCurrentUserClassScope() || document.getElementById('reportsClassSelect')?.value || 'all';
+  const students = getScopedStudents().filter(student => selected === 'all' || student.class === selected);
+  const sheet = XLSX.utils.aoa_to_sheet([
+    ['ĐẠI ĐỘI 460'],['BÁO CÁO THÀNH TÍCH HỌC TẬP'],[`Phạm vi: ${selected}`],[],
+    ['Mã học viên','Họ và tên','Ngày sinh','Lớp','Điểm tích lũy hệ 10','Điểm tích lũy hệ 4','Xếp loại','Danh hiệu / Thành tích'],
+    ...students.map(student => [student.code,student.name,normalizeDateVN(student.dob,''),student.class,Number(calculateYearGPA(student.id).toFixed(2)),Number(calculateCumulativeGPA4(student.id).toFixed(2)),getClassification(calculateYearGPA(student.id)),formatAchievementsText(student.achievements)])
+  ]);
+  sheet['!cols'] = [18,30,16,14,22,22,20,60].map(wch=>({wch}));
+  const book = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(book,sheet,'Thanh_Tich_Hoc_Tap');
+  writeReportWorkbook(book,`Thanh_Tich_Hoc_Tap_${selected}.xlsx`);
 }
 
 export function downloadExcelTemplate() {
@@ -4646,6 +4674,7 @@ export function openTranscriptModal(studentId) {
 }
 
 export function exportCumulativeExcel() {
+  if (AppState.role === 'student') return exportStudentPersonalExcel();
   const classScope = getCurrentUserClassScope();
   const targetClass = classScope || document.getElementById('cumulFilterClass')?.value || 'all';
   const targetRank = document.getElementById('cumulFilterRank')?.value || 'all';
@@ -4710,7 +4739,7 @@ export function exportCumulativeExcel() {
 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Diem_Tich_Luy');
-  XLSX.writeFile(wb, `Bang_Diem_Tich_Luy_${targetClass !== 'all' ? targetClass : 'Dai_Doi_460'}.xlsx`);
+  writeReportWorkbook(wb, `Bang_Diem_Tich_Luy_${targetClass !== 'all' ? targetClass : 'Dai_Doi_460'}.xlsx`);
 }
 
 // --- 17. ĐỒNG BỘ ĐÁM MÂY SUPABASE (wxiimjbseovuxmvolswh) ---

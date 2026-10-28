@@ -1,3 +1,9 @@
+export function highestLanguageLevel(value) {
+  const ranks = ['A1.1','A1','A2.1','A2','A2.2','B1.1','B1','B1.2','B2'];
+  const matches = String(value || '').toUpperCase().match(/B2|B1[.,]?2|B1[.,]?1|B1|A2[.,]?2|A2[.,]?1|A2|A1[.,]?1|A1/g) || [];
+  const normalize = level => ({ A11:'A1.1', A21:'A2.1', A22:'A2.2', B11:'B1.1', B12:'B1.2' }[level.replaceAll('.', '').replaceAll(',', '')] || level);
+  return matches.map(normalize).sort((a,b)=>ranks.indexOf(b)-ranks.indexOf(a))[0] || 'Chưa đạt';
+}
 // Pure presentation data shared by the dashboard table and its Excel downloads.
 export function studentBirthYear(value) {
   const text = String(value ?? '').trim();
@@ -8,7 +14,7 @@ export function studentBirthYear(value) {
 }
 export function collectLanguageStatistics(students, languages, standard, evaluate, classes) {
   const roster = students.map(student => {
-    const level = student.currentLangLevel || languages[student.id]?.currentLevel || 'Chưa đạt';
+    const level = highestLanguageLevel(student.currentLangLevel || languages[student.id]?.currentLevel);
     return { student, level, passed: evaluate(level, standard).isPassed };
   });
   // Stable grouping: every passing cadet precedes every nonpassing cadet.

@@ -34,15 +34,18 @@ const {chromium}=require('playwright');const XLSX=require('xlsx');const fs=requi
     const bounds=await page.evaluate(()=>({width:innerWidth,page:document.documentElement.scrollWidth,overflow:[...document.querySelectorAll('main *')].filter(e=>e.clientWidth && e.getBoundingClientRect().right>innerWidth+1).slice(0,8).map(e=>({id:e.id,cls:e.className,tag:e.tagName}))}));
     assert.ok(bounds.page<=bounds.width,JSON.stringify(bounds));
     const download=async selector=>{
+      const previous=await page.evaluate(()=>window.AppState.activeTab);
+      await page.evaluate(()=>window.switchTab('tab-reports'));
       const pending=page.waitForEvent('download');await page.locator(selector).click();const file=await pending;
-      return XLSX.read(fs.readFileSync(await file.path()),{type:'buffer'});
+      const book=XLSX.read(fs.readFileSync(await file.path()),{type:'buffer'});
+      await page.evaluate(tab=>window.switchTab(tab),previous);return book;
     };
     const languageBook=await download('#btnExportLanguageSummary');
     assert.equal(languageBook.SheetNames.length,2);
     const roster=XLSX.utils.sheet_to_json(languageBook.Sheets.Danh_Sach_Hoc_Vien,{header:1,defval:''});
-    assert.deepEqual(roster[4],['Mã học viên','Họ và tên','Năm sinh','Lớp','Trình độ hiện tại','Trạng thái']);
+    assert.deepEqual(roster[4],['Mã học viên','Họ và tên','Ngày sinh','Lớp','Trình độ hiện tại','Trạng thái']);
     assert.deepEqual(roster.slice(5).map(row=>row[5]),['Đạt','Đạt','Đạt','Đạt','Chưa đạt','Chưa đạt','Chưa đạt']);
-    assert.equal(roster.find(row=>row[0]==='HV000')[2],2003);assert.equal(roster.find(row=>row[0]==='HV003')[2],'');
+    assert.equal(roster.find(row=>row[0]==='HV000')[2],'01/02/2003');assert.equal(roster.find(row=>row[0]==='HV003')[2],'');
     const failedBook=await download('#btnExportFailedStudents');
     const failed=XLSX.utils.sheet_to_json(failedBook.Sheets.Hoc_Vien_Rot_Mon,{header:1,defval:''});
     assert.equal(failed.length,6);assert.deepEqual(failed[5].slice(0,4),['HV000','Học viên 0',2003,'OTQS1']);

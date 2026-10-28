@@ -168,7 +168,7 @@ export function handleRoleChange(newRole) {
   const leaderAllowedElements = document.querySelectorAll('.leader-allowed');
 
   // Mở khóa mục "Báo cáo giao ban" (tab-dashboard) cho 5 Tài khoản Lớp
-  const restrictedTabsForStudent = ['tab-master', 'tab-dashboard', 'tab-languages', 'tab-audit', 'tab-settings'];
+  const restrictedTabsForStudent = ['tab-master', 'tab-dashboard', 'tab-languages', 'tab-audit', 'tab-settings', 'tab-cumulative'];
   const restrictedTabsForClassAccount = ['tab-master'];
 
   syncNavigationTabLabels(newRole);
@@ -228,6 +228,7 @@ export function handleRoleChange(newRole) {
     renderStudentView();
   }
 
+  window.dispatchEvent(new Event('report-role-change'));
   renderSpreadsheet();
 }
 
@@ -320,7 +321,7 @@ export function switchTab(targetTabId) {
   if (!targetTabId) targetTabId = 'tab-sheet';
   closeCadetDetailPage(true);
 
-  const restrictedTabsForStudent = ['tab-master', 'tab-dashboard', 'tab-languages', 'tab-audit', 'tab-settings'];
+  const restrictedTabsForStudent = ['tab-master', 'tab-dashboard', 'tab-languages', 'tab-audit', 'tab-settings', 'tab-cumulative'];
   const restrictedTabsForClassAccount = ['tab-master'];
 
   if (AppState.role === 'student' && restrictedTabsForStudent.includes(targetTabId)) {
@@ -360,6 +361,7 @@ export function switchTab(targetTabId) {
   else if (targetTabId === 'tab-languages') renderLanguages();
   else if (targetTabId === 'tab-audit') renderAuditLog();
   else if (targetTabId === 'tab-settings') renderSubjectsSettings();
+  if (targetTabId === 'tab-reports') window.dispatchEvent(new Event('report-role-change'));
 }
 
 /**

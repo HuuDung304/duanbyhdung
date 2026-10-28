@@ -1,3 +1,4 @@
+import { writeReportWorkbook } from './report-workbook.js';
 import { requestDestructiveConfirmation } from './components/destructive-confirm.js';
 import { calendarDate, parentBirthYear, displayParentYear, politicalDates } from './profile-rules.js';
 
@@ -1551,9 +1552,9 @@ export function updatePartyDatesDisplay(status, joinedId = 'profFormPartyJoinedD
 
 export function exportStudentProfiles(className, filterStatus, position) {
   const classScope = getCurrentUserClassScope();
-  const targetClass = classScope || className || document.getElementById('profileFilterClass')?.value || 'all';
-  const targetPolitical = filterStatus || document.getElementById('profileFilterPolitical')?.value || 'all';
-  const targetPos = position || document.getElementById('profileFilterPosition')?.value || 'all';
+  const targetClass = (AppState.role === 'student' ? getScopedStudents()[0]?.class : null) || classScope || className || document.getElementById('profileFilterClass')?.value || 'all';
+  const targetPolitical = (AppState.role === 'student' ? 'all' : null) || filterStatus || document.getElementById('profileFilterPolitical')?.value || 'all';
+  const targetPos = (AppState.role === 'student' ? 'all' : null) || position || document.getElementById('profileFilterPosition')?.value || 'all';
 
   let studentsToExport = getScopedStudents();
   if (targetClass !== 'all') {
@@ -1622,7 +1623,7 @@ export function exportStudentProfiles(className, filterStatus, position) {
   ws['!cols'] = headers.map(() => ({ wch: 16 }));
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Ho_So_Quan_Nhan');
-  XLSX.writeFile(wb, `Ho_So_Quan_Nhan_${targetClass !== 'all' ? targetClass : 'Dai_Doi_460'}.xlsx`);
+  writeReportWorkbook(wb, `Ho_So_Quan_Nhan_${targetClass !== 'all' ? targetClass : 'Dai_Doi_460'}.xlsx`);
 }
 
 export function resetQuickImportModalState() {

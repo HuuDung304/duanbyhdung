@@ -1,3 +1,4 @@
+import { syncReportExportScope } from './components/report-center.js';
 import { requestDestructiveConfirmation } from './components/destructive-confirm.js';
 import { installOfficerReadOnlyGuard } from './access-controls.js';
 import { calendarDate, politicalDates } from './profile-rules.js';
@@ -45,6 +46,7 @@ import {
   exportMasterExcel,
   exportLanguageExcel,
   exportDashboardLanguageExcel,
+  exportAcademicAchievementsExcel,
   exportFailedStudentsExcel,
   downloadExcelTemplate,
   handleExcelFileUpload,
@@ -1114,6 +1116,9 @@ function registerGlobalEventDelegation() {
     }
 
     // --- H. XUẤT / NHẬP EXCEL ---
+    if (target.closest('#tab-reports button')) syncReportExportScope();
+    if (target.closest('#btnExportAchievements')) { e.preventDefault(); exportAcademicAchievementsExcel(); return; }
+
     if (target.closest('#btnExportClassExcel')) {
       e.preventDefault();
       exportClassExcel();

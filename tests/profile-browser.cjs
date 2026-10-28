@@ -95,7 +95,7 @@ const assert = require('node:assert/strict');
   await page.evaluate(() => window.switchTab('tab-profiles'));
   assert.equal(await page.locator('#btnImportProfileExcel').isVisible(), false);
   assert.equal(await page.locator('.btn-open-profile').first().isVisible(), false);
-  assert.equal(await page.locator('#btnExportProfileExcel').isVisible(), true);
+  assert.equal(await page.locator('#btnExportProfileExcel').isVisible(), false);
   const before = writes.length;
   await page.locator('#btnImportProfileExcel').dispatchEvent('click');
   assert.equal(await page.locator('#modalQuickImportExcel').isVisible(), false);
@@ -104,6 +104,8 @@ const assert = require('node:assert/strict');
     try { await db.upsertGradeToSupabase('hv_test', 'math', 10); return false; } catch (error) { return error.message.includes('chỉ được xem'); }
   });
   assert.equal(blocked, true);
+  await page.evaluate(() => window.switchTab('tab-reports'));
+  assert.equal(await page.locator('#btnExportProfileExcel').isVisible(), true);
   const download = page.waitForEvent('download');
   await page.locator('#btnExportProfileExcel').dispatchEvent('click');
   const exported = await download;
