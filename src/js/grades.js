@@ -2335,55 +2335,7 @@ export function renderDashboard() {
     }).join('');
 
     // Hai hàng sau các mức xếp loại trong Bảng 1: Tỷ lệ Đạt / Rớt tích lũy từ đầu khóa đến nay
-    const passClassesStr = visibleClasses.map(clsName => {
-      const cs = courseStats.classStats[clsName];
-      const passCnt = cs ? Math.max(0, cs.count - cs.debtStudents) : 0;
-      return `<span class="inline-block px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 font-semibold text-[10px] mr-1">${clsName}: <strong>${passCnt}/${cs ? cs.count : 0}</strong> HV đạt</span>`;
-    }).join('');
-
-    const failClassesStr = visibleClasses.map(clsName => {
-      const cs = courseStats.classStats[clsName];
-      const debtCnt = cs ? cs.debtStudents : 0;
-      const failCnt = cs ? cs.totalFails : 0;
-      return `<span class="inline-block px-1.5 py-0.5 rounded ${debtCnt > 0 ? 'bg-rose-100 text-rose-900 border border-rose-300' : 'bg-slate-100 text-slate-500'} font-semibold text-[10px] mr-1">${clsName}: <strong>${debtCnt}</strong> HV (${failCnt} lượt)</span>`;
-    }).join('');
-
-    const passFailRowsHtml = `
-      <tr class="bg-emerald-50/40 hover:bg-emerald-50/70 transition border-t-2 border-emerald-200">
-        <td class="py-2.5 px-3 text-center text-emerald-800 font-bold">${REPORT_RANK_LEVELS.length + 1}</td>
-        <td class="py-2.5 px-4 font-extrabold text-emerald-900">
-          ✅ Tỷ lệ Đạt tích lũy (Từ đầu khóa đến nay)
-        </td>
-        <td class="py-2.5 px-3 text-center font-mono font-bold text-emerald-800">Điểm HP ≥ 4.0</td>
-        <td class="py-2.5 px-3 text-center font-extrabold text-emerald-800">
-          ${courseStats.passStudentCount} đ/c đạt 100% <span class="text-[11px] font-semibold text-slate-600">(${courseStats.passedCourseInstances} lượt HP đạt)</span>
-        </td>
-        <td class="py-2.5 px-3 text-center">
-          <span class="px-2.5 py-0.5 rounded bg-emerald-700 text-white font-black text-xs" title="Tỷ lệ lượt học phần đạt">${courseStats.coursePassRate}% HP Đạt</span>
-          <div class="text-[10px] text-emerald-800 font-bold mt-0.5">${courseStats.passStudentRate}% Quân số không nợ môn</div>
-        </td>
-        <td class="py-2.5 px-3 text-left">${passClassesStr}</td>
-        <td class="py-2.5 px-4 text-emerald-800 font-semibold">Hoàn thành đạt chuẩn các học phần tích lũy từ đầu khóa</td>
-      </tr>
-      <tr class="bg-rose-50/50 hover:bg-rose-50/80 transition">
-        <td class="py-2.5 px-3 text-center text-rose-800 font-bold">${REPORT_RANK_LEVELS.length + 2}</td>
-        <td class="py-2.5 px-4 font-extrabold text-rose-900">
-          ⚠️ Tỷ lệ Rớt tích lũy (Từ đầu khóa đến nay)
-        </td>
-        <td class="py-2.5 px-3 text-center font-mono font-bold text-rose-800">Điểm HP &lt; 4.0</td>
-        <td class="py-2.5 px-3 text-center font-extrabold text-rose-800">
-          ${courseStats.debtStudentCount} học viên rớt môn <span class="text-[11px] font-black text-rose-900">(${courseStats.totalDebtFailsCount} lượt rớt)</span>
-        </td>
-        <td class="py-2.5 px-3 text-center">
-          <span class="px-2.5 py-0.5 rounded bg-rose-700 text-white font-black text-xs" title="Tỷ lệ lượt học phần rớt">${courseStats.courseFailRate}% HP Rớt</span>
-          <div class="text-[10px] text-rose-800 font-bold mt-0.5">${courseStats.debtStudentRate}% Quân số có môn rớt</div>
-        </td>
-        <td class="py-2.5 px-3 text-left">${failClassesStr}</td>
-        <td class="py-2.5 px-4 text-rose-800 font-semibold">Cần lập kế hoạch bồi dưỡng, phụ đạo và tổ chức ôn thi lại</td>
-      </tr>
-    `;
-
-    companyTbody.innerHTML = rankRowsHtml + passFailRowsHtml;
+    companyTbody.innerHTML = rankRowsHtml;
 
     if (companyTfoot) {
       companyTfoot.innerHTML = `
@@ -2501,57 +2453,7 @@ export function renderDashboard() {
       `;
     }).join('');
 
-    // Hàng kế tiếp: Tỷ lệ Đạt học phần (%)
-    const passRowCells = yearsBreakdown.map(yb => `
-      <td class="py-2.5 px-2 text-center border-l border-slate-200 text-emerald-700 font-bold">
-        ${yb.hk1.coursePassRate}% <span class="text-[10px] font-normal text-slate-500">(${yb.hk1.passedCourseInstances} lượt)</span>
-      </td>
-      <td class="py-2.5 px-2 text-center text-emerald-700 font-bold">
-        ${yb.hk2.coursePassRate}% <span class="text-[10px] font-normal text-slate-500">(${yb.hk2.passedCourseInstances} lượt)</span>
-      </td>
-      <td class="py-2.5 px-2 text-center bg-emerald-50/70 text-emerald-800 font-black">
-        ${yb.fullYear.coursePassRate}% <span class="text-[10px] font-normal text-emerald-700">(${yb.fullYear.passedCourseInstances} lượt)</span>
-      </td>
-      <td class="py-2.5 px-2 text-center text-emerald-700 font-semibold text-[11px]">
-        ${yb.fullYear.passStudentCount} HV đạt 100%
-      </td>
-      <td class="py-2.5 px-2 text-center text-slate-400 font-medium">0 lượt rớt</td>
-    `).join('');
-
-    // Hàng kế tiếp: Tỷ lệ Rớt học phần (%) + Tổng số học viên rớt môn + Tổng số lượt rớt của từng Năm
-    const failRowCells = yearsBreakdown.map(yb => `
-      <td class="py-2.5 px-2 text-center border-l border-slate-200 ${yb.hk1.failedCourseInstances > 0 ? 'text-rose-700 font-bold' : 'text-slate-500'}">
-        ${yb.hk1.courseFailRate}% <span class="text-[10px] font-normal">(${yb.hk1. debtStudentCount} HV / ${yb.hk1.totalDebtFailsCount} lượt)</span>
-      </td>
-      <td class="py-2.5 px-2 text-center ${yb.hk2.failedCourseInstances > 0 ? 'text-rose-700 font-bold' : 'text-slate-500'}">
-        ${yb.hk2.courseFailRate}% <span class="text-[10px] font-normal">(${yb.hk2.debtStudentCount} HV / ${yb.hk2.totalDebtFailsCount} lượt)</span>
-      </td>
-      <td class="py-2.5 px-2 text-center bg-rose-50/70 ${yb.fullYear.failedCourseInstances > 0 ? 'text-rose-800 font-black' : 'text-slate-500'}">
-        ${yb.fullYear.courseFailRate}%
-      </td>
-      <td class="py-2.5 px-2 text-center bg-rose-100/70 font-black ${yb.fullYear.debtStudentCount > 0 ? 'text-rose-900' : 'text-slate-500'}">
-        ${yb.fullYear.debtStudentCount} đ/c (${yb.fullYear.debtStudentRate}%)
-      </td>
-      <td class="py-2.5 px-2 text-center bg-rose-200/70 font-black ${yb.fullYear.totalDebtFailsCount > 0 ? 'text-rose-950' : 'text-slate-500'}">
-        ${yb.fullYear.totalDebtFailsCount} lượt
-      </td>
-    `).join('');
-
-    matrixTbody.innerHTML = `
-      ${rankMatrixRows}
-      <tr class="divide-x divide-slate-200 bg-emerald-50/30 border-t-2 border-emerald-200">
-        <td class="py-2.5 px-2 text-center font-bold text-emerald-800 sticky left-0 bg-emerald-50 z-10">${REPORT_RANK_LEVELS.length + 1}</td>
-        <td class="py-2.5 px-3 font-extrabold text-emerald-900 sticky left-10 bg-emerald-50 z-10">Tỷ lệ Đạt học phần (%)</td>
-        <td class="py-2.5 px-2 text-center font-mono text-[11px] text-emerald-800 font-bold">Điểm ≥ 4.0</td>
-        ${passRowCells}
-      </tr>
-      <tr class="divide-x divide-slate-200 bg-rose-50/40">
-        <td class="py-2.5 px-2 text-center font-bold text-rose-800 sticky left-0 bg-rose-50 z-10">${REPORT_RANK_LEVELS.length + 2}</td>
-        <td class="py-2.5 px-3 font-extrabold text-rose-900 sticky left-10 bg-rose-50 z-10">Tỷ lệ Rớt &amp; Tổng hợp Rớt môn</td>
-        <td class="py-2.5 px-2 text-center font-mono text-[11px] text-rose-800 font-bold">Điểm &lt; 4.0</td>
-        ${failRowCells}
-      </tr>
-    `;
+    matrixTbody.innerHTML = rankMatrixRows;
 
     if (matrixTfoot) {
       const footCells = yearsBreakdown.map(yb => `
@@ -2740,22 +2642,6 @@ export function exportReportExcel() {
 
   rows1.push(
     [
-      REPORT_RANK_LEVELS.length + 1,
-      'Tỷ lệ Đạt học phần tích lũy (Từ đầu khóa đến nay)',
-      'Điểm học phần >= 4.0',
-      `${courseStats.passedCourseInstances} lượt học phần đạt (${courseStats.passStudentCount} HV đạt 100%)`,
-      `${courseStats.coursePassRate}%`,
-      `Tỷ lệ quân số không nợ môn: ${courseStats.passStudentRate}%`
-    ],
-    [
-      REPORT_RANK_LEVELS.length + 2,
-      'Tỷ lệ Rớt học phần tích lũy (Từ đầu khóa đến nay)',
-      'Điểm học phần < 4.0',
-      `${courseStats.failedCourseInstances} lượt học phần rớt (${courseStats.debtStudentCount} HV rớt môn)`,
-      `${courseStats.courseFailRate}%`,
-      `Tổng số học viên rớt môn: ${courseStats.debtStudentCount} đ/c (${courseStats.debtStudentRate}%) • Tổng số lượt rớt: ${courseStats.totalDebtFailsCount} lượt`
-    ],
-    [
       'TỔNG',
       'Tổng hợp Tích lũy Toàn khóa',
       `ĐTB tích lũy: ${courseStats.avgGpa}`,
@@ -2800,25 +2686,9 @@ export function exportReportExcel() {
     rows1.push(r);
   });
 
-  const passRow = [REPORT_RANK_LEVELS.length + 1, 'Tỷ lệ Đạt học phần (%)', 'Điểm >= 4.0'];
-  const failRow = [REPORT_RANK_LEVELS.length + 2, 'Tỷ lệ Rớt học phần (%) & Tổng hợp Rớt môn', 'Điểm < 4.0'];
   const avgRow = ['TỔNG', 'Điểm trung bình (ĐTB) & Tổng số rớt theo Năm', 'Hệ 10'];
 
   yearsBreakdown.forEach(yb => {
-    passRow.push(
-      `${yb.hk1.coursePassRate}% (${yb.hk1.passedCourseInstances} lượt)`,
-      `${yb.hk2.coursePassRate}% (${yb.hk2.passedCourseInstances} lượt)`,
-      `${yb.fullYear.coursePassRate}% (${yb.fullYear.passedCourseInstances} lượt)`,
-      `${yb.fullYear.passStudentCount} HV đạt 100%`,
-      '0 lượt'
-    );
-    failRow.push(
-      `${yb.hk1.courseFailRate}% (${yb.hk1.debtStudentCount} HV / ${yb.hk1.totalDebtFailsCount} lượt)`,
-      `${yb.hk2.courseFailRate}% (${yb.hk2.debtStudentCount} HV / ${yb.hk2.totalDebtFailsCount} lượt)`,
-      `${yb.fullYear.courseFailRate}% (${yb.fullYear.failedCourseInstances} lượt)`,
-      `${yb.fullYear.debtStudentCount} học viên (${yb.fullYear.debtStudentRate}%)`,
-      `${yb.fullYear.totalDebtFailsCount} lượt rớt`
-    );
     avgRow.push(
       `ĐTB HK1: ${yb.hk1.avgGpa}`,
       `ĐTB HK2: ${yb.hk2.avgGpa}`,
@@ -2828,7 +2698,7 @@ export function exportReportExcel() {
     );
   });
 
-  rows1.push(passRow, failRow, avgRow);
+  rows1.push(avgRow);
 
   rows1.push([]);
   rows1.push(['BẢNG 3: DANH SÁCH HỌC VIÊN RỚT MÔN (THI LẠI / NỢ HỌC PHẦN) CẦN BỒI DƯỠNG']);
@@ -3652,10 +3522,10 @@ export function exportStudentPersonalExcel() {
   const year = Number(AppState.cumulativeSelectedYear) || 1;
   const cumulative = XLSX.utils.aoa_to_sheet([
     ['BẢNG ĐIỂM TÍCH LŨY CÁ NHÂN'], [`Năm học ${year} · Tích lũy toàn khóa`], [], [],
-    ['STT','Mã HV','Họ và Tên','Cấp bậc','Lớp','Tín chỉ tích lũy','DTB HK1 (10)','DTB HKII (10)','ĐTB Tích Lũy (Hệ 10)','Xếp loại (Hệ 10)','Điểm Hệ 4 (/4.0)','Trình độ ngoại ngữ hiện tại','Số học phần rớt (< 4.0)'],
-    [1,student.code,student.name,student.rank,student.class,`${calculateCreditsPassed(student.id)} / ${getTotalCourseCredits(student.class)} TC`,calculateSemesterGPA(student.id,year*2-1).toFixed(2),calculateSemesterGPA(student.id,year*2).toFixed(2),calculateYearGPA(student.id).toFixed(2),getClassification(calculateYearGPA(student.id)),calculateCumulativeGPA4(student.id).toFixed(2),student.currentLangLevel || 'Chưa đạt',getDebtSubjects(student.id).length]
+    ['STT','Mã HV','Họ và Tên','Cấp bậc','Lớp','Tín chỉ tích lũy','ĐTB Tích Lũy (Hệ 10)','Xếp loại (Hệ 10)','Điểm Hệ 4 (/4.0)','Trình độ ngoại ngữ hiện tại','Số học phần rớt (< 4.0)'],
+    [1,student.code,student.name,student.rank,student.class,`${calculateCreditsPassed(student.id)} / ${getTotalCourseCredits(student.class)} TC`,calculateYearGPA(student.id).toFixed(2),getClassification(calculateYearGPA(student.id)),calculateCumulativeGPA4(student.id).toFixed(2),student.currentLangLevel || 'Chưa đạt',getDebtSubjects(student.id).length]
   ]);
-  cumulative['!cols'] = Array.from({ length: 13 }, (_, i) => ({ wch: i === 2 ? 30 : 20 }));
+  cumulative['!cols'] = Array.from({ length: 11 }, (_, i) => ({ wch: i === 2 ? 30 : 20 }));
   XLSX.utils.book_append_sheet(wb,cumulative,'Diem_Tich_Luy');
 
   // Định dạng tên file bắt buộc: Bảng điểm(thông tin cá nhân) - [Họ và tên học viên].xlsx
@@ -4512,8 +4382,6 @@ export function renderCumulativeTable() {
   filtered.forEach((s, idx) => {
     const gpa10 = calculateYearGPA(s.id);
     const gpa4 = calculateCumulativeGPA4(s.id);
-    const gpaHK1 = calculateSemesterGPA(s.id, sem1);
-    const gpaHK2 = calculateSemesterGPA(s.id, sem2);
     const passedTC = calculateCreditsPassed(s.id);
     const totalCourseTC = getTotalCourseCredits(s.class);
     const debts = getDebtSubjects(s.id);
@@ -4545,8 +4413,6 @@ export function renderCumulativeTable() {
         <td class="py-2.5 px-2 text-center text-slate-600">${s.rank}</td>
         <td class="py-2.5 px-2 text-center font-bold text-army-800">${s.class}</td>
         <td class="py-2.5 px-2 text-center font-bold text-emerald-700">${passedTC} / ${totalCourseTC} TC</td>
-        <td class="py-2.5 px-2 text-center font-semibold text-slate-800 bg-slate-50">${gpaHK1.toFixed(2)}</td>
-        <td class="py-2.5 px-2 text-center font-semibold text-slate-800 bg-slate-50">${gpaHK2.toFixed(2)}</td>
         <td class="py-2.5 px-3 text-center font-black text-slate-950 bg-gold-200/80 text-sm">${gpa10.toFixed(2)}</td>
         <td class="py-2.5 px-3 text-center">${getClassificationBadge(rank)}</td>
         <td class="py-2.5 px-2 text-center font-extrabold text-blue-800 bg-blue-50/60 text-xs">${gpa4.toFixed(2)} / 4.00</td>
@@ -4575,13 +4441,13 @@ export function renderCumulativeTable() {
   });
 
   if (filtered.length === 0) {
-    rowsHtml = `<tr><td colspan="14" class="p-8 text-center text-slate-400">Không tìm thấy quân nhân nào phù hợp với bộ lọc.</td></tr>`;
+    rowsHtml = `<tr><td colspan="12" class="p-8 text-center text-slate-400">Không tìm thấy quân nhân nào phù hợp với bộ lọc.</td></tr>`;
   }
   tbody.innerHTML = rowsHtml;
 
   if (footer) {
     footer.innerHTML = `
-      <span>Hiển thị <strong>${filtered.length}</strong> / ${scoped.length} quân nhân (Đang xem cột DTB HK1 (10) & DTB HKII (10) của Năm thứ ${filterYear})</span>
+      <span>Hiển thị <strong>${filtered.length}</strong> / ${scoped.length} quân nhân • Tích lũy toàn khóa</span>
       <span class="text-[11px] text-slate-500">Hỗ trợ chọn trực tiếp Trình độ ngoại ngữ hiện tại (A1.1, A1, A2.1, A2, B1.1, B1...) </span>
     `;
   }
@@ -4687,7 +4553,7 @@ export function exportCumulativeExcel() {
 
   const headers = [
     'STT', 'Mã HV', 'Họ và Tên', 'Cấp bậc', 'Lớp',
-    'Tín chỉ tích lũy', 'DTB HK1 (10)', 'DTB HKII (10)',
+    'Tín chỉ tích lũy',
     'ĐTB Tích Lũy (Hệ 10)', 'Xếp loại (Hệ 10)', 'Điểm Hệ 4 (/4.0)',
     'Trình độ ngoại ngữ hiện tại', 'Số học phần rớt (< 4.0)'
   ];
@@ -4703,8 +4569,6 @@ export function exportCumulativeExcel() {
   studentsToExport.forEach((s, idx) => {
     const gpa10 = calculateYearGPA(s.id);
     const gpa4 = calculateCumulativeGPA4(s.id);
-    const gpaHK1 = calculateSemesterGPA(s.id, sem1);
-    const gpaHK2 = calculateSemesterGPA(s.id, sem2);
     const passedTC = calculateCreditsPassed(s.id);
     const totalTC = getTotalCourseCredits(s.class);
     const debts = getDebtSubjects(s.id);
@@ -4716,8 +4580,6 @@ export function exportCumulativeExcel() {
       s.rank,
       s.class,
       `${passedTC} / ${totalTC} TC`,
-      gpaHK1.toFixed(2),
-      gpaHK2.toFixed(2),
       gpa10.toFixed(2),
       getClassification(gpa10),
       gpa4.toFixed(2),

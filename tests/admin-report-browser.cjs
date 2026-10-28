@@ -41,7 +41,7 @@ const fs = require('node:fs');
     assert.match(await page.locator('#reportDebtCadetsTableBody').innerText(),/3.99/);
     assert.equal(await page.locator('#statTotalCadets').innerText(),'5');
     assert.equal(await page.locator('#statDebtTotalFails').innerText(),'1');
-    assert.equal(await page.locator('#reportCompanyTableBody tr').count(),9); // seven ranks + pass/fail
+    assert.equal(await page.locator('#reportCompanyTableBody tr').count(),7); // seven ranks only
     for (const className of classes) {
       await page.locator('#dashboardClassFilter').selectOption(className);
       assert.equal(await page.locator('#statTotalCadets').innerText(),'5');

@@ -42,9 +42,17 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
     assert.equal(await page.locator(`#${id} option`).count(),6);
    }
    assert.equal(await page.locator('#statTotalCadets').innerText(),'3');
+   assert.equal(await page.locator('#reportYearSemesterMatrixBody tr').count(),7);
+   assert.doesNotMatch(await page.locator('#reportCompanyTableBody').innerText(),/Tỷ lệ Đạt tích lũy|Tỷ lệ Rớt tích lũy/);
+   await page.evaluate(()=>window.switchTab('tab-cumulative'));
+   const cumulativeTable = page.locator('#cumulativeTableBody').locator('..');
+   assert.equal(await cumulativeTable.locator('thead th').count(),12);
+   assert.equal(await cumulativeTable.locator('tbody tr').first().locator('td').count(),12);
+   assert.doesNotMatch(await cumulativeTable.locator('thead').innerText(),/HK1|HKII/);
+   await page.evaluate(()=>window.switchTab('tab-dashboard'));
    const officerReport = await page.locator('#reportCompanyTableBody').innerText();
    assert.match(officerReport,/Trung bình khá/); assert.match(officerReport,/Kém/);
-   assert.equal(await page.locator('#reportCompanyTableBody tr').count(),9);
+   assert.equal(await page.locator('#reportCompanyTableBody tr').count(),7);
    assert.match(await page.locator('#reportYearSemesterMatrixBody').innerText(),/9.00/);
    assert.doesNotMatch(await page.locator('#reportYearSemesterMatrixBody').innerText(),/8.50/);
    assert.ok(await page.locator('meta[name="app-release"]').getAttribute('content'));
@@ -68,7 +76,7 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
    await page.evaluate(()=>window.switchTab('tab-cumulative'));assert.equal(await page.evaluate(()=>window.AppState.activeTab),'tab-sheet');
    await page.evaluate(()=>window.switchTab('tab-reports'));assert.equal(await page.locator('#tab-reports .report-export-card:visible').count(),2);
    const personal=await download('#btnExportClassExcel');assert.ok(personal.SheetNames.includes('Bang_Diem_Ca_Nhan'));assert.ok(personal.SheetNames.includes('Diem_Tich_Luy'));
-   const cumulative=XLSX.utils.sheet_to_json(personal.Sheets.Diem_Tich_Luy,{header:1});assert.equal(cumulative[4].length,13);assert.equal(cumulative[5][1],'HV001');assert.ok(!cumulative.flat().includes('HV002'));
+   const cumulative=XLSX.utils.sheet_to_json(personal.Sheets.Diem_Tich_Luy,{header:1});assert.equal(cumulative[4].length,11);assert.equal(cumulative[5][1],'HV001');assert.ok(!cumulative.flat().includes('HV002'));
    const ownProfile=await download('#btnExportProfileExcel');const ownRows=XLSX.utils.sheet_to_json(ownProfile.Sheets[ownProfile.SheetNames[0]],{header:1}).flat();assert.ok(ownRows.includes('HV001'));assert.ok(!ownRows.includes('HV002'));
    const avatar=page.locator('.sidebar-account-trigger');await avatar.click();assert.equal(await page.locator('#btnLogout').isVisible(),true);assert.equal(await page.locator('#btnLogout').evaluate(e=>{const r=e.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth&&r.top>=0;}),true);await page.keyboard.press('Escape');assert.equal(await avatar.getAttribute('aria-expanded'),'false');
    await avatar.focus();await page.keyboard.press('Enter');await page.keyboard.press('Tab');assert.equal(await page.evaluate(()=>document.activeElement.id),'btnLogout');await page.keyboard.press('Enter');
