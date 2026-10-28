@@ -44,6 +44,7 @@ import {
   deleteAllSubjectsAllSemesters,
   renderSubjectsSettings,
   exportClassExcel,
+  exportAcademicRanking,
   exportMasterExcel,
   exportLanguageExcel,
   exportDashboardLanguageExcel,
@@ -1119,6 +1120,7 @@ function registerGlobalEventDelegation() {
 
     // --- H. XUẤT / NHẬP EXCEL ---
     if (target.closest('#tab-reports button')) syncReportExportScope();
+    if (target.closest('#btnExportRanking')) { e.preventDefault(); exportAcademicRanking(); return; }
     if (target.closest('#btnExportCadetRoster')) { e.preventDefault(); exportCadetRoster(); return; }
     if (target.closest('#btnExportAchievements')) { e.preventDefault(); exportAcademicAchievementsExcel(); return; }
 

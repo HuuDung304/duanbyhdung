@@ -14,18 +14,22 @@ function formatReportArchive(archive, workbook) {
   const boldFont = append('fonts', '<font><b/><sz val="12"/><color rgb="FF0F172A"/><name val="Times New Roman"/><family val="1"/></font>');
   const border = append('borders', '<border><left style="thin"><color rgb="FF94A3B8"/></left><right style="thin"><color rgb="FF94A3B8"/></right><top style="thin"><color rgb="FF94A3B8"/></top><bottom style="thin"><color rgb="FF94A3B8"/></bottom><diagonal/></border>');
   const fill = append('fills', '<fill><patternFill patternType="solid"><fgColor rgb="FFEFF6FF"/><bgColor indexed="64"/></patternFill></fill>');
+  const greenFill = append('fills', '<fill><patternFill patternType="solid"><fgColor rgb="FFDCFCE7"/><bgColor indexed="64"/></patternFill></fill>');
+  const yellowFill = append('fills', '<fill><patternFill patternType="solid"><fgColor rgb="FFFEF9C3"/><bgColor indexed="64"/></patternFill></fill>');
   let styleCount = 0;
   styles = styles.replace(/<cellXfs\b[^>]*>([\s\S]*?)<\/cellXfs>/, (_, content) => {
     const original = content.match(/<xf\b[^>]*(?:\/>|>[\s\S]*?<\/xf>)/g) || [];
     styleCount = original.length;
-    const decorate = (xf, heading) => {
+    const decorate = (xf, mode) => {
       let opening = xf.match(/^<xf\b[^>]*>/)[0].replace(/\/>$/, '>');
       const attr = (name, value) => { const re = new RegExp(` ${name}="[^"]*"`); opening = re.test(opening) ? opening.replace(re, ` ${name}="${value}"`) : opening.replace(/>$/, ` ${name}="${value}">`); };
       attr('borderId', border); attr('applyBorder', 1); attr('applyAlignment', 1);
-      if (heading) { attr('fontId', boldFont); attr('fillId', fill); attr('applyFont', 1); attr('applyFill', 1); }
+      if (mode === 1) { attr('fontId', boldFont); attr('fillId', fill); attr('applyFont', 1); attr('applyFill', 1); }
+      if (mode === 2 || mode === 3) { attr('fillId', mode === 2 ? greenFill : yellowFill); attr('applyFill', 1); }
+      if (mode === 4) { attr('borderId', 0); attr('fillId', 0); attr('applyFill', 1); }
       return `${opening}<alignment horizontal="center" vertical="center" wrapText="1"/></xf>`;
     };
-    return `<cellXfs count="${styleCount * 2}">${original.map(xf => decorate(xf, false)).join('')}${original.map(xf => decorate(xf, true)).join('')}</cellXfs>`;
+    return `<cellXfs count="${styleCount * 5}">${[0,1,2,3,4].map(mode => original.map(xf => decorate(xf, mode)).join('')).join('')}</cellXfs>`;
   });
   store(styleFile, styles);
   archive.FullPaths.forEach((path, index) => {
@@ -37,7 +41,11 @@ function formatReportArchive(archive, workbook) {
       const row = Number(attrs.match(/\br="(\d+)"/)?.[1]);
       return `<row${attrs}>${cells.replace(/<c\b([^>]*)>/g, (cell, attributes) => {
         const previous = Number(attributes.match(/\bs="(\d+)"/)?.[1] || 0);
-        const style = Math.min(previous, styleCount - 1) + (headerRows.has(row) ? styleCount : 0);
+        const address = attributes.match(/\br="([A-Z]+\d+)"/)?.[1];
+        const tint = sheet['!reportCellFills']?.[address];
+        const column = address?.replace(/\d+$/, '');
+        const mode = sheet['!reportBlankColumns']?.includes(column) ? 4 : headerRows.has(row) ? 1 : tint === 'green' ? 2 : tint === 'yellow' ? 3 : 0;
+        const style = Math.min(previous, styleCount - 1) + mode * styleCount;
         return `<c${attributes.replace(/\s+s="\d+"/, '')} s="${style}">`;
       })}</row>`;
     });
@@ -72,7 +80,8 @@ export function buildPrintableReport(workbook, xlsx = globalThis.XLSX) {
       let lines = 1;
       if (!title) for (let column = range.s.c; column <= range.e.c; column++) {
         const cell = sheet[xlsx.utils.encode_cell({ r: row, c: column })];
-        const width = sheet['!cols']?.[column]?.wch || 14;
+        const merge = sheet['!merges']?.find(item => item.s.r === row && item.e.r === row && item.s.c === column);
+        const width = merge ? Array.from({ length: merge.e.c - column + 1 }, (_, offset) => sheet['!cols']?.[column + offset]?.wch || 14).reduce((sum, value) => sum + value, 0) : sheet['!cols']?.[column]?.wch || 14;
         lines = Math.max(lines, ...String(cell.v ?? '').split('\n').map(line => Math.ceil(line.length / Math.max(5, width - 2))));
       }
       sheet['!rows'][row] = { ...sheet['!rows'][row], hpt: Math.max(sheet['!rows'][row]?.hpt || 0, Math.min(250, lines * 16 + 12)) };
@@ -80,7 +89,7 @@ export function buildPrintableReport(workbook, xlsx = globalThis.XLSX) {
     const quoted = `'${name.replaceAll("'", "''")}'`;
     const area = (sheet['!ref'] || 'A1').split(':').map(cell => cell.replace(/([A-Z]+)(\d+)/, '$$$1$$$2')).join(':');
     workbook.Workbook.Names.push({ Name: '_xlnm.Print_Area', Sheet: index, Ref: `${quoted}!${area}` });
-    if (index > 0) workbook.Workbook.Names.push({ Name: '_xlnm.Print_Titles', Sheet: index, Ref: `${quoted}!$1:$${index === 2 ? 3 : 5}` });
+    if (index > 0 || sheet['!reportRepeatRows']) workbook.Workbook.Names.push({ Name: '_xlnm.Print_Titles', Sheet: index, Ref: `${quoted}!$1:$${sheet['!reportRepeatRows'] || (index === 2 ? 3 : 5)}` });
   });
   const archive = xlsx.CFB.read(new Uint8Array(xlsx.write(workbook, { bookType: 'xlsx', type: 'array' })), { type: 'array' });
   archive.FullPaths.forEach((path, index) => {

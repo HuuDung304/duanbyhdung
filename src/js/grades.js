@@ -1,3 +1,4 @@
+import { RANKING_HEADERS, rankingTableRows } from './academic-ranking.js';
 import { buildClassTranscript } from './class-transcript.js';
 import { studentBirthYear, collectLanguageStatistics, failedStudentExportRows } from './dashboard-statistics.js';
 import { writeReportWorkbook } from './report-workbook.js';
@@ -3533,6 +3534,63 @@ export function exportMasterExcel() {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Tong_Hop_Dai_Doi');
   writeReportWorkbook(wb, `Tong_Hop_Diem_Dai_Doi_460_Nam_${year}.xlsx`);
+}
+
+export function exportAcademicRanking() {
+  if (!['admin', 'company_officer'].includes(AppState.role) && !AppState.role?.startsWith('class_leader_')) {
+    showToast('Tài khoản không có quyền xuất xếp hạng điểm.', 'error'); return;
+  }
+  const year = Math.min(5, Math.max(1, Number(document.getElementById('rankingYearSelect')?.value) || 1));
+  const scope = getCurrentUserClassScope();
+  const students = getScopedStudents();
+  if (!students.length) { showToast('Chưa có học viên để xếp hạng.', 'error'); return; }
+  const standard = evaluateLangLevelStatus('Chưa đạt', AppState.requiredLangStandard).requiredStandard;
+  const { roster } = collectLanguageStatistics(students, AppState.languages || {}, standard, evaluateLangLevelStatus, scope ? [scope] : DEFAULT_CLASSES);
+  const round = value => Number(Number(value).toFixed(2));
+  const records = roster.map(({ student, passed }) => {
+    const hasScore = semester => getSubjectsForClass(student.class, semester).some(subject => {
+      const score = AppState.grades[student.id]?.[subject.id];
+      return score !== '' && score !== undefined && score !== null && Number.isFinite(Number(score));
+    });
+    const first = year * 2 - 1, second = year * 2;
+    const hasFirst = hasScore(first), hasSecond = hasScore(second);
+    return { student, languagePassed: passed,
+      hk1: hasFirst ? round(calculateSemesterGPA(student.id, first)) : null,
+      hk2: hasSecond ? round(calculateSemesterGPA(student.id, second)) : null,
+      total: hasFirst || hasSecond ? calculateAcademicYearGPA(student.id, year) : null };
+  });
+  const makeSheet = blocks => {
+    const sheet = XLSX.utils.aoa_to_sheet([]);
+    sheet['!cols'] = []; sheet['!merges'] = []; sheet['!reportCellFills'] = {}; sheet['!reportBlankColumns'] = [];
+    sheet['!reportHeaderRows'] = [1, 2, 3]; sheet['!reportRepeatRows'] = 3;
+    blocks.forEach(({ label, members }, index) => {
+      const start = index * 12;
+      const table = rankingTableRows(members, value => normalizeDateVN(value, ''));
+      XLSX.utils.sheet_add_aoa(sheet, [[`XẾP HẠNG ĐIỂM - ${label}`], [`Năm ${year} • Yêu cầu Tiếng Nga: ${standard} • Xanh: tối đa 10% • Vàng: tiếp theo tối đa 25%`], RANKING_HEADERS, ...table.rows], { origin: { r: 0, c: start } });
+      for (const row of [0,1]) sheet['!merges'].push({ s: { r: row, c: start }, e: { r: row, c: start + 9 } });
+      [7,20,28,24,12,16,16,20,16,24].forEach((wch,column) => { sheet['!cols'][start + column] = { wch }; });
+      table.ranked.forEach((record, row) => {
+        for (let column = 0; column < 10; column++) {
+          const address = XLSX.utils.encode_cell({ r: row + 3, c: start + column });
+          if (record.award) sheet['!reportCellFills'][address] = record.award;
+          if (column >= 5 && column <= 7 && sheet[address]?.t === 'n') sheet[address].z = '0.00';
+        }
+      });
+      if (index < blocks.length - 1) for (const offset of [10,11]) {
+        sheet['!cols'][start + offset] = { wch: 4 };
+        sheet['!reportBlankColumns'].push(XLSX.utils.encode_col(start + offset));
+      }
+    });
+    return sheet;
+  };
+  const wb = XLSX.utils.book_new();
+  if (scope) {
+    XLSX.utils.book_append_sheet(wb, makeSheet([{ label: `LỚP ${scope}`, members: records }]), 'Xep_hang_lop');
+  } else {
+    XLSX.utils.book_append_sheet(wb, makeSheet([{ label: 'TOÀN ĐẠI ĐỘI', members: records }]), 'Toan_dai_doi');
+    XLSX.utils.book_append_sheet(wb, makeSheet(DEFAULT_CLASSES.map(className => ({ label: `LỚP ${className}`, members: records.filter(item => item.student.class === className) }))), 'Tung_lop');
+  }
+  writeReportWorkbook(wb, 'Xếp hạng điểm.xlsx');
 }
 
 export function exportLanguageExcel() {

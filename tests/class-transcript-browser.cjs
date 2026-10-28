@@ -14,7 +14,7 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
    for(const type of ['admin','company_officer','class_account']) {
     await page.evaluate(type=>window.AuthState.setUser({type,class:'OTQS1',displayName:'Kiểm thử'}),type);
     await page.evaluate(()=>window.switchTab('tab-reports'));
-    assert.equal(await page.locator('button[id^="btnExport"]').count(),3);
+    assert.equal(await page.locator('button[id^="btnExport"]').count(),4);
     await page.evaluate(()=>window.switchTab('tab-sheet'));
     if(await page.locator('#sheetClassSelect').isEnabled()) await page.locator('#sheetClassSelect').selectOption('OTQS1');
     await page.locator('#sheetSearchInput').fill('nguyen minh anh');
