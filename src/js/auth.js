@@ -95,18 +95,18 @@ export function syncNavigationTabLabels(role) {
   const tabDashboard = document.querySelector('.nav-tab[data-tab="tab-dashboard"]');
 
   if (tabSheet) {
-    tabSheet.textContent = isStudent ? 'Bảng Điểm' : 'Bảng Điểm Lớp (Theo Năm Học)';
+    tabSheet.textContent = isStudent ? 'Bảng Điểm' : 'Bảng Điểm Lớp';
   }
   if (tabCumulative) {
-    tabCumulative.textContent = isStudent ? 'Điểm Tích Lũy' : 'Điểm Tích Lũy Toàn Khóa';
+    tabCumulative.textContent = 'Điểm Tích Lũy';
   }
   if (tabProfiles) {
-    tabProfiles.textContent = isStudent ? 'Hồ Sơ Quân Nhân' : 'Hồ Sơ Trích Ngang Quân Nhân';
+    tabProfiles.textContent = 'Hồ Sơ Quân Nhân';
   }
   if (tabDashboard) {
     const labelSpan = tabDashboard.querySelector('.tab-dashboard-label');
     if (labelSpan) {
-      labelSpan.textContent = isClassAccount ? 'Báo Cáo Giao Ban Lớp' : 'Báo Cáo Giao Ban';
+      labelSpan.textContent = isClassAccount ? 'Dashboard Lớp' : 'Dashboard / Tổng quan';
     }
   }
 }
@@ -308,6 +308,7 @@ export function initAuthSubscription() {
     if (user && role !== 'guest') {
       showMainAppUI();
       handleRoleChange(role);
+      switchTab(role === 'student' ? 'tab-sheet' : 'tab-dashboard');
       updateAllViews();
     } else {
       hideMainAppUI();
@@ -576,7 +577,7 @@ export async function processAdminLogin(user, pass) {
         };
         AuthState.setUser(userObj);
         closeAuthModal();
-        switchTab('tab-sheet');
+        switchTab('tab-dashboard');
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return true;
       }
@@ -591,7 +592,7 @@ export async function processAdminLogin(user, pass) {
         AppState.currentSheetClass = 'all';
         AuthState.setUser(userObj);
         closeAuthModal();
-        switchTab('tab-sheet');
+        switchTab('tab-dashboard');
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return true;
       }
@@ -607,7 +608,7 @@ export async function processAdminLogin(user, pass) {
         };
         AuthState.setUser(userObj);
         closeAuthModal();
-        switchTab('tab-sheet');
+        switchTab('tab-dashboard');
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return true;
       }

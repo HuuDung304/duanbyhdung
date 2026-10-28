@@ -2,6 +2,18 @@
 
 Dự án Web Application phục vụ công tác quản lý điểm số (theo Năm học từ Năm 1 đến Năm 5), tính điểm tích lũy toàn khóa, quản lý chuẩn ngoại ngữ và hồ sơ trích ngang quân nhân tại **Đại đội 460 - Tiểu đoàn 4 - Học viện Kỹ thuật Quân sự**.
 
+## Giao diện Bento Dashboard
+
+Giao diện mới gồm sidebar cố định, thanh tìm kiếm theo quyền tài khoản, thao tác nhanh, thẻ KPI theo toàn khóa/năm/học kỳ, biểu đồ 10 học kỳ, học phần cần bồi dưỡng và nhật ký. Dashboard dùng dữ liệu thật; khi chưa có điểm sẽ hiển thị trạng thái trống. Tài khoản học viên vẫn vào bảng điểm cá nhân; cán bộ và tài khoản lớp vào Dashboard theo phạm vi được xem.
+
+Mã giao diện nằm trong `src/css/bento-dashboard.css` và `src/js/components/bento-dashboard.js`; các bảng, form, ID và hàm lưu dữ liệu hiện có được giữ lại. Việc làm mới Dashboard đi qua hook hiển thị và tôn trọng trạng thái đang chỉnh sửa. Không cần thay đổi SQL cho lần thiết kế giao diện này.
+
+Chạy trực tiếp `index.html` qua **Live Server** hoặc GitHub Pages, không mở bằng `file://` vì ứng dụng dùng ES modules. Toàn bộ URL ứng dụng là tương đối và dùng được trong đường dẫn `/duanbyhdung/`. Các thư viện CDN cần kết nối Internet. Nếu Chart.js không tải được, Dashboard vẫn có biểu đồ cột dự phòng cùng dữ liệu đọc được bằng trình đọc màn hình.
+
+`npm run build` là bước đóng gói tùy chọn: cập nhật mã phiên bản theo nội dung CSS/JS trong `index.html` rồi sao chép sang `dist/`. File HTML đã lưu sẵn các URL này để GitHub Pages có thể phục vụ nhánh `main` trực tiếp; import map đảm bảo các module cùng dùng một AppState. Sau khi sửa CSS/JS, chạy lại lệnh này trước khi push để cập nhật phiên bản tài nguyên.
+
+Kiểm tra giao diện bằng `tests/bento-browser.cjs` và `tests/rail-browser.cjs` với Playwright/Chromium; đặt `TEST_BASE_URL` tới máy chủ tĩnh. Dữ liệu Supabase trong các kiểm thử này được giả lập, không ghi lên hệ thống thật. Có thể đặt `BENTO_TEST_CSS_PATH` tới CSS Tailwind biên dịch cục bộ và `BENTO_CHART_JS_PATH` tới bản Chart.js 4.4.1 để kiểm tra khi CDN không truy cập được từ trình duyệt.
+
 ## 1. Hệ thống Tài khoản & Phân quyền (RBAC)
 
 Giao diện đăng nhập được chia thành 4 nhóm tài khoản cố định (đã xóa bỏ hoàn toàn chức năng cấp quyền):

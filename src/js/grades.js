@@ -7,6 +7,7 @@
  */
 
 export const ExternalHooks = {
+  renderBentoDashboard: null,
   renderProfilesTable: null,
   renderStudentView: null,
   handleRoleChange: null,
@@ -2192,6 +2193,7 @@ export function buildAllYearsBreakdownStats(studentsList = []) {
 }
 
 export function renderDashboard() {
+  if (typeof ExternalHooks.renderBentoDashboard === 'function') ExternalHooks.renderBentoDashboard();
   const elTotal = document.getElementById('statTotalCadets');
   if (!elTotal) return;
 

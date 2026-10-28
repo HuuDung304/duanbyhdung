@@ -37,10 +37,10 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- Application Stylesheet -->
-  <link rel="stylesheet" href="./src/css/main.css">
-  <link rel="stylesheet" href="./src/css/access-controls.css">
-  <link rel="stylesheet" href="./src/css/expanding-rail.css">
-  <link rel="stylesheet" href="./src/css/notched-field.css">
+  <link rel="stylesheet" href="./src/css/main.css?v=dd635109c346">
+  <link rel="stylesheet" href="./src/css/access-controls.css?v=08e6e66cda2b">
+  <link rel="stylesheet" href="./src/css/expanding-rail.css?v=7d03765e6c7b">
+  <link rel="stylesheet" href="./src/css/notched-field.css?v=a3d21d7cf84a">
   <style id="app-inline-css">
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
@@ -113,8 +113,9 @@ body {
 }
 
   </style>
+  <link rel="stylesheet" href="./src/css/bento-dashboard.css?v=886f9e731ef5">
 </head>
-<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
+<body class="bento-app bg-slate-100 text-slate-800 min-h-screen flex flex-col">
 
   <!-- TOP MILITARY BANNER -->
   <header class="bg-army-900 text-white border-b-4 border-gold-500 shadow-md">
@@ -903,6 +904,21 @@ body {
     <!-- TAB 3: DASHBOARD & BÁO CÁO GIAO BAN        -->
     <!-- ========================================== -->
     <section id="tab-dashboard" class="tab-content hidden space-y-5">
+      <div id="bentoDashboard" class="bento-dashboard">
+        <div class="bento-welcome"><div><span class="bento-eyebrow">ĐẠI ĐỘI 460 · KHÔNG GIAN LÀM VIỆC</span><h2>Tổng quan học tập<span class="bento-heading-dot">.</span></h2><p>Mỗi kết quả, một bước tiến. Theo dõi tình hình đơn vị tại một nơi.</p></div><span class="bento-live"><i></i> Dữ liệu hệ thống</span></div>
+        <div class="bento-grid">
+          <article class="bento-card bento-overview">
+            <div class="bento-card-head"><div><span class="bento-eyebrow">ACADEMIC OVERVIEW</span><h3>Bức tranh tổng quan</h3></div><label class="bento-period"><span class="sr-only">Khoảng thời gian thống kê</span><select id="bentoPeriod"><option value="course">Tích lũy toàn khóa</option></select></label></div>
+            <div id="bentoScope" class="bento-scope"></div>
+            <div class="bento-metrics"><div class="bento-metric bento-metric-green"><span class="bento-metric-icon" aria-hidden="true">♙</span><span>Quân số trong phạm vi</span><strong id="bentoCount">—</strong><small id="bentoGood">Đang tải dữ liệu</small></div><div class="bento-metric bento-metric-cream"><span class="bento-metric-icon" aria-hidden="true">↗</span><span>Điểm trung bình · Hệ 10</span><strong id="bentoAverage">—</strong><small id="bentoScale4">Chưa có dữ liệu</small></div></div>
+            <div class="bento-students-title"><h4>Gương mặt học tập nổi bật</h4><button type="button" data-bento-tab="tab-cumulative" class="bento-text-button">Xem tất cả ↗</button></div><p id="bentoHighlightNote" class="bento-muted"></p><div id="bentoPeople" class="bento-people"></div>
+          </article>
+          <article class="bento-card bento-subjects"><div class="bento-card-head"><div><span class="bento-eyebrow">LEARNING FOCUS</span><h3>Học phần cần bồi dưỡng</h3></div><span class="bento-round-icon" aria-hidden="true">↗</span></div><p class="bento-muted">Ưu tiên các học phần có điểm dưới 4,00.</p><div id="bentoSubjects"></div><button type="button" class="bento-outline-button" data-bento-tab="tab-settings">Xem toàn bộ danh mục môn học ↗</button></article>
+          <article class="bento-card bento-analytics"><div class="bento-card-head"><div><span class="bento-eyebrow">ACADEMIC ANALYTICS</span><h3>Hành trình qua từng học kỳ</h3></div><span class="bento-chart-key"><i></i> Điểm trung bình</span></div><p id="bentoChartNote" class="bento-muted">Thang điểm 10 · Chỉ tính học viên có điểm trong học kỳ.</p><div class="bento-chart-wrap"><canvas id="bentoSemesterChart" role="img" aria-label="Điểm trung bình theo học kỳ; dữ liệu có trong danh sách bên dưới" hidden></canvas><div id="bentoBars" class="bento-bars" aria-label="Điểm trung bình từ học kỳ 1 đến học kỳ 10"></div></div><div id="bentoChartSummary" class="bento-chart-summary"></div></article>
+          <article class="bento-card bento-activity"><div class="bento-card-head"><div><span class="bento-eyebrow">RECENT ACTIVITY</span><h3>Nhịp hoạt động</h3></div><button type="button" class="bento-text-button" data-bento-tab="tab-audit" aria-label="Xem toàn bộ nhật ký">↗</button></div><div id="bentoActivity"></div><span class="bento-muted bento-activity-foot">Các thay đổi gần nhất trong phạm vi đang chọn</span></article>
+        </div>
+      </div>
+
       <!-- Toolbar & Title + Bộ lọc phạm vi Lớp & Xuất file Báo cáo -->
       <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
         <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
@@ -2317,8 +2333,25 @@ body {
       </div>
     </div>
   </div>
-  <script type="module" src="./src/js/main.js"></script>
-  <script type="module" src="./src/js/components/expanding-rail.js"></script>
-  <script type="module" src="./src/js/components/notched-field.js"></script>
+  <script type="importmap" id="app-asset-versions">
+{
+  "imports": {
+    "./src/js/access-controls.js": "./src/js/access-controls.js?v=0c31f2921589",
+    "./src/js/auth.js": "./src/js/auth.js?v=b996bd8cdd93",
+    "./src/js/components/bento-dashboard.js": "./src/js/components/bento-dashboard.js?v=92983be2f215",
+    "./src/js/components/expanding-rail.js": "./src/js/components/expanding-rail.js?v=30e2d9c62544",
+    "./src/js/components/notched-field.js": "./src/js/components/notched-field.js?v=553608c192ae",
+    "./src/js/grades.js": "./src/js/grades.js?v=a55e2bc8f537",
+    "./src/js/main.js": "./src/js/main.js?v=20907df6ba59",
+    "./src/js/profile-rules.js": "./src/js/profile-rules.js?v=3a3bbf350b00",
+    "./src/js/students.js": "./src/js/students.js?v=95baa4f8d4bd",
+    "./src/js/supabase.js": "./src/js/supabase.js?v=95281f6a8b31"
+  }
+}
+  </script>
+  <script type="module" src="./src/js/main.js?v=20907df6ba59"></script>
+  <script type="module" src="./src/js/components/expanding-rail.js?v=30e2d9c62544"></script>
+  <script type="module" src="./src/js/components/notched-field.js?v=553608c192ae"></script>
+  <script type="module" src="./src/js/components/bento-dashboard.js?v=92983be2f215"></script>
 </body>
 </html>
