@@ -38,8 +38,7 @@ CREATE TABLE IF NOT EXISTS public.students (
   mother_hometown TEXT DEFAULT '',
   mother_job TEXT DEFAULT '',
   achievements JSONB DEFAULT '[]'::jsonb,
-  current_lang_level TEXT DEFAULT 'A2',
-  it_standard TEXT DEFAULT 'Đạt chuẩn CNTT cơ bản',
+  current_lang_level TEXT DEFAULT 'Chưa đạt',
   updated_at TIMESTAMPTZ DEFAULT now()
 );
 
@@ -68,8 +67,7 @@ ALTER TABLE public.students ADD COLUMN IF NOT EXISTS mother_birth_date TEXT DEFA
 ALTER TABLE public.students ADD COLUMN IF NOT EXISTS mother_hometown TEXT DEFAULT '';
 ALTER TABLE public.students ADD COLUMN IF NOT EXISTS mother_job TEXT DEFAULT '';
 ALTER TABLE public.students ADD COLUMN IF NOT EXISTS achievements JSONB DEFAULT '[]'::jsonb;
-ALTER TABLE public.students ADD COLUMN IF NOT EXISTS current_lang_level TEXT DEFAULT 'A2';
-ALTER TABLE public.students ADD COLUMN IF NOT EXISTS it_standard TEXT DEFAULT 'Đạt chuẩn CNTT cơ bản';
+ALTER TABLE public.students ADD COLUMN IF NOT EXISTS current_lang_level TEXT DEFAULT 'Chưa đạt';
 ALTER TABLE public.students ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT now();
 
 CREATE INDEX IF NOT EXISTS idx_students_code ON public.students (UPPER(code));
@@ -120,12 +118,11 @@ ALTER TABLE public.grades ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAUL
 CREATE INDEX IF NOT EXISTS idx_grades_student_id ON public.grades (student_id);
 CREATE INDEX IF NOT EXISTS idx_grades_subject_id ON public.grades (subject_id);
 
--- 4. BẢNG CHỨNG CHỈ NGOẠI NGỮ & CHUẨN CNTT (languages)
+-- 4. BẢNG CHỨNG CHỈ NGOẠI NGỮ (languages)
 CREATE TABLE IF NOT EXISTS public.languages (
   student_id TEXT PRIMARY KEY REFERENCES public.students(id) ON DELETE CASCADE,
   lang TEXT DEFAULT 'Tiếng Nga',
-  current_level TEXT DEFAULT 'A2',
-  it_standard TEXT DEFAULT 'Đạt chuẩn CNTT cơ bản',
+  current_level TEXT DEFAULT 'Chưa đạt',
   a1 TEXT DEFAULT 'Đ',
   a21 TEXT DEFAULT 'Đ',
   a22 TEXT DEFAULT 'Đ',
@@ -136,8 +133,7 @@ CREATE TABLE IF NOT EXISTS public.languages (
 );
 
 ALTER TABLE public.languages ADD COLUMN IF NOT EXISTS lang TEXT DEFAULT 'Tiếng Nga';
-ALTER TABLE public.languages ADD COLUMN IF NOT EXISTS current_level TEXT DEFAULT 'A2';
-ALTER TABLE public.languages ADD COLUMN IF NOT EXISTS it_standard TEXT DEFAULT 'Đạt chuẩn CNTT cơ bản';
+ALTER TABLE public.languages ADD COLUMN IF NOT EXISTS current_level TEXT DEFAULT 'Chưa đạt';
 ALTER TABLE public.languages ADD COLUMN IF NOT EXISTS a1 TEXT DEFAULT 'Đ';
 ALTER TABLE public.languages ADD COLUMN IF NOT EXISTS a21 TEXT DEFAULT 'Đ';
 ALTER TABLE public.languages ADD COLUMN IF NOT EXISTS a22 TEXT DEFAULT 'Đ';

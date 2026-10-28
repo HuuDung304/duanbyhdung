@@ -2,7 +2,7 @@
  * MODULE: src/js/grades.js
  * Quản lý Kho dữ liệu (AppState & localStorage), Phân loại Môn học (Môn chung & Môn chuyên ngành),
  * Bảng điểm Lớp theo Năm học (Năm 1 -> Năm 5), Bảng điểm cuộn dọc cho Học viên,
- * Điểm tích lũy (DTB HK1 (10), DTB HKII (10), Ngoại ngữ hiện tại, Chuẩn CNTT),
+ * Điểm tích lũy (DTB HK1 (10), DTB HKII (10), Ngoại ngữ hiện tại),
  * Tổng hợp Toàn Đại đội (Lọc theo kỳ), Báo cáo giao ban (Rớt < 4.0 định dạng [Tên môn] ([Số tín chỉ] TC)).
  */
 
@@ -171,7 +171,8 @@ export const LANGUAGE_LEVEL_RANK = {
 };
 
 export function evaluateLangLevelStatus(actualLevel, requiredStandard = null) {
-  const std = requiredStandard || AppState.requiredLangStandard || 'A2';
+  const requested = requiredStandard || AppState.requiredLangStandard || 'A2';
+  const std = LANGUAGE_LEVEL_RANK[requested] !== undefined ? requested : 'A2';
   const cur = actualLevel || 'Chưa đạt';
   const curRank = LANGUAGE_LEVEL_RANK[cur] !== undefined ? LANGUAGE_LEVEL_RANK[cur] : 0;
   const reqRank = LANGUAGE_LEVEL_RANK[std] !== undefined ? LANGUAGE_LEVEL_RANK[std] : 4;
@@ -180,18 +181,13 @@ export function evaluateLangLevelStatus(actualLevel, requiredStandard = null) {
     isPassed,
     requiredStandard: std,
     actualLevel: cur,
-    statusText: isPassed ? `Đạt chuẩn (${std})` : 'Chưa đạt',
+    statusText: isPassed ? `Đạt chuẩn (${std})` : `Chưa đạt (${std})`,
     badgeHtml: isPassed
       ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 whitespace-nowrap">✅ Đạt (${std})</span>`
-      : `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-extrabold bg-rose-100 text-rose-700 border border-rose-300 whitespace-nowrap">⚠️ Chưa đạt (Chuẩn ${std})</span>`
+      : `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-extrabold bg-rose-100 text-rose-700 border border-rose-300 whitespace-nowrap">⚠️ Chưa đạt (${std})</span>`
   };
 }
 
-export const IT_STANDARD_OPTIONS = [
-  'Chưa đạt',
-  'Đạt chuẩn CNTT cơ bản',
-  'Đạt chuẩn CNTT nâng cao'
-];
 
 // --- 1. DANH MỤC MÔN HỌC: MÔN HỌC CHUNG (common) & MÔN HỌC CHUYÊN NGÀNH (specialized) ---
 // Khởi tạo danh mục môn học trống hoàn toàn (Loại bỏ hoàn toàn Auto-Seeding 49 môn mẫu cứng)
@@ -297,8 +293,7 @@ export function enrichStudentsProfile(students) {
     if (s.mother_job === undefined) s.mother_job = '';
     if (s.mother_hometown === undefined) s.mother_hometown = '';
     s.achievements = normalizeAchievements(s.achievements);
-    if (!s.currentLangLevel) s.currentLangLevel = 'A2';
-    if (!s.itStandard) s.itStandard = 'Đạt chuẩn CNTT cơ bản';
+    if (!s.currentLangLevel) s.currentLangLevel = 'Chưa đạt';
   });
 }
 
@@ -1079,8 +1074,7 @@ export function setSheetScaleMode(scaleMode) {
 export function getHighestRussianCertInfo(studentId) {
   const st = AppState.students.find(s => s.id === studentId);
   const l = AppState.languages[studentId] || { lang: 'Tiếng Nga', A1: 'Đ', A21: 'Đ', A22: 'Đ', B11: 'CT', B12: 'CT', extraCert: '' };
-  const currentLvl = st?.currentLangLevel || l.currentLevel || 'A2';
-  const itStd = st?.itStandard || l.itStandard || 'Đạt chuẩn CNTT cơ bản';
+  const currentLvl = st?.currentLangLevel || l.currentLevel || 'Chưa đạt';
 
   const russianLevelsOrder = [
     { key: 'B12', label: 'B1.2', desc: 'Chuẩn Đầu ra Tốt nghiệp' },
@@ -1091,7 +1085,7 @@ export function getHighestRussianCertInfo(studentId) {
   ];
 
   const primaryTitle = `${l.lang || 'Tiếng Nga'}: Mức ${currentLvl}`;
-  const primaryStatus = `Chuẩn CNTT: ${itStd}`;
+  const primaryStatus = evaluateLangLevelStatus(currentLvl).statusText;
 
   const detailedLevels = russianLevelsOrder.slice().reverse().map(lvl => {
     const stVal = l[lvl.key] || 'CT';
@@ -1110,7 +1104,7 @@ export function getHighestRussianCertInfo(studentId) {
 
   return {
     highestLevel: currentLvl,
-    itStandard: itStd,
+
     primaryTitle,
     primaryStatus,
     detailedLevels,
@@ -1186,9 +1180,7 @@ export function isCurrentSheetLocked() {
 
 export function canUserEditCurrentSheet() {
   if (AppState.role === 'admin') return true;
-  if (AppState.role === 'company_officer') {
-    return !isCurrentSheetLocked();
-  }
+  if (AppState.role === 'company_officer') return false;
   if (AppState.role && AppState.role.startsWith('class_leader_')) {
     const leaderClass = AppState.role.replace('class_leader_', '');
     if (leaderClass !== AppState.currentSheetClass) return false;
@@ -2983,7 +2975,7 @@ export function renderLanguages() {
   const tbody = document.getElementById('languageTableBody');
   if (!summaryContainer || !tbody) return;
 
-  const canConfigStd = AppState.role === 'admin' || AppState.role === 'company_officer';
+  const canConfigStd = AppState.role === 'admin';
   const reqStd = AppState.requiredLangStandard || 'A2';
   document.querySelectorAll('.required-lang-standard-select').forEach(sel => {
     sel.value = reqStd;
@@ -3012,7 +3004,7 @@ export function renderLanguages() {
     const clsStudents = AppState.students.filter(s => s.class === cls);
     let stdPassed = 0;
     clsStudents.forEach(s => {
-      const curLvl = s.currentLangLevel || AppState.languages[s.id]?.currentLevel || 'A2';
+      const curLvl = s.currentLangLevel || AppState.languages[s.id]?.currentLevel || 'Chưa đạt';
       if (evaluateLangLevelStatus(curLvl, reqStd).isPassed) stdPassed++;
     });
     const rate = clsStudents.length > 0 ? Math.round((stdPassed / clsStudents.length) * 100) : 0;
@@ -3039,7 +3031,7 @@ export function renderLanguages() {
   } else {
     langStudentsList.forEach((student, idx) => {
       const l = AppState.languages[student.id] || { lang: 'Tiếng Nga', A1: 'Đ', A21: 'Đ', A22: 'Đ', B11: 'Đ', B12: 'CT' };
-      const curLvl = student.currentLangLevel || l.currentLevel || 'A2';
+      const curLvl = student.currentLangLevel || l.currentLevel || 'Chưa đạt';
       const evalStatus = evaluateLangLevelStatus(curLvl, reqStd);
 
       const badge = (status) => {
@@ -3048,7 +3040,7 @@ export function renderLanguages() {
         return '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-300">Chưa thi</span>';
       };
 
-      const canEditLang = AppState.role === 'admin' || AppState.role === 'company_officer' ||
+      const canEditLang = AppState.role === 'admin' ||
         (AppState.role && AppState.role.startsWith('class_leader_') && AppState.role.replace('class_leader_', '') === student.class);
 
       const levelSelectHtml = canEditLang
@@ -3058,7 +3050,7 @@ export function renderLanguages() {
         : `<span class="font-bold text-army-900">${curLvl}</span>`;
 
       tableHtml += `
-        <tr class="hover:bg-slate-50 transition">
+        <tr class="${evalStatus.isPassed ? 'hover:bg-slate-50' : 'bg-rose-50 text-rose-800'} transition">
           <td class="py-2.5 px-3 text-center text-slate-500 font-medium">${idx + 1}</td>
           <td class="py-2.5 px-3 font-mono font-bold">
             <button type="button" class="btn-view-cadet-detail text-army-800 hover:text-gold-600 hover:underline" data-id="${student.id}">${student.code}</button>
@@ -3095,6 +3087,7 @@ export function renderLanguages() {
 }
 
 export function openLangModal(studentId) {
+  if (AppState.role === 'company_officer') { showToast('Tài khoản cán bộ chỉ được xem.', 'error'); return; }
   if (AppState.role === 'student') {
     showToast('Học viên không có quyền sửa bảng chứng chỉ đơn vị!', 'error');
     return;
@@ -3127,6 +3120,11 @@ export function loadStudentLangData(studentId) {
   const nameEl = document.getElementById('langStudentName');
   if (nameEl) nameEl.textContent = `${student.name} (${student.code} - ${student.class})`;
   document.getElementById('langChoice').value = l.lang || 'Tiếng Nga';
+  const actualLevel = document.getElementById('langActualLevel');
+  if (actualLevel) {
+    actualLevel.innerHTML = LANGUAGE_LEVEL_OPTIONS.map(level => `<option value="${level}">${level}</option>`).join('');
+    actualLevel.value = student.currentLangLevel || l.currentLevel || 'Chưa đạt';
+  }
   document.getElementById('langLevelA1').value = l.A1 || 'Đ';
   document.getElementById('langLevelA21').value = l.A21 || 'Đ';
   document.getElementById('langLevelA22').value = l.A22 || 'Đ';
@@ -3171,6 +3169,7 @@ export function renderAuditLog() {
 
 // --- 10. QUẢN LÝ DANH MỤC MÔN HỌC: MÔN HỌC CHUNG & MÔN HỌC CHUYÊN NGÀNH ---
 export async function deleteSubject(subjectId, triggerBtn = null) {
+  if (AppState.role === 'company_officer') { showToast('Tài khoản cán bộ chỉ được xem.', 'error'); return; }
   if (!subjectId) return;
   const subj = AppState.subjects.find(s => s.id === subjectId);
   if (!subj) return;
@@ -3217,6 +3216,7 @@ export async function deleteSubject(subjectId, triggerBtn = null) {
  * Xóa tất cả các môn học trong một Học kỳ cụ thể (`semesterNumber`) trực tiếp trên Supabase
  */
 export async function deleteAllSubjectsInSemester(semesterNumber, triggerBtn = null) {
+  if (AppState.role === 'company_officer') { showToast('Tài khoản cán bộ chỉ được xem.', 'error'); return; }
   const sem = Number(semesterNumber);
   if (!sem || sem < 1 || sem > 10) return;
 
@@ -3297,8 +3297,9 @@ export async function deleteAllSubjectsInSemester(semesterNumber, triggerBtn = n
  * Xóa vĩnh viễn tất cả các môn học của toàn khóa (10 Học kỳ) trực tiếp trên Supabase
  */
 export async function deleteAllSubjectsAllSemesters(triggerBtn = null) {
-  if (AppState.role !== 'admin' && AppState.role !== 'company_officer') {
-    showToast('Chỉ Admin hoặc Cán bộ Đại đội mới có quyền xóa toàn bộ môn học toàn khóa!', 'error');
+  if (AppState.role === 'company_officer') { showToast('Tài khoản cán bộ chỉ được xem.', 'error'); return; }
+  if (AppState.role !== 'admin') {
+    showToast('Chỉ Admin mới có quyền xóa toàn bộ môn học toàn khóa!', 'error');
     return;
   }
 
@@ -3407,7 +3408,7 @@ export function renderSubjectsSettings() {
       const isSpec = s.category === 'specialized';
       const targetClasses = getSubjectTargetClasses(s);
       const targetClassesLabel = targetClasses.join(', ');
-      const canModify = AppState.role === 'admin' || AppState.role === 'company_officer' ||
+      const canModify = AppState.role === 'admin' ||
         (classScope && isSpec && targetClasses.includes(classScope));
       return `
         <tr class="hover:bg-slate-50 transition">
@@ -3575,7 +3576,7 @@ export function exportStudentPersonalExcel() {
     ['Cấp bậc:', student.rank, 'Lớp:', student.class],
     ['Chức vụ:', student.position || student.role || 'Học viên', 'Ngày sinh:', formatVN(student.dob)],
     ['Nhập ngũ:', student.enlistmentDate || '02/2022', 'Quê quán:', student.hometown || ''],
-    ['Trình độ ngoại ngữ:', student.currentLangLevel || 'A2', 'Chuẩn CNTT:', student.itStandard || 'Đạt chuẩn CNTT cơ bản'],
+    ['Trình độ ngoại ngữ:', student.currentLangLevel || 'Chưa đạt'],
     ['Danh hiệu đạt được:', formatAchievementsText(student.achievements)],
     [],
     ['II. BẢNG ĐIỂM CHI TIẾT TỪ NĂM NHẤT ĐẾN NĂM NĂM (5 NĂM - 10 HỌC KỲ)']
@@ -3715,10 +3716,10 @@ export function exportMasterExcel() {
 }
 
 export function exportLanguageExcel() {
-  const headers = ['STT', 'Mã HV', 'Họ và Tên', 'Lớp', 'Ngoại Ngữ', 'Trình Độ Hiện Tại', 'Chuẩn CNTT', 'A1', 'A2.1', 'A2.2', 'B1.1', 'B1.2'];
+  const headers = ['STT', 'Mã HV', 'Họ và Tên', 'Lớp', 'Ngoại Ngữ', 'Trình Độ Hiện Tại', 'A1', 'A2.1', 'A2.2', 'B1.1', 'B1.2'];
   const rows = [
     ['TIỂU ĐOÀN 4 - ĐẠI ĐỘI 460'],
-    ['BẢNG THEO DÕI CHỨNG CHỈ NGOẠI NGỮ & CHUẨN CNTT'],
+    ['BẢNG THEO DÕI CHỨNG CHỈ NGOẠI NGỮ'],
     [],
     headers
   ];
@@ -3731,8 +3732,7 @@ export function exportLanguageExcel() {
       s.name,
       s.class,
       l.lang,
-      s.currentLangLevel || l.currentLevel || 'A2',
-      s.itStandard || l.itStandard || 'Đạt chuẩn CNTT cơ bản',
+      s.currentLangLevel || l.currentLevel || 'Chưa đạt',
       l.A1,
       l.A21,
       l.A22,
@@ -3905,6 +3905,7 @@ export function handleExcelFileUpload(file) {
  *   trước khi lưu `grades` để dữ liệu điểm không bao giờ bị bỏ sót!
  */
 export async function executeExcelImport() {
+  if (AppState.role === 'company_officer') { showToast('Tài khoản cán bộ chỉ được xem.', 'error'); return; }
   if (AppState.role === 'student') {
     showToast('Học viên không có quyền nhập điểm từ file Excel!', 'error');
     return;
@@ -4069,16 +4070,16 @@ export async function executeExcelImport() {
           mother_hometown: '',
           mother_job: '',
           achievements: [],
-          currentLangLevel: 'A2',
-          itStandard: 'Đạt chuẩn CNTT cơ bản'
+          currentLangLevel: 'Chưa đạt',
+
         };
         AppState.students.push(student);
         indexStudent(student);
         AppState.grades[newId] = {};
         AppState.languages[newId] = {
           lang: 'Tiếng Nga',
-          currentLevel: 'A2',
-          itStandard: 'Đạt chuẩn CNTT cơ bản',
+          currentLevel: 'Chưa đạt',
+
           A1: 'Đ', A21: 'Đ', A22: 'Đ', B11: 'CT', B12: 'CT'
         };
         createdStudentsCount++;
@@ -4243,6 +4244,8 @@ export function calculateCreditsPassed(studentId) {
 }
 
 export async function handleInlineCumulativeMetaChange(studentId, field, value, triggerSelectEl = null) {
+  if (AppState.role === 'company_officer') { showToast('Tài khoản cán bộ chỉ được xem.', 'error'); return; }
+  if (field !== 'currentLangLevel') return;
   const s = AppState.students.find(x => x.id === studentId);
   if (!s) return;
 
@@ -4267,13 +4270,10 @@ export async function handleInlineCumulativeMetaChange(studentId, field, value, 
     if (field === 'currentLangLevel') {
       s.currentLangLevel = value;
       AppState.languages[studentId].currentLevel = value;
-    } else if (field === 'itStandard') {
-      s.itStandard = value;
-      AppState.languages[studentId].itStandard = value;
     }
 
     await upsertStudentToSupabase(s, AppState.languages[studentId]);
-    logAuditTrail(studentId, '', field === 'currentLangLevel' ? 'Ngoại ngữ' : 'Chuẩn CNTT', value, 'Cập nhật trực tiếp trên bảng');
+    logAuditTrail(studentId, '', 'Ngoại ngữ', value, 'Cập nhật trực tiếp trên bảng');
     updateAllViews();
   } finally {
     if (triggerSelectEl) triggerSelectEl.disabled = false;
@@ -4285,7 +4285,7 @@ export function renderCumulativeTable() {
   const footer = document.getElementById('cumulativeTableFooter');
   if (!tbody) return;
 
-  const canConfigStd = AppState.role === 'admin' || AppState.role === 'company_officer';
+  const canConfigStd = AppState.role === 'admin';
   document.querySelectorAll('.required-lang-standard-select').forEach(sel => {
     sel.value = AppState.requiredLangStandard || 'A2';
     sel.disabled = !canConfigStd;
@@ -4372,20 +4372,16 @@ export function renderCumulativeTable() {
     const totalCourseTC = getTotalCourseCredits(s.class);
     const debts = getDebtSubjects(s.id);
     const rank = getClassification(gpa10);
-    const curLang = s.currentLangLevel || AppState.languages[s.id]?.currentLevel || 'A2';
-    const curIt = s.itStandard || AppState.languages[s.id]?.itStandard || 'Đạt chuẩn CNTT cơ bản';
+    const curLang = s.currentLangLevel || AppState.languages[s.id]?.currentLevel || 'Chưa đạt';
 
     const langEval = evaluateLangLevelStatus(curLang, AppState.requiredLangStandard);
-    const canEditMeta = AppState.role === 'admin' || AppState.role === 'company_officer' ||
+    const canEditMeta = AppState.role === 'admin' ||
       (AppState.role && AppState.role.startsWith('class_leader_') && AppState.role.replace('class_leader_', '') === s.class);
 
     const langOptionsHtml = LANGUAGE_LEVEL_OPTIONS.map(opt =>
       `<option value="${opt}" ${opt === curLang ? 'selected' : ''}>${opt}</option>`
     ).join('');
 
-    const itOptionsHtml = IT_STANDARD_OPTIONS.map(opt =>
-      `<option value="${opt}" ${opt === curIt ? 'selected' : ''}>${opt}</option>`
-    ).join('');
 
     rowsHtml += `
       <tr class="hover:bg-slate-50 transition" data-student-id="${s.id}">
@@ -4416,11 +4412,7 @@ export function renderCumulativeTable() {
             ${langEval.badgeHtml}
           </div>
         </td>
-        <td class="py-2 px-2 text-center">
-          <select class="select-cumul-it border border-slate-300 rounded-lg px-2 py-1 text-xs font-semibold text-slate-800 bg-white focus:ring-1 focus:ring-army-600" data-id="${s.id}" ${canEditMeta ? '' : 'disabled'}>
-            ${itOptionsHtml}
-          </select>
-        </td>
+
         <td class="py-2.5 px-3 text-center">
           ${debts.length > 0 ?
             `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-700" title="${debts.map(d => formatFailedSubjectItem(d.subject)).join(', ')}">⚠️ Rớt ${debts.length} môn</span>` :
@@ -4437,14 +4429,14 @@ export function renderCumulativeTable() {
   });
 
   if (filtered.length === 0) {
-    rowsHtml = `<tr><td colspan="15" class="p-8 text-center text-slate-400">Không tìm thấy quân nhân nào phù hợp với bộ lọc.</td></tr>`;
+    rowsHtml = `<tr><td colspan="14" class="p-8 text-center text-slate-400">Không tìm thấy quân nhân nào phù hợp với bộ lọc.</td></tr>`;
   }
   tbody.innerHTML = rowsHtml;
 
   if (footer) {
     footer.innerHTML = `
       <span>Hiển thị <strong>${filtered.length}</strong> / ${scoped.length} quân nhân (Đang xem cột DTB HK1 (10) & DTB HKII (10) của Năm thứ ${filterYear})</span>
-      <span class="text-[11px] text-slate-500">Hỗ trợ chọn trực tiếp Trình độ ngoại ngữ hiện tại (A1.1, A1, A2.1, A2, B1.1, B1...) & Chuẩn CNTT</span>
+      <span class="text-[11px] text-slate-500">Hỗ trợ chọn trực tiếp Trình độ ngoại ngữ hiện tại (A1.1, A1, A2.1, A2, B1.1, B1...) </span>
     `;
   }
 
@@ -4480,7 +4472,7 @@ export function openTranscriptModal(studentId) {
   document.getElementById('tcName').textContent = student.name;
   document.getElementById('tcCode').textContent = student.code;
   document.getElementById('tcClass').textContent = `${student.class} • ${pos}`;
-  document.getElementById('tcRank').textContent = `${student.rank} • Ngoại ngữ: ${student.currentLangLevel || 'A2'} • ${student.itStandard || 'Đạt chuẩn CNTT cơ bản'}`;
+  document.getElementById('tcRank').textContent = `${student.rank} • Ngoại ngữ: ${student.currentLangLevel || 'Chưa đạt'}`;
 
   document.getElementById('tcGpa10').textContent = gpa10.toFixed(2);
   document.getElementById('tcGpa4').textContent = `${gpa4.toFixed(2)} / 4.00`;
@@ -4550,7 +4542,7 @@ export function exportCumulativeExcel() {
     'STT', 'Mã HV', 'Họ và Tên', 'Cấp bậc', 'Lớp',
     'Tín chỉ tích lũy', 'DTB HK1 (10)', 'DTB HKII (10)',
     'ĐTB Tích Lũy (Hệ 10)', 'Xếp loại (Hệ 10)', 'Điểm Hệ 4 (/4.0)',
-    'Trình độ ngoại ngữ hiện tại', 'Chuẩn CNTT', 'Số học phần rớt (< 4.0)'
+    'Trình độ ngoại ngữ hiện tại', 'Số học phần rớt (< 4.0)'
   ];
 
   const rows = [
@@ -4582,8 +4574,7 @@ export function exportCumulativeExcel() {
       gpa10.toFixed(2),
       getClassification(gpa10),
       gpa4.toFixed(2),
-      s.currentLangLevel || 'A2',
-      s.itStandard || 'Đạt chuẩn CNTT cơ bản',
+      s.currentLangLevel || 'Chưa đạt',
       debts.length
     ]);
   });
@@ -4681,6 +4672,7 @@ export function connectFirebaseRealtime() {
 }
 
 export function pushDataToCloud(immediate = false) {
+  if (AppState.role === 'company_officer') return Promise.resolve();
   if (CloudSync.isIncomingSync) return Promise.resolve();
   clearTimeout(CloudSync.debounceTimer);
 

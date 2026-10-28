@@ -1,3 +1,6 @@
+import { installOfficerReadOnlyGuard } from './access-controls.js';
+import { calendarDate, politicalDates } from './profile-rules.js';
+
 /**
  * MODULE: src/js/main.js
  * Kết nối các module (supabase.js, auth.js, students.js, grades.js),
@@ -12,6 +15,7 @@ import {
   CLOUD_CFG_STORAGE_KEY,
   DEFAULT_CLASSES,
   DEFAULT_SUBJECTS,
+  LANGUAGE_LEVEL_OPTIONS,
   AppState,
   CloudSync,
   registerExternalHooks,
@@ -71,8 +75,7 @@ import {
   withButtonLock,
   loadAllDataFromSupabase,
   upsertStudentToSupabase,
-  upsertSubjectToSupabase,
-  upsertLanguageToSupabase
+  upsertSubjectToSupabase
 } from './supabase.js';
 
 import {
@@ -271,6 +274,7 @@ export function syncModalAddSubjCategoryUI() {
  * Mở Modal Thêm Môn học mới
  */
 export function openCreateSubjectModal(defaultSem = '1', defaultCat = 'common') {
+  if (AppState.role === 'company_officer') { showToast('Tài khoản cán bộ chỉ được xem.', 'error'); return; }
   const editIdInput = document.getElementById('editSubjId');
   if (editIdInput) editIdInput.value = '';
   const modalTitle = document.getElementById('modalAddSubjectTitle');
@@ -300,6 +304,7 @@ export function openCreateSubjectModal(defaultSem = '1', defaultCat = 'common') 
  * Mở Modal Chỉnh sửa Môn học (Hỗ trợ chỉnh sửa cả nhiều lớp áp dụng cho môn chuyên ngành)
  */
 export function openEditSubjectModal(subjectId) {
+  if (AppState.role === 'company_officer') { showToast('Tài khoản cán bộ chỉ được xem.', 'error'); return; }
   const subj = AppState.subjects.find(s => s.id === subjectId);
   if (!subj) return;
 
@@ -348,6 +353,7 @@ export function openEditSubjectModal(subjectId) {
  * Mở Modal Thêm Học viên mới
  */
 export function openAddCadetModal() {
+  if (AppState.role === 'company_officer') { showToast('Tài khoản cán bộ chỉ được xem.', 'error'); return; }
   const modalEl = document.getElementById('modalAddCadet');
   const alreadyOpen = modalEl && !modalEl.classList.contains('hidden');
   const classScope = getCurrentUserClassScope();
@@ -374,6 +380,7 @@ export function openAddCadetModal() {
  * Xử lý Submit Form Thêm Học viên mới (#formAddCadet)
  */
 async function submitAddCadetForm(formEl) {
+  if (AppState.role === 'company_officer') { showToast('Tài khoản cán bộ chỉ được xem.', 'error'); return; }
   const submitBtn = formEl ? formEl.querySelector('button[type="submit"]') : null;
   await withButtonLock(submitBtn, '⏳ Đang xử lý...', async () => {
     const codeEl = document.getElementById('newCadetCode');
@@ -388,7 +395,9 @@ async function submitAddCadetForm(formEl) {
     const name = expandCourseAbbreviation(rawName, code);
     const rank = rankEl ? rankEl.value : 'Hạ sĩ';
     const cls = getCurrentUserClassScope() || (clsEl ? clsEl.value : 'OTQS1');
-    const dob = normalizeDateVN(dobEl ? dobEl.value : '', '');
+    let dob;
+    try { dob = calendarDate(dobEl ? dobEl.value : ''); }
+    catch (error) { showToast(error.message, 'error'); return; }
     const role = (roleEl && roleEl.value.trim()) ? roleEl.value.trim() : 'Học viên';
 
     if (!code || !name) {
@@ -415,13 +424,13 @@ async function submitAddCadetForm(formEl) {
       permanentAddress: 'Quảng Xương, Thanh Hóa',
       currentAddress: 'Bắc Từ Liêm, Hà Nội',
       achievements: [],
-      currentLangLevel: 'A2',
-      itStandard: 'Đạt chuẩn CNTT cơ bản'
+      currentLangLevel: 'Chưa đạt',
+
     };
     const defaultLang = {
       lang: 'Tiếng Nga',
-      currentLevel: 'A2',
-      itStandard: 'Đạt chuẩn CNTT cơ bản',
+      currentLevel: 'Chưa đạt',
+
       A1: 'Đ', A21: 'Đ', A22: 'Đ', B11: 'CT', B12: 'CT'
     };
 
@@ -451,10 +460,16 @@ async function submitAddCadetForm(formEl) {
  * Xử lý Submit Form Cập nhật Chứng chỉ Ngoại ngữ (#formUpdateLang)
  */
 async function submitUpdateLangForm(formEl) {
+  if (AppState.role === 'company_officer') { showToast('Tài khoản cán bộ chỉ được xem.', 'error'); return; }
   const submitBtn = formEl ? formEl.querySelector('button[type="submit"]') : null;
   await withButtonLock(submitBtn, '⏳ Đang xử lý...', async () => {
     const sid = document.getElementById('langStudentId')?.value;
     if (!sid) return;
+    const selectedStudent = AppState.students.find(student => student.id === sid);
+    const scope = getCurrentUserClassScope();
+    if (!selectedStudent || AppState.role === 'student' || (scope && selectedStudent.class !== scope)) { showToast('Bạn không được sửa chứng chỉ của học viên này.', 'error'); return; }
+    const level = document.getElementById('langActualLevel')?.value || 'Chưa đạt';
+    if (!LANGUAGE_LEVEL_OPTIONS.includes(level)) return;
     const lang = document.getElementById('langChoice')?.value || 'Tiếng Nga';
     const A1 = document.getElementById('langLevelA1')?.value || 'Đ';
     const A21 = document.getElementById('langLevelA21')?.value || 'Đ';
@@ -464,8 +479,11 @@ async function submitUpdateLangForm(formEl) {
     const extraCert = document.getElementById('langExtraCert')?.value || '';
 
     const prev = AppState.languages[sid] || {};
-    AppState.languages[sid] = { ...prev, lang, A1, A21, A22, B11, B12, extraCert };
-    await upsertLanguageToSupabase(sid, AppState.languages[sid]);
+    const previousLevel = selectedStudent.currentLangLevel;
+    selectedStudent.currentLangLevel = level;
+    AppState.languages[sid] = { ...prev, lang, currentLevel: level, A1, A21, A22, B11, B12, extraCert };
+    const saved = await upsertStudentToSupabase(selectedStudent, AppState.languages[sid]);
+    if (saved?.error) { selectedStudent.currentLangLevel = previousLevel; AppState.languages[sid] = prev; showToast(saved.error.message || 'Không lưu được chứng chỉ.', 'error'); return; }
     logAuditTrail(sid, '', 'Ngoại ngữ', `${lang}: B1.1 ${B11}, B1.2 ${B12}`, 'Cập nhật chứng chỉ ngoại ngữ');
     hideModal('modalUpdateLang');
     updateAllViews({ force: true });
@@ -477,6 +495,7 @@ async function submitUpdateLangForm(formEl) {
  * Xử lý Submit Form Thêm / Sửa Môn học (#formAddSubject)
  */
 async function submitAddSubjectForm(formEl) {
+  if (AppState.role === 'company_officer') { showToast('Tài khoản cán bộ chỉ được xem.', 'error'); return; }
   const submitBtn = formEl ? formEl.querySelector('button[type="submit"]') : null;
   await withButtonLock(submitBtn, '⏳ Đang xử lý...', async () => {
     const editSubjId = document.getElementById('editSubjId')?.value.trim() || '';
@@ -590,6 +609,7 @@ async function submitAddSubjectForm(formEl) {
  * Xử lý Submit Form Hồ sơ Quân nhân (#formStudentProfile)
  */
 async function submitStudentProfileForm(formEl) {
+  if (AppState.role === 'company_officer') { showToast('Tài khoản cán bộ chỉ được xem.', 'error'); return; }
   const submitBtn = formEl ? formEl.querySelector('button[type="submit"]') : null;
   await withButtonLock(submitBtn, '⏳ Đang xử lý...', async () => {
     const sid = document.getElementById('profFormId')?.value.trim() || '';
@@ -598,16 +618,19 @@ async function submitStudentProfileForm(formEl) {
     const rank = document.getElementById('profFormRank')?.value || 'Hạ sĩ';
     const cls = getCurrentUserClassScope() || document.getElementById('profFormClass')?.value || 'OTQS1';
     const pos = (document.getElementById('profFormPosition')?.value || 'Học viên').trim() || 'Học viên';
-    const dob = normalizeDateVN(document.getElementById('profFormDob')?.value || '', '');
+    let dob;
+    try { dob = calendarDate(document.getElementById('profFormDob')?.value); }
+    catch (error) { showToast(error.message, 'error'); return; }
     const enlistment = document.getElementById('profFormEnlistment')?.value.trim() || '';
     const phone = document.getElementById('profFormPhone')?.value.trim() || '';
     const hometown = document.getElementById('profFormHometown')?.value.trim() || '';
     const permAddress = document.getElementById('profFormPermAddress')?.value.trim() || '';
     const currAddress = document.getElementById('profFormCurrAddress')?.value.trim() || '';
 
-    const politicalStatus = document.getElementById('profFormPoliticalStatus')?.value || 'DOAN_VIEN';
-    const partyJoinedDate = normalizeDateVN(document.getElementById('profFormPartyJoinedDate')?.value || '', '');
-    const officialPartyDate = normalizeDateVN(document.getElementById('profFormOfficialPartyDate')?.value || '', '');
+    let politics;
+    try { politics = politicalDates(document.getElementById('profFormPoliticalStatus')?.value, document.getElementById('profFormPartyJoinedDate')?.value, document.getElementById('profFormOfficialPartyDate')?.value); }
+    catch (error) { showToast(error.message, 'error'); return; }
+    const { politicalStatus, party_joined_date: partyJoinedDate, official_party_date: officialPartyDate } = politics;
 
     const fatherName = document.getElementById('profFormFatherName')?.value.trim() || '';
     const fatherDobRaw = document.getElementById('profFormFatherBirthDate')?.value.trim() || '';
@@ -719,13 +742,13 @@ async function submitStudentProfileForm(formEl) {
         mother_hometown: motherHometown,
         mother_job: motherJob,
         achievements: achievementsArr,
-        currentLangLevel: 'A2',
-        itStandard: 'Đạt chuẩn CNTT cơ bản'
+        currentLangLevel: 'Chưa đạt',
+
       };
       const defaultLang = {
         lang: 'Tiếng Nga',
-        currentLevel: 'A2',
-        itStandard: 'Đạt chuẩn CNTT cơ bản',
+        currentLevel: 'Chưa đạt',
+
         A1: 'Đ', A21: 'Đ', A22: 'Đ', B11: 'CT', B12: 'CT'
       };
       const res = await upsertStudentToSupabase(newStudent, defaultLang);
@@ -1314,12 +1337,7 @@ function registerGlobalEventDelegation() {
       return;
     }
 
-    if (id === 'studentSelfItStandardSelect') {
-      if (AppState.role === 'student') return;
-      const sid = AppState.studentViewingId;
-      if (sid) await handleInlineCumulativeMetaChange(sid, 'itStandard', target.value, target);
-      return;
-    }
+
 
     if (id === 'langFilterClass') {
       renderLanguages();
@@ -1417,17 +1435,9 @@ function registerGlobalEventDelegation() {
       return;
     }
 
-    if (id === 'profFormFatherDobMode') {
-      const inp = document.getElementById('profFormFatherBirthDate');
-      if (inp) inp.placeholder = target.value === 'year' ? 'VD: 1975' : 'VD: 15/05/1975';
-      return;
-    }
 
-    if (id === 'profFormMotherDobMode') {
-      const inp = document.getElementById('profFormMotherBirthDate');
-      if (inp) inp.placeholder = target.value === 'year' ? 'VD: 1978' : 'VD: 20/10/1978';
-      return;
-    }
+
+
 
     if (
       (target.dataset && target.dataset.vnDateInput === 'true') ||
@@ -1450,7 +1460,7 @@ function registerGlobalEventDelegation() {
 
     if (target.classList.contains('required-lang-standard-select')) {
       if (!canUserConfigureLangStandard()) {
-        showToast('Chỉ Admin và Cán bộ Đại đội mới có quyền cấu hình chuẩn ngoại ngữ!', 'error');
+        showToast('Chỉ Admin mới được cấu hình chuẩn ngoại ngữ.', 'error');
         target.value = AppState.requiredLangStandard || 'A2';
         return;
       }
@@ -1493,12 +1503,7 @@ function registerGlobalEventDelegation() {
       return;
     }
 
-    if (target.classList.contains('select-cumul-it')) {
-      if (target.dataset.id) {
-        await handleInlineCumulativeMetaChange(target.dataset.id, 'itStandard', target.value, target);
-      }
-      return;
-    }
+
   };
 
   document.addEventListener('change', window.__dd460ChangeHandler);
@@ -1557,6 +1562,7 @@ function registerGlobalEventDelegation() {
 let _localAppInitialized = false;
 
 export function initApp() {
+  installOfficerReadOnlyGuard(() => AppState.role, showToast);
   // Chốt chặn Idempotent trong cùng một lần tải script
   if (_localAppInitialized) return;
   _localAppInitialized = true;

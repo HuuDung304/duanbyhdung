@@ -1,9 +1,11 @@
+import { calendarDate, parentBirthYear, displayParentYear, politicalDates } from './profile-rules.js';
+
 /**
  * MODULE: src/js/students.js
  * Quản lý Hồ sơ Quân nhân:
  * - Giao diện Hồ sơ Quân nhân riêng cho Học viên: Bỏ bảng (Table), bỏ 4 khối thống kê thừa,
  *   hiển thị toàn bộ thông tin cá nhân trải dài gọn gàng, có nút chuyển đổi [ Chỉnh sửa ] / [ Lưu ] trực tiếp.
- * - Thông tin Thân nhân (Bố & Mẹ): 2 lựa chọn nhập ngày sinh (Chỉ nhập Năm sinh YYYY hoặc Đầy đủ DD/MM/YYYY).
+ * - Thông tin Thân nhân (Bố & Mẹ): chỉ nhập năm sinh YYYY.
  * - Thành tích / Danh hiệu: Không bắt buộc (optional), lưu trữ nhiều danh hiệu dạng mảng (Array).
  * - Xem chi tiết quân nhân: Nhấp vào Họ và Tên chuyển sang trang chi tiết toàn diện, có nút "Quay lại" (Back).
  * - Loại bỏ hoàn toàn Điểm rèn luyện.
@@ -12,7 +14,6 @@
 import {
   DEFAULT_CLASSES,
   LANGUAGE_LEVEL_OPTIONS,
-  IT_STANDARD_OPTIONS,
   evaluateLangLevelStatus,
   AppState,
   persistData,
@@ -61,60 +62,18 @@ import {
 export const POLITICAL_BADGES = {
   'DANG_VIEN_CHINH_THUC': '<span class="inline-block whitespace-nowrap px-2.5 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300">★ Đảng viên chính thức</span>',
   'DANG_VIEN_DU_BI': '<span class="inline-block whitespace-nowrap px-2.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">✪ Đảng viên dự bị</span>',
-  'CAM_TINH_DANG': '<span class="inline-block whitespace-nowrap px-2.5 py-0.5 rounded text-[10px] font-bold bg-cyan-100 text-cyan-800 border border-cyan-300">✦ Cảm tình Đảng</span>',
+  'CAM_TINH_DANG': '<span class="inline-block whitespace-nowrap px-2.5 py-0.5 rounded text-[10px] font-bold bg-cyan-100 text-cyan-800 border border-cyan-300">✦ Đã học cảm tình Đảng</span>',
   'DOAN_VIEN': '<span class="inline-block whitespace-nowrap px-2.5 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-300">● Đoàn viên</span>'
 };
 
-export function validateAndFormatParentDob(rawVal, parentLabel = 'Thân nhân') {
-  const s = String(rawVal || '').trim();
-  if (!s) return { valid: true, value: '' };
-
-  if (/^\d{4}$/.test(s)) {
-    const y = parseInt(s, 10);
-    if (y < 1920 || y > 2015) {
-      return { valid: false, error: `Năm sinh ${parentLabel} (${s}) không hợp lệ (nhập từ 1920 đến 2015)!` };
-    }
-    return { valid: true, value: s };
-  }
-
-  const ymd = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
-  if (ymd) {
-    const y = parseInt(ymd[1], 10);
-    const m = parseInt(ymd[2], 10);
-    const d = parseInt(ymd[3], 10);
-    if (y >= 1920 && y <= 2015 && m >= 1 && m <= 12 && d >= 1 && d <= 31) {
-      return {
-        valid: true,
-        value: `${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')}/${y}`
-      };
-    }
-  }
-
-  const dmy = s.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/);
-  if (dmy) {
-    const d = parseInt(dmy[1], 10);
-    const m = parseInt(dmy[2], 10);
-    const y = parseInt(dmy[3], 10);
-    if (y < 1920 || y > 2015 || m < 1 || m > 12 || d < 1 || d > 31) {
-      return { valid: false, error: `Ngày tháng năm sinh ${parentLabel} (${s}) không hợp lệ!` };
-    }
-    return {
-      valid: true,
-      value: `${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')}/${y}`
-    };
-  }
-
-  return {
-    valid: false,
-    error: `Ngày sinh ${parentLabel} phải nhập Năm sinh (VD: 1975) hoặc Ngày/Tháng/Năm (VD: 15/05/1975)!`
-  };
+export function validateAndFormatParentDob(val, parentLabel = '') {
+  const text = String(val ?? '').trim();
+  if (!text) return { valid: true, value: '' };
+  if (!/^\d{4}$/.test(text)) return { valid: false, error: `Chỉ nhập năm sinh ${parentLabel} gồm 4 chữ số (VD: 1975).` };
+  try { return { valid: true, value: parentBirthYear(text) }; }
+  catch (error) { return { valid: false, error: error.message }; }
 }
 
-export function detectParentDobMode(val) {
-  const s = String(val || '').trim();
-  if (/^\d{4}$/.test(s)) return 'year';
-  return 'full';
-}
 
 export function renderStudentView() {
   let student = null;
@@ -153,8 +112,10 @@ export function renderStudentView() {
   setElText('studentMetricGpa4Sub', `Quy đổi Thang điểm 4.00`);
   setElText('studentMetricYear', rank);
   setElText('studentMetricRank', debts.length > 0 ? `Rớt ${debts.length} học phần (< 4.0)` : `Đạt 100% học phần`);
-  const langEval = evaluateLangLevelStatus(student.currentLangLevel || 'A2', AppState.requiredLangStandard);
-  setElText('studentMetricLang', `${student.currentLangLevel || 'A2'} (${langEval.isPassed ? 'Đạt chuẩn' : 'Chưa đạt'})`);
+  const langEval = evaluateLangLevelStatus(student.currentLangLevel || 'Chưa đạt', AppState.requiredLangStandard);
+  setElText('studentMetricLang', `${student.currentLangLevel || 'Chưa đạt'} (${langEval.isPassed ? 'Đạt chuẩn' : 'Chưa đạt'})`);
+  const languageMetric = document.getElementById('studentMetricLang');
+  if (languageMetric) languageMetric.style.color = langEval.isPassed ? '#047857' : '#be123c';
   setElText('studentMetricLangSub', `Chuẩn yêu cầu hiện tại: ${langEval.requiredStandard} • ${langEval.statusText}`);
   setElText('studentMetricAchievements', achList.length > 0 ? achList.join(' • ') : 'Chưa có danh hiệu');
   setElText('studentMetricAchievementsSub', `${achList.length} danh hiệu lưu trữ`);
@@ -162,15 +123,9 @@ export function renderStudentView() {
   const langSel = document.getElementById('studentSelfLangLevelSelect');
   if (langSel) {
     langSel.innerHTML = LANGUAGE_LEVEL_OPTIONS.map(opt =>
-      `<option value="${opt}" ${opt === (student.currentLangLevel || 'A2') ? 'selected' : ''}>${opt}</option>`
+      `<option value="${opt}" ${opt === (student.currentLangLevel || 'Chưa đạt') ? 'selected' : ''}>${opt}</option>`
     ).join('');
     langSel.disabled = (AppState.role === 'student');
-  }
-  const itSel = document.getElementById('studentSelfItStandardSelect');
-  if (itSel) {
-    itSel.innerHTML = IT_STANDARD_OPTIONS.map(opt =>
-      `<option value="${opt}" ${opt === (student.itStandard || 'Đạt chuẩn CNTT cơ bản') ? 'selected' : ''}>${opt}</option>`
-    ).join('');
   }
 
   AppState.currentSheetClass = student.class;
@@ -333,24 +288,24 @@ export function openCadetDetailPage(studentId) {
           <div class="p-3 rounded-lg bg-slate-50 border border-slate-200 space-y-1.5">
             <div class="font-bold text-army-800 uppercase">Thông tin Bố:</div>
             <div>Họ và tên: <strong>${student.father_name || '-'}</strong></div>
-            <div>Ngày / Năm sinh: <strong>${formatVN(student.father_birth_date)}</strong></div>
+            <div>Năm sinh: <strong>${formatVN(student.father_birth_date)}</strong></div>
             <div>Nghề nghiệp: <strong>${student.father_job || '-'}</strong></div>
             <div>Quê quán: <strong>${student.father_hometown || '-'}</strong></div>
           </div>
           <div class="p-3 rounded-lg bg-slate-50 border border-slate-200 space-y-1.5">
             <div class="font-bold text-army-800 uppercase">Thông tin Mẹ:</div>
             <div>Họ và tên: <strong>${student.mother_name || '-'}</strong></div>
-            <div>Ngày / Năm sinh: <strong>${formatVN(student.mother_birth_date)}</strong></div>
+            <div>Năm sinh: <strong>${formatVN(student.mother_birth_date)}</strong></div>
             <div>Nghề nghiệp: <strong>${student.mother_job || '-'}</strong></div>
             <div>Quê quán: <strong>${student.mother_hometown || '-'}</strong></div>
           </div>
           <div class="p-3 rounded-lg bg-emerald-50/60 border border-emerald-200 space-y-1.5">
             <div class="font-bold text-emerald-900 uppercase">Chuẩn Đầu Ra Hiện Tại:</div>
             <div class="flex items-center justify-between gap-2">
-              <span>Trình độ ngoại ngữ (${l.lang}): <strong class="text-army-900">${student.currentLangLevel || 'A2'}</strong></span>
-              ${evaluateLangLevelStatus(student.currentLangLevel || 'A2', AppState.requiredLangStandard).badgeHtml}
+              <span>Trình độ ngoại ngữ (${l.lang}): <strong class="text-army-900">${student.currentLangLevel || 'Chưa đạt'}</strong></span>
+              ${evaluateLangLevelStatus(student.currentLangLevel || 'Chưa đạt', AppState.requiredLangStandard).badgeHtml}
             </div>
-            <div>Chuẩn CNTT: <strong class="text-army-900">${student.itStandard || 'Đạt chuẩn CNTT cơ bản'}</strong></div>
+
           </div>
         </div>
       </div>
@@ -441,14 +396,12 @@ export function renderStudentInlineProfile(options = {}) {
     return;
   }
 
-  const isEditing = !!AppState.studentProfileEditMode;
+  const isEditing = !!AppState.studentProfileEditMode && AppState.role !== 'company_officer';
   container.dataset.inlineEditActive = isEditing ? 'true' : 'false';
   container.dataset.editingStudentId = String(student.id || '');
   const disAttr = isEditing ? '' : 'disabled';
   const inputBg = isEditing ? 'bg-white border-army-600 focus:ring-2 focus:ring-army-600' : 'bg-slate-100 border-slate-200 text-slate-700 cursor-not-allowed';
 
-  const fMode = detectParentDobMode(student.father_birth_date);
-  const mMode = detectParentDobMode(student.mother_birth_date);
   const achList = normalizeAchievements(student.achievements);
 
   container.innerHTML = `
@@ -537,18 +490,13 @@ export function renderStudentInlineProfile(options = {}) {
             <div>
               <label class="block font-bold text-slate-600 mb-1 flex items-center justify-between">
                 <span>Trình độ ngoại ngữ thực tế:</span>
-                ${evaluateLangLevelStatus(student.currentLangLevel || 'A2', AppState.requiredLangStandard).badgeHtml}
+                ${evaluateLangLevelStatus(student.currentLangLevel || 'Chưa đạt', AppState.requiredLangStandard).badgeHtml}
               </label>
               <select id="inlineProfLangLevel" ${AppState.role === 'student' ? 'disabled' : disAttr} class="w-full border rounded-lg p-2.5 font-bold ${AppState.role === 'student' ? 'bg-slate-100 border-slate-200 text-slate-700 cursor-not-allowed' : inputBg}">
-                ${LANGUAGE_LEVEL_OPTIONS.map(opt => `<option value="${opt}" ${opt === (student.currentLangLevel || 'A2') ? 'selected' : ''}>${opt}</option>`).join('')}
+                ${LANGUAGE_LEVEL_OPTIONS.map(opt => `<option value="${opt}" ${opt === (student.currentLangLevel || 'Chưa đạt') ? 'selected' : ''}>${opt}</option>`).join('')}
               </select>
             </div>
-            <div>
-              <label class="block font-bold text-slate-600 mb-1">Chuẩn CNTT:</label>
-              <select id="inlineProfItStandard" ${disAttr} class="w-full border rounded-lg p-2.5 font-semibold ${inputBg}">
-                ${IT_STANDARD_OPTIONS.map(opt => `<option value="${opt}" ${opt === (student.itStandard || 'Đạt chuẩn CNTT cơ bản') ? 'selected' : ''}>${opt}</option>`).join('')}
-              </select>
-            </div>
+
           </div>
         </div>
 
@@ -558,8 +506,8 @@ export function renderStudentInlineProfile(options = {}) {
             <div>
               <label class="block font-bold text-slate-600 mb-1">Diện Chính Trị:</label>
               <select id="inlineProfPolitical" ${disAttr} class="w-full border rounded-lg p-2.5 font-bold ${inputBg}">
-                <option value="DOAN_VIEN" ${student.politicalStatus === 'DOAN_VIEN' ? 'selected' : ''}>● Đoàn viên TNCS Hồ Chí Minh</option>
-                <option value="CAM_TINH_DANG" ${student.politicalStatus === 'CAM_TINH_DANG' ? 'selected' : ''}>✦ Cảm tình Đảng</option>
+                <option value="DOAN_VIEN" ${student.politicalStatus === 'DOAN_VIEN' ? 'selected' : ''}>Không chọn (mặc định: Đoàn viên)</option>
+                <option value="CAM_TINH_DANG" ${student.politicalStatus === 'CAM_TINH_DANG' ? 'selected' : ''}>✦ Đã học cảm tình Đảng</option>
                 <option value="DANG_VIEN_DU_BI" ${student.politicalStatus === 'DANG_VIEN_DU_BI' ? 'selected' : ''}>✪ Đảng viên dự bị</option>
                 <option value="DANG_VIEN_CHINH_THUC" ${student.politicalStatus === 'DANG_VIEN_CHINH_THUC' ? 'selected' : ''}>★ Đảng viên chính thức</option>
               </select>
@@ -576,7 +524,7 @@ export function renderStudentInlineProfile(options = {}) {
         </div>
 
         <div class="space-y-3">
-          <h4 class="text-sm font-extrabold text-army-900 uppercase border-b border-slate-200 pb-2">III. Thông Tin Thân Nhân (Bố & Mẹ) — Hỗ Trợ 2 Định Dạng Ngày Sinh</h4>
+          <h4 class="text-sm font-extrabold text-army-900 uppercase border-b border-slate-200 pb-2">III. Thông Tin Thân Nhân (Bố & Mẹ) — Chỉ nhập năm sinh</h4>
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
             <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
               <div class="font-extrabold text-army-800 uppercase text-xs">1. Thông Tin Thân Nhân Bố</div>
@@ -585,17 +533,11 @@ export function renderStudentInlineProfile(options = {}) {
                   <label class="block font-semibold text-slate-600 mb-1">Họ và tên Bố:</label>
                   <input type="text" id="inlineFatherName" value="${student.father_name || ''}" ${disAttr} class="w-full border rounded-lg p-2 ${inputBg}">
                 </div>
+
                 <div>
-                  <label class="block font-semibold text-slate-600 mb-1">Hình thức nhập ngày sinh Bố:</label>
-                  <select id="inlineFatherDobMode" ${disAttr} class="w-full border rounded-lg p-2 font-semibold ${inputBg}">
-                    <option value="year" ${fMode === 'year' ? 'selected' : ''}>1. Chỉ nhập Năm sinh (VD: 1975)</option>
-                    <option value="full" ${fMode === 'full' ? 'selected' : ''}>2. Nhập đầy đủ Ngày/Tháng/Năm (DD/MM/YYYY)</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block font-semibold text-slate-600 mb-1">Năm sinh / Ngày sinh Bố:</label>
-                  <input type="text" id="inlineFatherDob" value="${formatVN(student.father_birth_date) === '-' ? '' : formatVN(student.father_birth_date)}"
-                    placeholder="${fMode === 'year' ? 'VD: 1975' : 'VD: 15/05/1975'}" ${disAttr} class="w-full border rounded-lg p-2 font-mono font-bold ${inputBg}">
+                  <label class="block font-semibold text-slate-600 mb-1">Năm sinh Bố:</label>
+                  <input type="text" id="inlineFatherDob" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" value="${displayParentYear(student.father_birth_date)}"
+                    placeholder="VD: 1975" ${disAttr} class="w-full border rounded-lg p-2 font-mono font-bold ${inputBg}">
                 </div>
                 <div>
                   <label class="block font-semibold text-slate-600 mb-1">Nghề nghiệp Bố:</label>
@@ -615,17 +557,11 @@ export function renderStudentInlineProfile(options = {}) {
                   <label class="block font-semibold text-slate-600 mb-1">Họ và tên Mẹ:</label>
                   <input type="text" id="inlineMotherName" value="${student.mother_name || ''}" ${disAttr} class="w-full border rounded-lg p-2 ${inputBg}">
                 </div>
+
                 <div>
-                  <label class="block font-semibold text-slate-600 mb-1">Hình thức nhập ngày sinh Mẹ:</label>
-                  <select id="inlineMotherDobMode" ${disAttr} class="w-full border rounded-lg p-2 font-semibold ${inputBg}">
-                    <option value="year" ${mMode === 'year' ? 'selected' : ''}>1. Chỉ nhập Năm sinh (VD: 1975)</option>
-                    <option value="full" ${mMode === 'full' ? 'selected' : ''}>2. Nhập đầy đủ Ngày/Tháng/Năm (DD/MM/YYYY)</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block font-semibold text-slate-600 mb-1">Năm sinh / Ngày sinh Mẹ:</label>
-                  <input type="text" id="inlineMotherDob" value="${formatVN(student.mother_birth_date) === '-' ? '' : formatVN(student.mother_birth_date)}"
-                    placeholder="${mMode === 'year' ? 'VD: 1978' : 'VD: 20/10/1978'}" ${disAttr} class="w-full border rounded-lg p-2 font-mono font-bold ${inputBg}">
+                  <label class="block font-semibold text-slate-600 mb-1">Năm sinh Mẹ:</label>
+                  <input type="text" id="inlineMotherDob" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" value="${displayParentYear(student.mother_birth_date)}"
+                    placeholder="VD: 1978" ${disAttr} class="w-full border rounded-lg p-2 font-mono font-bold ${inputBg}">
                 </div>
                 <div>
                   <label class="block font-semibold text-slate-600 mb-1">Nghề nghiệp Mẹ:</label>
@@ -661,14 +597,13 @@ export function renderStudentInlineProfile(options = {}) {
     </div>
   `;
 
-  document.getElementById('inlineFatherDobMode')?.addEventListener('change', function() {
-    const inp = document.getElementById('inlineFatherDob');
-    if (inp) inp.placeholder = this.value === 'year' ? 'VD: 1975' : 'VD: 15/05/1975';
-  });
-  document.getElementById('inlineMotherDobMode')?.addEventListener('change', function() {
-    const inp = document.getElementById('inlineMotherDob');
-    if (inp) inp.placeholder = this.value === 'year' ? 'VD: 1978' : 'VD: 20/10/1978';
-  });
+  const inlineStatus = document.getElementById('inlineProfPolitical');
+  const syncInlineDates = () => updatePartyDatesDisplay(inlineStatus?.value || 'DOAN_VIEN', 'inlineProfPartyJoined', 'inlineProfPartyOfficial', !isEditing);
+  syncInlineDates();
+  inlineStatus?.addEventListener('change', syncInlineDates);
+
+
+
 
   document.getElementById('btnCancelStudentDirectEdit')?.addEventListener('click', function() {
     AppState.studentProfileEditMode = false;
@@ -681,6 +616,7 @@ export function renderStudentInlineProfile(options = {}) {
   });
 
   document.getElementById('btnToggleStudentDirectEdit')?.addEventListener('click', async function() {
+    if (AppState.role === 'company_officer') return;
     if (!AppState.studentProfileEditMode) {
       // Nạp dữ liệu vào form ĐÚNG MỘT LẦN DUY NHẤT khi bấm nút Chỉnh sửa và khóa trạng thái Edit
       AppState.studentProfileEditMode = true;
@@ -706,6 +642,9 @@ export function renderStudentInlineProfile(options = {}) {
         return;
       }
 
+      try { calendarDate(document.getElementById('inlineProfDob')?.value || student.dob); politicalDates(document.getElementById('inlineProfPolitical')?.value, document.getElementById('inlineProfPartyJoined')?.value, document.getElementById('inlineProfPartyOfficial')?.value); }
+      catch (error) { showToast(error.message, 'error'); return; }
+
       const newName = (document.getElementById('inlineProfName')?.value || '').trim();
       if (!newName) {
         showToast('Họ và tên học viên không được để trống!', 'error');
@@ -722,12 +661,10 @@ export function renderStudentInlineProfile(options = {}) {
       student.hometown = (document.getElementById('inlineProfHometown')?.value || '').trim();
       student.permanentAddress = (document.getElementById('inlineProfPermAddr')?.value || '').trim();
       student.currentAddress = (document.getElementById('inlineProfCurrAddr')?.value || '').trim();
-      student.currentLangLevel = document.getElementById('inlineProfLangLevel')?.value || 'A2';
-      student.itStandard = document.getElementById('inlineProfItStandard')?.value || 'Đạt chuẩn CNTT cơ bản';
+      student.currentLangLevel = document.getElementById('inlineProfLangLevel')?.value || 'Chưa đạt';
 
-      student.politicalStatus = document.getElementById('inlineProfPolitical')?.value || 'DOAN_VIEN';
-      student.party_joined_date = normalizeDateVN(document.getElementById('inlineProfPartyJoined')?.value || '', '') || null;
-      student.official_party_date = normalizeDateVN(document.getElementById('inlineProfPartyOfficial')?.value || '', '') || null;
+      Object.assign(student, politicalDates(document.getElementById('inlineProfPolitical')?.value,
+        document.getElementById('inlineProfPartyJoined')?.value, document.getElementById('inlineProfPartyOfficial')?.value));
 
       student.father_name = (document.getElementById('inlineFatherName')?.value || '').trim();
       student.father_birth_date = fCheck.value;
@@ -746,7 +683,6 @@ export function renderStudentInlineProfile(options = {}) {
         AppState.languages[student.id] = { lang: 'Tiếng Nga', A1: 'Đ', A21: 'Đ', A22: 'Đ', B11: 'CT', B12: 'CT' };
       }
       AppState.languages[student.id].currentLevel = student.currentLangLevel;
-      AppState.languages[student.id].itStandard = student.itStandard;
 
       const res = await upsertStudentToSupabase(student, AppState.languages[student.id]);
       if (res && res.error) {
@@ -785,7 +721,7 @@ export function renderStudentInlineProfile(options = {}) {
 
 export function canDeleteStudent(student) {
   if (!student) return false;
-  if (AppState.role === 'admin' || AppState.role === 'company_officer') return true;
+  if (AppState.role === 'admin') return true;
   if (AppState.role.startsWith('class_leader_')) {
     const leaderClass = AppState.role.replace('class_leader_', '');
     return student.class === leaderClass;
@@ -794,6 +730,7 @@ export function canDeleteStudent(student) {
 }
 
 export function openConfirmDeleteModal(studentId) {
+  if (AppState.role === 'company_officer') { showToast('Tài khoản cán bộ chỉ được xem.', 'error'); return; }
   const student = AppState.students.find(s => s.id === studentId);
   if (!student) {
     showToast('Không tìm thấy dữ liệu quân nhân để xóa!', 'error');
@@ -815,6 +752,7 @@ export function openConfirmDeleteModal(studentId) {
 }
 
 export async function executeCascadeDeleteCadet(studentId, triggerBtn = null) {
+  if (AppState.role === 'company_officer') { showToast('Tài khoản cán bộ chỉ được xem.', 'error'); return; }
   const student = AppState.students.find(s => s.id === studentId);
   if (!student || !canDeleteStudent(student)) {
     showToast('Bạn không có quyền xóa quân nhân này!', 'error');
@@ -848,8 +786,9 @@ export async function executeCascadeDeleteCadet(studentId, triggerBtn = null) {
  * để đưa hệ thống về bản trống 100% (0 bản ghi) trên mọi thiết bị.
  */
 export async function executeClearAllStudents(triggerBtn = null) {
-  if (AppState.role !== 'admin' && AppState.role !== 'company_officer') {
-    showToast('Chỉ Admin hoặc Cán bộ Đại đội mới có quyền xóa toàn bộ danh sách học viên!', 'error');
+  if (AppState.role === 'company_officer') { showToast('Tài khoản cán bộ chỉ được xem.', 'error'); return; }
+  if (AppState.role !== 'admin') {
+    showToast('Chỉ Admin mới có quyền xóa toàn bộ danh sách học viên!', 'error');
     return;
   }
 
@@ -883,11 +822,11 @@ export const QUICK_IMPORT_COLUMNS = [
   { key: 'party_joined_date',  header: 'Ngày vào Đảng dự bị (party_joined_date)',   wch: 18 },
   { key: 'official_party_date',header: 'Ngày vào Đảng chính thức (official_party_date)', wch: 20 },
   { key: 'father_name',        header: 'Họ tên Bố (father_name)',                   wch: 22 },
-  { key: 'father_birth_date',  header: 'Ngày/Năm sinh Bố (father_birth_date)',      wch: 18 },
+  { key: 'father_birth_date',  header: 'Năm sinh Bố (father_birth_date)',      wch: 18 },
   { key: 'father_hometown',    header: 'Quê quán Bố (father_hometown)',             wch: 24 },
   { key: 'father_job',         header: 'Nghề nghiệp Bố (father_job)',               wch: 20 },
   { key: 'mother_name',        header: 'Họ tên Mẹ (mother_name)',                   wch: 22 },
-  { key: 'mother_birth_date',  header: 'Ngày/Năm sinh Mẹ (mother_birth_date)',      wch: 18 },
+  { key: 'mother_birth_date',  header: 'Năm sinh Mẹ (mother_birth_date)',      wch: 18 },
   { key: 'mother_hometown',    header: 'Quê quán Mẹ (mother_hometown)',             wch: 24 },
   { key: 'mother_job',         header: 'Nghề nghiệp Mẹ (mother_job)',               wch: 20 },
   { key: 'achievements',       header: 'Danh hiệu đạt được (achievements)',         wch: 28 }
@@ -913,7 +852,7 @@ export function downloadQuickImportTemplate() {
       'Quảng Xương, Thanh Hóa', 'Quảng Xương, Thanh Hóa', 'Bắc Từ Liêm, Hà Nội',
       'Đảng viên chính thức', '19/05/2023', '19/05/2024',
       'Nguyễn Văn Hòa', '1975', 'Quảng Xương, Thanh Hóa', 'Sĩ quan Quân đội',
-      'Trần Thị Lan', '20/10/1978', 'Quảng Xương, Thanh Hóa', 'Giáo viên',
+      'Trần Thị Lan', '1978', 'Quảng Xương, Thanh Hóa', 'Giáo viên',
       'Chiến sĩ Thi đua cơ sở, Học viên Giỏi'
     ]
   ];
@@ -954,7 +893,7 @@ export function detectExcelColumnMapping(headerRow = []) {
     permanentAddress: findCol(h => h.includes('thường trú') || h.includes('hktt') || h.includes('permanent_address')),
     currentAddress: findCol(h => h.includes('nơi ở') || h.includes('chỗ ở') || h.includes('current_address')),
     politicalStatus: findCol(h => h.includes('chính trị') || h.includes('political_status') || (h.includes('đảng') && !h.includes('ngày'))),
-    party_joined_date: findCol(h => h.includes('vào đảng') || h.includes('dự bị') || h.includes('party_joined')),
+    party_joined_date: findCol(h => (h.includes('vào đảng') || h.includes('dự bị') || h.includes('party_joined')) && !h.includes('chính thức') && !h.includes('official')),
     official_party_date: findCol(h => h.includes('chính thức') || h.includes('official_party')),
     father_name: findCol(h => (h.includes('họ tên bố') || h.includes('tên bố') || h.includes('father_name') || h.includes('họ tên cha'))),
     father_birth_date: findCol(h => (h.includes('sinh bố') || h.includes('father_birth') || h.includes('sinh cha'))),
@@ -1058,6 +997,7 @@ export function handleQuickImportFileUpload(file) {
         const rawPartyJoined = getVal(r, colMap.party_joined_date);
         const rawOfficialParty = getVal(r, colMap.official_party_date);
         const rawAchievements = getVal(r, colMap.achievements);
+        const politics = politicalDates(normalizePoliticalStatus(colMap.politicalStatus >= 0 ? getVal(r, colMap.politicalStatus) : existing?.politicalStatus), rawPartyJoined || existing?.party_joined_date, rawOfficialParty || existing?.official_party_date);
 
         quickImportParsedRows.push({
           code,
@@ -1065,21 +1005,19 @@ export function handleQuickImportFileUpload(file) {
           class: cls,
           rank: String(getVal(r, colMap.rank) || existing?.rank || 'Thượng sĩ').trim(),
           position: String(getVal(r, colMap.position) || existing?.position || 'Học viên').trim(),
-          dob: parseExcelDate(getVal(r, colMap.dob), existing?.dob ? normalizeDateVN(existing.dob, '') : ''),
+          dob: calendarDate(getVal(r, colMap.dob) || existing?.dob),
           enlistmentDate: String(getVal(r, colMap.enlistmentDate) || existing?.enlistmentDate || '02/2022').trim(),
           phone: String(getVal(r, colMap.phone) || existing?.phone || '').trim(),
           hometown: String(getVal(r, colMap.hometown) || existing?.hometown || '').trim(),
           permanentAddress: String(getVal(r, colMap.permanentAddress) || existing?.permanentAddress || '').trim(),
           currentAddress: String(getVal(r, colMap.currentAddress) || existing?.currentAddress || '').trim(),
-          politicalStatus: normalizePoliticalStatus(getVal(r, colMap.politicalStatus) || existing?.politicalStatus),
-          party_joined_date: rawPartyJoined ? parseExcelDate(rawPartyJoined, '') : (existing?.party_joined_date || null),
-          official_party_date: rawOfficialParty ? parseExcelDate(rawOfficialParty, '') : (existing?.official_party_date || null),
+          ...politics,
           father_name: String(getVal(r, colMap.father_name) || existing?.father_name || '').trim(),
-          father_birth_date: String(getVal(r, colMap.father_birth_date) || existing?.father_birth_date || '').trim(),
+          father_birth_date: parentBirthYear(getVal(r, colMap.father_birth_date) || existing?.father_birth_date),
           father_hometown: String(getVal(r, colMap.father_hometown) || existing?.father_hometown || '').trim(),
           father_job: String(getVal(r, colMap.father_job) || existing?.father_job || '').trim(),
           mother_name: String(getVal(r, colMap.mother_name) || existing?.mother_name || '').trim(),
-          mother_birth_date: String(getVal(r, colMap.mother_birth_date) || existing?.mother_birth_date || '').trim(),
+          mother_birth_date: parentBirthYear(getVal(r, colMap.mother_birth_date) || existing?.mother_birth_date),
           mother_hometown: String(getVal(r, colMap.mother_hometown) || existing?.mother_hometown || '').trim(),
           mother_job: String(getVal(r, colMap.mother_job) || existing?.mother_job || '').trim(),
           achievements: normalizeAchievements(rawAchievements !== '' ? rawAchievements : existing?.achievements),
@@ -1133,6 +1071,7 @@ export function handleQuickImportFileUpload(file) {
 }
 
 export async function executeQuickImport() {
+  if (AppState.role === 'company_officer') { showToast('Tài khoản cán bộ chỉ được xem.', 'error'); return; }
   if (AppState.role === 'student') {
     showToast('Học viên không có quyền nhập danh sách quân số từ Excel!', 'error');
     return;
@@ -1172,8 +1111,8 @@ export async function executeQuickImport() {
         if (!AppState.languages[existing.id]) {
           AppState.languages[existing.id] = {
             lang: 'Tiếng Nga',
-            currentLevel: existing.currentLangLevel || 'A2',
-            itStandard: existing.itStandard || 'Đạt chuẩn CNTT cơ bản',
+            currentLevel: existing.currentLangLevel || 'Chưa đạt',
+
             A1: 'Đ', A21: 'Đ', A22: 'Đ', B11: 'CT', B12: 'CT'
           };
         }
@@ -1184,8 +1123,8 @@ export async function executeQuickImport() {
           ...cleanItem,
           code: cleanCode,
           role: cleanItem.position || 'Học viên',
-          currentLangLevel: 'A2',
-          itStandard: 'Đạt chuẩn CNTT cơ bản'
+          currentLangLevel: 'Chưa đạt',
+
         });
         const addedStudent = AppState.students[AppState.students.length - 1];
         studentsByCode.set(cleanCode, addedStudent);
@@ -1194,8 +1133,8 @@ export async function executeQuickImport() {
         if (!AppState.languages[newId]) {
           AppState.languages[newId] = {
             lang: 'Tiếng Nga',
-            currentLevel: 'A2',
-            itStandard: 'Đạt chuẩn CNTT cơ bản',
+            currentLevel: 'Chưa đạt',
+
             A1: 'Đ', A21: 'Đ', A22: 'Đ', B11: 'CT', B12: 'CT'
           };
         }
@@ -1313,7 +1252,7 @@ export function renderProfilesTable(options = {}) {
   const elYouth = document.getElementById('statProfYouth');
   if (elYouth) elYouth.textContent = youthCount + candidateCount;
   const elCand = document.getElementById('statProfCandidateRate');
-  if (elCand) elCand.textContent = `${candidateCount} Cảm tình Đảng`;
+  if (elCand) elCand.textContent = `${candidateCount} Đã học cảm tình Đảng`;
 
   let filtered = [...scopedStudents];
   if (filterClass !== 'all') {
@@ -1426,6 +1365,7 @@ export function switchProfileSubtab(subtabId) {
 }
 
 export function openStudentProfileModal(studentId, options = {}) {
+  if (AppState.role === 'company_officer') { showToast('Tài khoản cán bộ chỉ được xem.', 'error'); return; }
   const forceHydrate = Boolean(options && options.forceHydrate);
   const isCreate = !studentId;
   if (isCreate && AppState.role === 'student') {
@@ -1476,8 +1416,6 @@ export function openStudentProfileModal(studentId, options = {}) {
 
   document.getElementById('profFormId').value = student ? student.id : '';
 
-  const fModeEl = document.getElementById('profFormFatherDobMode');
-  const mModeEl = document.getElementById('profFormMotherDobMode');
   const fDobEl = document.getElementById('profFormFatherBirthDate');
   const mDobEl = document.getElementById('profFormMotherBirthDate');
 
@@ -1507,13 +1445,11 @@ export function openStudentProfileModal(studentId, options = {}) {
     updatePartyDatesDisplay('DOAN_VIEN');
 
     document.getElementById('profFormFatherName').value = '';
-    if (fModeEl) fModeEl.value = 'year';
     if (fDobEl) { fDobEl.value = ''; fDobEl.placeholder = 'VD: 1975'; }
     document.getElementById('profFormFatherHometown').value = '';
     document.getElementById('profFormFatherJob').value = '';
 
     document.getElementById('profFormMotherName').value = '';
-    if (mModeEl) mModeEl.value = 'year';
     if (mDobEl) { mDobEl.value = ''; mDobEl.placeholder = 'VD: 1978'; }
     document.getElementById('profFormMotherHometown').value = '';
     document.getElementById('profFormMotherJob').value = '';
@@ -1544,24 +1480,20 @@ export function openStudentProfileModal(studentId, options = {}) {
     document.getElementById('profFormOfficialPartyDate').value = normalizeDateVN(student.official_party_date, '');
     updatePartyDatesDisplay(student.politicalStatus || 'DOAN_VIEN');
 
-    const fVal = formatVN(student.father_birth_date) === '-' ? '' : formatVN(student.father_birth_date);
-    const fMode = detectParentDobMode(fVal);
+    const fVal = displayParentYear(student.father_birth_date);
     document.getElementById('profFormFatherName').value = student.father_name || '';
-    if (fModeEl) fModeEl.value = fMode;
     if (fDobEl) {
       fDobEl.value = fVal;
-      fDobEl.placeholder = fMode === 'year' ? 'VD: 1975' : 'VD: 15/05/1975';
+      fDobEl.placeholder = 'VD: 1975';
     }
     document.getElementById('profFormFatherHometown').value = student.father_hometown || '';
     document.getElementById('profFormFatherJob').value = student.father_job || '';
 
-    const mVal = formatVN(student.mother_birth_date) === '-' ? '' : formatVN(student.mother_birth_date);
-    const mMode = detectParentDobMode(mVal);
+    const mVal = displayParentYear(student.mother_birth_date);
     document.getElementById('profFormMotherName').value = student.mother_name || '';
-    if (mModeEl) mModeEl.value = mMode;
     if (mDobEl) {
       mDobEl.value = mVal;
-      mDobEl.placeholder = mMode === 'year' ? 'VD: 1978' : 'VD: 20/10/1978';
+      mDobEl.placeholder = 'VD: 1978';
     }
     document.getElementById('profFormMotherHometown').value = student.mother_hometown || '';
     document.getElementById('profFormMotherJob').value = student.mother_job || '';
@@ -1590,7 +1522,7 @@ export function openStudentProfileModal(studentId, options = {}) {
       <div class="text-xs space-y-1.5 text-slate-700">
         <div>Chức vụ hiện tại: <strong class="text-army-800">${pos}</strong></div>
         <div>Thành tích / Danh hiệu: <strong class="text-purple-800">${formatAchievementsText(student.achievements)}</strong></div>
-        <div>Trình độ ngoại ngữ: <strong>${student.currentLangLevel || 'A2'}</strong> • Chuẩn CNTT: <strong>${student.itStandard || 'Đạt chuẩn CNTT cơ bản'}</strong></div>
+        <div>Trình độ ngoại ngữ: <strong>${student.currentLangLevel || 'Chưa đạt'}</strong></div>
         <div>Học phần rớt (&lt; 4.0): ${debts.length > 0 ? `<span class="text-rose-600 font-bold">⚠️ ${debts.map(d => formatFailedSubjectItem(d.subject)).join(', ')}</span>` : '<span class="text-emerald-600 font-bold">✅ Đạt 100% học phần</span>'}</div>
       </div>
     `;
@@ -1600,23 +1532,15 @@ export function openStudentProfileModal(studentId, options = {}) {
   showModal('modalStudentProfile');
 }
 
-export function updatePartyDatesDisplay(status) {
-  const partyJoinedInput = document.getElementById('profFormPartyJoinedDate');
-  const officialPartyInput = document.getElementById('profFormOfficialPartyDate');
-  if (!partyJoinedInput || !officialPartyInput) return;
-
-  if (status === 'DOAN_VIEN' || status === 'CAM_TINH_DANG') {
-    partyJoinedInput.disabled = true;
-    partyJoinedInput.value = '';
-    officialPartyInput.disabled = true;
-    officialPartyInput.value = '';
-  } else if (status === 'DANG_VIEN_DU_BI') {
-    partyJoinedInput.disabled = false;
-    officialPartyInput.disabled = true;
-    officialPartyInput.value = '';
-  } else if (status === 'DANG_VIEN_CHINH_THUC') {
-    partyJoinedInput.disabled = false;
-    officialPartyInput.disabled = false;
+export function updatePartyDatesDisplay(status, joinedId = 'profFormPartyJoinedDate', officialId = 'profFormOfficialPartyDate', readOnly = false) {
+  const isMember = status === 'DANG_VIEN_DU_BI' || status === 'DANG_VIEN_CHINH_THUC';
+  const isOfficial = status === 'DANG_VIEN_CHINH_THUC';
+  for (const [id, enabled] of [[joinedId, isMember], [officialId, isOfficial]]) {
+    const input = document.getElementById(id);
+    if (!input) continue;
+    input.disabled = !enabled || readOnly || AppState.role === 'company_officer';
+    input.required = enabled;
+    input.parentElement.hidden = !enabled;
   }
 }
 
@@ -1640,7 +1564,7 @@ export function exportStudentProfiles(className, filterStatus, position) {
   const politicalLabels = {
     'DANG_VIEN_CHINH_THUC': 'Đảng viên chính thức',
     'DANG_VIEN_DU_BI': 'Đảng viên dự bị',
-    'CAM_TINH_DANG': 'Cảm tình Đảng',
+    'CAM_TINH_DANG': 'Đã học cảm tình Đảng',
     'DOAN_VIEN': 'Đoàn viên'
   };
 
@@ -1648,8 +1572,8 @@ export function exportStudentProfiles(className, filterStatus, position) {
     'STT', 'Mã HV', 'Họ và Tên', 'Cấp bậc', 'Lớp', 'Chức vụ',
     'Ngày sinh', 'Nhập ngũ', 'Quê quán', 'Diện Chính Trị',
     'Ngày vào Đảng (Dự bị)', 'Ngày chính thức',
-    'Họ tên Bố', 'Ngày/Năm sinh Bố', 'Quê quán Bố', 'Nghề nghiệp Bố',
-    'Họ tên Mẹ', 'Ngày/Năm sinh Mẹ', 'Quê quán Mẹ', 'Nghề nghiệp Mẹ',
+    'Họ tên Bố', 'Năm sinh Bố', 'Quê quán Bố', 'Nghề nghiệp Bố',
+    'Họ tên Mẹ', 'Năm sinh Mẹ', 'Quê quán Mẹ', 'Nghề nghiệp Mẹ',
     'Thành tích / Danh hiệu', 'ĐTB Tích Lũy'
   ];
 

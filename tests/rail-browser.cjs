@@ -23,7 +23,7 @@ const assert = require('node:assert/strict');
         const page = await context.newPage();
         const errors = [];
         page.on('pageerror', error => errors.push(error.message));
-        await page.goto('http://127.0.0.1:3000', { waitUntil: 'networkidle' });
+        await page.goto(process.env.TEST_BASE_URL || 'http://127.0.0.1:3000', { waitUntil: 'networkidle' });
         if (process.env.RAIL_TEST_CSS_PATH) await page.addStyleTag({ content: fs.readFileSync(process.env.RAIL_TEST_CSS_PATH, 'utf8') });
         await page.waitForSelector('.u040:not([hidden])');
         const root = page.locator('.u040');

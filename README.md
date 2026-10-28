@@ -11,7 +11,7 @@ Giao diện đăng nhập được chia thành 4 nhóm tài khoản cố định
    - Quyền hạn: Toàn quyền quản lý hệ thống, cấu hình chuẩn ngoại ngữ, khóa sổ điểm, xem/nhập điểm từng lớp hoặc toàn bộ đại đội.
 2. **Tài khoản Cán bộ Đại đội:**
    - Tên đăng nhập: `canbo` | Mật khẩu: `canbon460`
-   - Quyền hạn: Toàn quyền quản lý, nhập điểm, cấu hình chuẩn ngoại ngữ, và có tính năng **xem toàn bộ đại đội (tất cả 5 lớp)** hoặc từng lớp riêng lẻ.
+   - Quyền hạn: Chỉ xem, lọc và xuất dữ liệu; không nhập/sửa/xóa hoặc cấu hình chuẩn ngoại ngữ. Có tính năng **xem toàn bộ đại đội (tất cả 5 lớp)** hoặc từng lớp riêng lẻ.
 3. **5 Tài khoản Lớp (`OTQS1`, `OTQS2`, `TTG1`, `TTG2`, `XMCB`):**
    - Tên đăng nhập: `otqs1`, `otqs2`, `ttg1`, `ttg2`, `xmcb`
    - Mật khẩu theo cấu trúc `[tên_lớp]a@`: `otqs1a@`, `otqs2a@`, `ttg1a@`, `ttg2a@`, `xmcba@`
@@ -21,8 +21,8 @@ Giao diện đăng nhập được chia thành 4 nhóm tài khoản cố định
    - Quyền hạn: Chỉ xem bảng điểm cá nhân (cuộn dọc từ Năm 1 đến Năm 5), xuất file cá nhân `Bảng điểm(thông tin cá nhân) - [Họ và tên học viên].xlsx`, và xem/chỉnh sửa trực tiếp Hồ sơ Quân nhân của chính mình (`[ Chỉnh sửa ] / [ Lưu ]`).
 
 ## 2. Quản lý Trình độ Ngoại ngữ (Chuẩn đạt & Thực tế)
-- **Thiết lập chuẩn ngoại ngữ (Admin & Cán bộ):** Cấu hình trực tiếp chuẩn ngoại ngữ hiện tại phải đạt được theo tiến độ đào tạo (`A1.1`, `A1`, `A2.1`, `A2`, `A2.2`, `B1.1`, `B1`, `B1.2`, `B2`).
-- **Cập nhật & Đánh giá trình độ (Admin, Cán bộ & Tài khoản Lớp):** Chọn trình độ ngoại ngữ thực tế mà học viên đã đạt được; hệ thống tự động so sánh với chuẩn hiện tại và hiển thị rõ trạng thái **"Chưa đạt"** nếu học viên chưa đạt chuẩn yêu cầu.
+- **Thiết lập chuẩn ngoại ngữ (Admin):** Cấu hình trực tiếp chuẩn ngoại ngữ hiện tại phải đạt được theo tiến độ đào tạo (`A1.1`, `A1`, `A2.1`, `A2`, `A2.2`, `B1.1`, `B1`, `B1.2`, `B2`).
+- **Cập nhật & Đánh giá trình độ (Admin & Tài khoản Lớp):** Chọn trình độ ngoại ngữ thực tế mà học viên đã đạt được; hệ thống tự động so sánh với chuẩn hiện tại và hiển thị rõ trạng thái **"Chưa đạt"** nếu học viên chưa đạt chuẩn yêu cầu.
 
 ## 3. Cấu trúc ứng dụng tĩnh + Netlify
 ```text
@@ -74,3 +74,14 @@ Trạng thái rớt xét riêng từng môn: điểm môn **dưới 4,00** mới
 ## Đối chiếu học viên khi nhập Excel
 
 Cả nhập hồ sơ và nhập điểm bắt buộc có cột **Mã HV / Mã học viên**, mỗi dòng dữ liệu phải có mã. Chỉ mã được dùng để đối chiếu (bỏ khoảng trắng đầu/cuối và chuẩn hóa chữ hoa); không tìm theo họ tên và không tự sinh mã khi thiếu. Hai người trùng tên nhưng khác mã là hai học viên khác nhau. File hồ sơ lặp mã sẽ bị từ chối để tránh ghi đè hai dòng không rõ thứ tự. File thiếu mã phải sửa trước khi nhập, không lưu một phần các dòng hợp lệ. Định dạng cột mã trong Excel là Text nếu mã có số 0 đầu.
+
+
+## Hồ sơ, chuẩn ngoại ngữ và quyền cán bộ
+
+- Bỏ chuẩn CNTT khỏi giao diện, Excel và payload ghi mới. Cột cũ được giữ nguyên nếu đã có để không xóa dữ liệu lịch sử.
+- Diện chính trị mặc định Đoàn viên. Đã học cảm tình Đảng không cần ngày; Đảng viên dự bị bắt buộc ngày vào Đảng; chính thức bắt buộc cả ngày vào Đảng và ngày chính thức. Ngày chính thức không được trước ngày vào Đảng.
+- Ngày đầy đủ nhận DD/MM/YYYY (hoặc ngày Excel), kiểm tra lịch thật và lưu YYYY-MM-DD; giao diện hiển thị DD/MM/YYYY có số 0. Bố/mẹ chỉ nhập năm 4 chữ số và database lưu nguyên năm, ví dụ `1975`, không tạo ngày 01/01 giả định. Ngày sinh bố/mẹ cũ dạng đầy đủ được đọc về thành năm.
+- Chỉ Admin thay đổi chuẩn ngoại ngữ phải đạt. Học viên dưới chuẩn hiện cảnh báo đỏ `Chưa đạt (B1)` tương ứng chuẩn Admin chọn; người mới chưa có trình độ thực tế được ghi `Chưa đạt`, không tự đạt A2. Đổi chuẩn cập nhật lại đánh giá và ghi chú.
+- Cán bộ (`canbo`) chỉ xem, lọc và xuất toàn đơn vị. Giao diện ẩn thao tác ghi; các handler và hàm ghi database từ chối vai trò này. Tài khoản lớp giữ phạm vi lớp hiện tại.
+
+**Giới hạn xác thực hiện tại:** tài khoản ứng dụng vẫn được xác thực ở frontend, các yêu cầu Supabase dùng chung khóa công khai. Các kiểm tra vai trò trong JavaScript không thay thế Supabase Auth/RLS; để cưỡng chế quyền khi gọi REST trực tiếp cần chuyển sang danh tính đăng nhập thật và policy dựa trên `auth.uid()`. Không chạy SQL thu hồi quyền anon đơn lẻ vì sẽ chặn cả Admin và tài khoản lớp hiện tại. Thay đổi lần này không tự áp dụng schema/policy lên Supabase thật.

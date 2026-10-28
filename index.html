@@ -38,6 +38,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- Application Stylesheet -->
   <link rel="stylesheet" href="./src/css/main.css">
+  <link rel="stylesheet" href="./src/css/access-controls.css">
   <link rel="stylesheet" href="./src/css/expanding-rail.css">
   <style id="app-inline-css">
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
@@ -329,7 +330,7 @@ body {
           <div id="studentMetricAchievementsSub" class="text-[10px] text-slate-500 font-medium mt-0.5">Trong quá trình công tác</div>
         </div>
       </div>
-      <!-- Bộ chọn nhanh Trình độ Ngoại ngữ hiện tại & Chuẩn CNTT của Học viên -->
+      <!-- Bộ chọn nhanh Trình độ Ngoại ngữ hiện tại  của Học viên -->
       <div class="bg-white px-5 py-3 border-t border-slate-200 flex flex-wrap items-center justify-between gap-4 text-xs">
         <div class="flex flex-wrap items-center gap-4">
           <div class="flex items-center gap-2">
@@ -346,14 +347,7 @@ body {
               <option value="B2">B2</option>
             </select>
           </div>
-          <div class="flex items-center gap-2">
-            <label class="font-bold text-slate-700">Chuẩn CNTT:</label>
-            <select id="studentSelfItStandardSelect" class="border border-slate-300 rounded-lg px-2.5 py-1.5 font-semibold text-slate-800 bg-slate-50 focus:ring-1 focus:ring-army-600">
-              <option value="Chưa đạt">Chưa đạt</option>
-              <option value="Đạt chuẩn CNTT cơ bản">Đạt chuẩn CNTT cơ bản</option>
-              <option value="Đạt chuẩn CNTT nâng cao">Đạt chuẩn CNTT nâng cao</option>
-            </select>
-          </div>
+
         </div>
         <span class="text-[11px] text-slate-400 italic">Tự động lưu vào hệ thống khi thay đổi</span>
       </div>
@@ -514,7 +508,7 @@ body {
           <div>
             <div class="text-[11px] font-semibold text-slate-500 uppercase">Cảm Tình Đảng & Đoàn</div>
             <div id="statProfYouth" class="text-xl font-extrabold text-blue-700 mt-0.5">0</div>
-            <div id="statProfCandidateRate" class="text-[10px] text-blue-600 font-medium">0 Cảm tình Đảng</div>
+            <div id="statProfCandidateRate" class="text-[10px] text-blue-600 font-medium">0 Đã học cảm tình Đảng</div>
           </div>
           <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-800 flex items-center justify-center font-bold text-xs">
             ĐV
@@ -585,8 +579,8 @@ body {
               <option value="all">-- Tất cả diện chính trị --</option>
               <option value="DANG_VIEN_CHINH_THUC">★ Đảng viên chính thức</option>
               <option value="DANG_VIEN_DU_BI">✪ Đảng viên dự bị</option>
-              <option value="CAM_TINH_DANG">✦ Cảm tình Đảng (Đối tượng kết nạp)</option>
-              <option value="DOAN_VIEN">● Đoàn viên TNCS Hồ Chí Minh</option>
+              <option value="CAM_TINH_DANG">✦ Đã học cảm tình Đảng</option>
+              <option value="DOAN_VIEN">Không chọn (mặc định: Đoàn viên)</option>
             </select>
           </div>
 
@@ -665,8 +659,8 @@ body {
       <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
         <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
-            <h3 class="text-base font-bold text-slate-900 uppercase">Bảng Điểm Tích Lũy &amp; Chuẩn Đầu Ra Ngoại Ngữ / CNTT</h3>
-            <p class="text-xs text-slate-500">Cấu trúc điểm kỳ DTB HK1 (10) &amp; DTB HKII (10) • Chọn trực tiếp Trình độ ngoại ngữ hiện tại &amp; Chuẩn CNTT</p>
+            <h3 class="text-base font-bold text-slate-900 uppercase">Bảng Điểm Tích Lũy &amp; Chuẩn Đầu Ra Ngoại Ngữ</h3>
+            <p class="text-xs text-slate-500">Cấu trúc điểm kỳ DTB HK1 (10) &amp; DTB HKII (10) • Chọn trực tiếp Trình độ ngoại ngữ hiện tại </p>
           </div>
           <div class="flex flex-wrap items-center gap-2">
             <button id="btnAddCadetCumulBtn" class="leader-allowed inline-flex items-center gap-1.5 text-xs font-bold bg-army-700 hover:bg-army-800 text-white px-3.5 py-2 rounded-lg shadow-sm transition">
@@ -681,7 +675,7 @@ body {
           </div>
         </div>
 
-        <!-- Thanh thiết lập Chuẩn ngoại ngữ hiện tại phải đạt được (Admin & Cán bộ) -->
+        <!-- Thanh thiết lập Chuẩn ngoại ngữ hiện tại phải đạt được (Admin) -->
         <div class="p-3 rounded-xl bg-amber-50/90 border border-amber-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div class="flex items-center gap-2.5">
             <span class="w-7 h-7 rounded-lg bg-army-800 text-gold-400 flex items-center justify-center font-bold text-xs">🌐</span>
@@ -691,7 +685,7 @@ body {
             </div>
           </div>
           <div class="flex items-center gap-2">
-            <label class="text-xs font-bold text-slate-700 whitespace-nowrap">Thiết lập chuẩn đạt (Admin/Cán bộ):</label>
+            <label class="text-xs font-bold text-slate-700 whitespace-nowrap">Thiết lập chuẩn đạt (Admin):</label>
             <select class="required-lang-standard-select bg-white border border-army-600 text-army-900 text-xs font-extrabold rounded-lg px-3 py-1.5 shadow-sm focus:ring-2 focus:ring-army-600">
               <option value="A1.1">Chuẩn A1.1</option>
               <option value="A1">Chuẩn A1</option>
@@ -761,7 +755,7 @@ body {
         </div>
       </div>
 
-      <!-- Cumulative Table (Đã bỏ cột Rèn luyện, chuẩn hóa DTB HK1 (10) & DTB HKII (10), thêm Trình độ ngoại ngữ & Chuẩn CNTT) -->
+      <!-- Cumulative Table (Đã bỏ cột Rèn luyện, chuẩn hóa DTB HK1 (10) & DTB HKII (10), thêm Trình độ ngoại ngữ ) -->
       <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <div class="overflow-x-auto custom-scrollbar">
           <table class="w-full text-xs text-left border-collapse whitespace-nowrap">
@@ -779,7 +773,6 @@ body {
                 <th class="py-3 px-3 text-center bg-army-800 text-gold-300 font-bold text-xs uppercase">Xếp Loại</th>
                 <th class="py-3 px-2 text-center text-gold-300 font-bold text-[11px]">Điểm Hệ 4 (/4.0)</th>
                 <th class="py-3 px-2 text-center bg-emerald-950/60 text-emerald-300">Trình Độ Ngoại Ngữ Hiện Tại</th>
-                <th class="py-3 px-2 text-center bg-blue-950/60 text-blue-200">Chuẩn CNTT</th>
                 <th class="py-3 px-3 text-center">Trạng Thái</th>
                 <th class="py-3 px-3 text-center">Chi Tiết</th>
               </tr>
@@ -1634,6 +1627,10 @@ body {
           </select>
         </div>
 
+        <div>
+          <label for="langActualLevel" class="block font-semibold text-slate-700 mb-1">Trình độ ngoại ngữ thực tế:</label>
+          <select id="langActualLevel" class="w-full border rounded-lg p-2 font-semibold"></select>
+        </div>
         <div class="space-y-2 pt-2">
           <label class="block font-semibold text-slate-700">Kết quả các cấp độ chuẩn đầu ra:</label>
           <div class="grid grid-cols-2 gap-2">
@@ -2082,8 +2079,8 @@ body {
           <div>
             <label class="block font-semibold text-slate-700 mb-1">Diện Chính Trị Hiện Nay:</label>
             <select id="profFormPoliticalStatus" class="w-full border rounded-lg p-2.5 font-bold text-sm bg-slate-50">
-              <option value="DOAN_VIEN">● Đoàn viên TNCS Hồ Chí Minh</option>
-              <option value="CAM_TINH_DANG">✦ Cảm tình Đảng (Đối tượng kết nạp)</option>
+              <option value="DOAN_VIEN">Không chọn (mặc định: Đoàn viên)</option>
+              <option value="CAM_TINH_DANG">✦ Đã học cảm tình Đảng</option>
               <option value="DANG_VIEN_DU_BI">✪ Đảng viên dự bị</option>
               <option value="DANG_VIEN_CHINH_THUC">★ Đảng viên chính thức</option>
             </select>
@@ -2113,28 +2110,22 @@ body {
           </div>
         </div>
 
-        <!-- SUBTAB 3: THÔNG TIN THÂN NHÂN (BỐ & MẸ - 2 LỰA CHỌN NHẬP NGÀY SINH) -->
+        <!-- SUBTAB 3: THÔNG TIN THÂN NHÂN (BỐ & MẸ - CHỈ NHẬP NĂM SINH) -->
         <div id="subtab-parents" class="profile-subtab-content hidden space-y-4">
           <!-- Khối Bố -->
           <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/90 space-y-3">
             <h5 class="font-bold text-army-800 uppercase flex items-center gap-1.5 text-xs">
-              <span class="w-2.5 h-2.5 rounded-full bg-army-700"></span> Khối Thông Tin Bố (2 lựa chọn nhập ngày sinh)
+              <span class="w-2.5 h-2.5 rounded-full bg-army-700"></span> Khối Thông Tin Bố (Chỉ nhập năm sinh)
             </h5>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label class="block font-semibold text-slate-700 text-[11px] mb-1">Họ và tên Bố:</label>
                 <input type="text" id="profFormFatherName" placeholder="Nguyễn Văn B" class="w-full border rounded-lg p-2 bg-white">
               </div>
+
               <div>
-                <label class="block font-semibold text-slate-700 text-[11px] mb-1">Hình thức nhập ngày sinh Bố:</label>
-                <select id="profFormFatherDobMode" class="w-full border rounded-lg p-2 bg-white font-semibold text-army-900">
-                  <option value="year">1. Chỉ nhập Năm sinh (VD: 1975)</option>
-                  <option value="full">2. Đầy đủ Ngày/Tháng/Năm (DD/MM/YYYY)</option>
-                </select>
-              </div>
-              <div>
-                <label class="block font-semibold text-slate-700 text-[11px] mb-1">Năm sinh / Ngày sinh Bố:</label>
-                <input type="text" id="profFormFatherBirthDate" placeholder="VD: 1975 hoặc 15/05/1975" class="w-full border rounded-lg p-2 bg-white font-mono font-bold">
+                <label class="block font-semibold text-slate-700 text-[11px] mb-1">Năm sinh Bố:</label>
+                <input type="text" id="profFormFatherBirthDate" placeholder="VD: 1975" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" class="w-full border rounded-lg p-2 bg-white font-mono font-bold">
               </div>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -2152,23 +2143,17 @@ body {
           <!-- Khối Mẹ -->
           <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/90 space-y-3">
             <h5 class="font-bold text-army-800 uppercase flex items-center gap-1.5 text-xs">
-              <span class="w-2.5 h-2.5 rounded-full bg-army-700"></span> Khối Thông Tin Mẹ (2 lựa chọn nhập ngày sinh)
+              <span class="w-2.5 h-2.5 rounded-full bg-army-700"></span> Khối Thông Tin Mẹ (Chỉ nhập năm sinh)
             </h5>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label class="block font-semibold text-slate-700 text-[11px] mb-1">Họ và tên Mẹ:</label>
                 <input type="text" id="profFormMotherName" placeholder="Trần Thị C" class="w-full border rounded-lg p-2 bg-white">
               </div>
+
               <div>
-                <label class="block font-semibold text-slate-700 text-[11px] mb-1">Hình thức nhập ngày sinh Mẹ:</label>
-                <select id="profFormMotherDobMode" class="w-full border rounded-lg p-2 bg-white font-semibold text-army-900">
-                  <option value="year">1. Chỉ nhập Năm sinh (VD: 1978)</option>
-                  <option value="full">2. Đầy đủ Ngày/Tháng/Năm (DD/MM/YYYY)</option>
-                </select>
-              </div>
-              <div>
-                <label class="block font-semibold text-slate-700 text-[11px] mb-1">Năm sinh / Ngày sinh Mẹ:</label>
-                <input type="text" id="profFormMotherBirthDate" placeholder="VD: 1978 hoặc 20/10/1978" class="w-full border rounded-lg p-2 bg-white font-mono font-bold">
+                <label class="block font-semibold text-slate-700 text-[11px] mb-1">Năm sinh Mẹ:</label>
+                <input type="text" id="profFormMotherBirthDate" placeholder="VD: 1978" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" class="w-full border rounded-lg p-2 bg-white font-mono font-bold">
               </div>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">

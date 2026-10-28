@@ -1,3 +1,4 @@
+import { calendarDate, parentBirthYear, politicalDates } from '../src/js/profile-rules.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -6,6 +7,9 @@ import vm from 'node:vm';
 const variants = ['src/js/supabase.js'];
 function supabase(file, handler = () => new Response('[]')) {
   let source = readFileSync(file, 'utf8');
+  source = source.replace(/^import .*?;\n/gm, '');
+  const rules = readFileSync('src/js/profile-rules.js', 'utf8').replace(/^export /gm, '');
+  source = rules + '\n' + source;
   source = source.replace(/^export default .*;$/gm, '').replace(/^export /gm, '');
   const timers = new Set();
   const requests = [];
@@ -380,7 +384,7 @@ test('grade import requires an explicit code column and keeps same-name students
   assert.match(invalid.messages.at(-1).message, /phải có cột Mã HV/);
 });
 
-function profileContext(rows) {
+function profileContext(rows, setupState) {
   const source = readFileSync('src/js/students.js', 'utf8');
   const elements = new Map();
   const messages = [];
@@ -389,8 +393,9 @@ function profileContext(rows) {
     { id: 'hv_a', code: 'HV01', name: 'Trùng tên', class: 'OTQS1', phone: 'old1' },
     { id: 'hv_b', code: 'HV02', name: 'Trùng tên', class: 'OTQS2', phone: 'old2' },
   ] };
+  if (setupState) setupState(state);
   const context = vm.createContext({
-    structuredClone, console, AppState: state, DEFAULT_CLASSES: ['OTQS1', 'OTQS2'], POLITICAL_BADGES: {},
+    structuredClone, console, calendarDate, parentBirthYear, politicalDates, AppState: state, DEFAULT_CLASSES: ['OTQS1', 'OTQS2'], POLITICAL_BADGES: {},
     document: { getElementById(id) {
       if (!elements.has(id)) elements.set(id, { disabled: false, classList: { add() {}, remove() {} } });
       return elements.get(id);
@@ -453,4 +458,39 @@ test('code-only profile updates preserve the current name when the name column i
   assert.equal(state.students[1].name, 'Trùng tên');
   assert.equal(state.students[1].phone, 'new2');
   assert.equal(state.students[0].phone, 'old1');
+});
+
+test('officer cannot execute either import or change local cadet data', async () => {
+  const grade = importContext();
+  grade.context.AppState.role = 'company_officer';
+  await grade.context.executeExcelImport();
+  assert.equal(grade.writes.length, 0);
+  assert.equal(grade.context.AppState.students.length, 0);
+  const profile = profileContext([['Mã HV','Họ và Tên','SĐT'], ['HV02','Trùng tên','new2']]);
+  profile.state.role = 'company_officer';
+  await profile.context.executeQuickImport();
+  assert.equal(profile.writes.length, 0);
+  assert.equal(profile.state.students[1].phone, 'old2');
+});
+
+test('profile import distinguishes official and joined dates even when Excel columns are reordered', () => {
+  const { context, messages } = profileContext([
+    ['Mã HV','Ngày vào Đảng chính thức','Diện chính trị','Ngày vào Đảng'],
+    ['HV02','3/4/2025','DANG_VIEN_CHINH_THUC','1/2/2024'],
+  ]);
+  assert.equal(messages.length, 0);
+  assert.equal(context.parsedRows()[0].party_joined_date, '2024-02-01');
+  assert.equal(context.parsedRows()[0].official_party_date, '2025-04-03');
+});
+
+
+test('an explicitly blank political status defaults to union member, while an omitted column preserves it', () => {
+  const setup = state => Object.assign(state.students[1], { politicalStatus: 'DANG_VIEN_CHINH_THUC', party_joined_date: '2023-01-01', official_party_date: '2024-01-01' });
+  const blank = profileContext([['Mã HV','Diện chính trị'], ['HV02','']], setup).context.parsedRows()[0];
+  assert.equal(blank.politicalStatus, 'DOAN_VIEN');
+  assert.equal(blank.party_joined_date, null);
+  assert.equal(blank.official_party_date, null);
+  const omitted = profileContext([['Mã HV','SĐT'], ['HV02','123']], setup).context.parsedRows()[0];
+  assert.equal(omitted.politicalStatus, 'DANG_VIEN_CHINH_THUC');
+  assert.equal(omitted.party_joined_date, '2023-01-01');
 });

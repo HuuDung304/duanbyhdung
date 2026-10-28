@@ -1,3 +1,5 @@
+import { calendarDate, parentBirthYear, readParentYear, politicalDates, assertDatabaseWriteAllowed } from './profile-rules.js';
+
 /**
  * MODULE: src/js/supabase.js
  * Cấu hình kết nối chính thức với Supabase Cloud Database (@supabase/supabase-js v2)
@@ -408,6 +410,7 @@ export function mapStudentToDbRow(s) {
   const id = (s.id && String(s.id).trim().startsWith('hv_'))
     ? String(s.id).trim()
     : buildDeterministicStudentId(cleanCode, s.id);
+  const politics = politicalDates(s.politicalStatus ?? s.political_status, s.party_joined_date, s.official_party_date);
   return {
     id,
     code: cleanCode,
@@ -416,26 +419,26 @@ export function mapStudentToDbRow(s) {
     class: String(s.class || 'OTQS1').trim().toUpperCase(),
     position: String(s.position || s.role || 'Học viên').trim(),
     role: String(s.role || s.position || 'Học viên').trim(),
-    dob: normalizeDateFieldToVN(s.dob),
+    dob: calendarDate(s.dob),
     enlistment_date: String(s.enlistmentDate ?? s.enlistment_date ?? '').trim(),
     phone: String(s.phone || '').trim(),
     hometown: String(s.hometown || '').trim(),
     permanent_address: String(s.permanentAddress ?? s.permanent_address ?? '').trim(),
     current_address: String(s.currentAddress ?? s.current_address ?? '').trim(),
-    political_status: String(s.politicalStatus ?? s.political_status ?? 'DOAN_VIEN').trim(),
-    party_joined_date: s.party_joined_date ? normalizeDateFieldToVN(s.party_joined_date) : null,
-    official_party_date: s.official_party_date ? normalizeDateFieldToVN(s.official_party_date) : null,
+    political_status: politics.politicalStatus,
+    party_joined_date: politics.party_joined_date,
+    official_party_date: politics.official_party_date,
     father_name: String(s.father_name || '').trim(),
-    father_birth_date: String(s.father_birth_date || '').trim(),
+    father_birth_date: parentBirthYear(s.father_birth_date),
     father_hometown: String(s.father_hometown || '').trim(),
     father_job: String(s.father_job || '').trim(),
     mother_name: String(s.mother_name || '').trim(),
-    mother_birth_date: String(s.mother_birth_date || '').trim(),
+    mother_birth_date: parentBirthYear(s.mother_birth_date),
     mother_hometown: String(s.mother_hometown || '').trim(),
     mother_job: String(s.mother_job || '').trim(),
     achievements: Array.isArray(s.achievements) ? s.achievements : [],
-    current_lang_level: String(s.currentLangLevel ?? s.current_lang_level ?? 'A2').trim(),
-    it_standard: String(s.itStandard ?? s.it_standard ?? 'Đạt chuẩn CNTT cơ bản').trim(),
+    current_lang_level: String(s.currentLangLevel ?? s.current_lang_level ?? 'Chưa đạt').trim(),
+
     updated_at: new Date().toISOString()
   };
 }
@@ -461,16 +464,16 @@ export function mapDbRowToStudent(row) {
     party_joined_date: row.party_joined_date ? normalizeDateFieldToVN(row.party_joined_date) : null,
     official_party_date: row.official_party_date ? normalizeDateFieldToVN(row.official_party_date) : null,
     father_name: row.father_name || '',
-    father_birth_date: row.father_birth_date || '',
+    father_birth_date: readParentYear(row.father_birth_date),
     father_hometown: row.father_hometown || '',
     father_job: row.father_job || '',
     mother_name: row.mother_name || '',
-    mother_birth_date: row.mother_birth_date || '',
+    mother_birth_date: readParentYear(row.mother_birth_date),
     mother_hometown: row.mother_hometown || '',
     mother_job: row.mother_job || '',
     achievements: Array.isArray(row.achievements) ? row.achievements : [],
-    currentLangLevel: row.current_lang_level ?? row.currentLangLevel ?? 'A2',
-    itStandard: row.it_standard ?? row.itStandard ?? 'Đạt chuẩn CNTT cơ bản'
+    currentLangLevel: row.current_lang_level ?? row.currentLangLevel ?? 'Chưa đạt',
+
   };
 }
 
@@ -515,8 +518,8 @@ export function mapLanguageToDbRow(studentId, langObj = {}) {
   return {
     student_id: String(studentId),
     lang: String(langObj.lang || 'Tiếng Nga'),
-    current_level: String(langObj.currentLevel ?? langObj.current_level ?? 'A2'),
-    it_standard: String(langObj.itStandard ?? langObj.it_standard ?? 'Đạt chuẩn CNTT cơ bản'),
+    current_level: String(langObj.currentLevel ?? langObj.current_level ?? 'Chưa đạt'),
+
     a1: String(langObj.A1 ?? langObj.a1 ?? 'Đ'),
     a21: String(langObj.A21 ?? langObj.a21 ?? 'Đ'),
     a22: String(langObj.A22 ?? langObj.a22 ?? 'Đ'),
@@ -531,8 +534,8 @@ export function mapDbRowToLanguage(row) {
   if (!row || typeof row !== 'object') return null;
   return {
     lang: row.lang || 'Tiếng Nga',
-    currentLevel: row.current_level || 'A2',
-    itStandard: row.it_standard || 'Đạt chuẩn CNTT cơ bản',
+    currentLevel: row.current_level || 'Chưa đạt',
+
     A1: row.a1 || 'Đ',
     A21: row.a21 || 'Đ',
     A22: row.a22 || 'Đ',
@@ -550,6 +553,7 @@ export function mapDbRowToLanguage(row) {
  * - Kết hợp `executeWithRetry` để tự động thử lại nếu mạng chập chờn khi tải cao.
  */
 async function safeUpsertRows(client, tableName, rowsInput, primaryConflictCol = 'id', fallbackConflictCol = null, ignoreDuplicates = false) {
+  assertDatabaseWriteAllowed();
   if (!rowsInput) return { data: [], error: null };
   const rowsArray = Array.isArray(rowsInput) ? rowsInput : [rowsInput];
   if (rowsArray.length === 0) return { data: [], error: null };
@@ -793,6 +797,7 @@ export async function findStudentByCodeOnSupabase(studentCode, fallbackStudents 
  *    - Dùng `.maybeSingle()` để kiểm tra ID hiện có theo mã `code`, chống xung đột Race Condition.
  */
 export async function upsertStudentToSupabase(student, langObj = null) {
+  assertDatabaseWriteAllowed();
   const row = mapStudentToDbRow(student);
   if (!row) return { error: 'Invalid student' };
   const client = getSupabaseClient();
@@ -809,10 +814,12 @@ export async function upsertStudentToSupabase(student, langObj = null) {
     }
 
     const res = await safeUpsertRows(client, TABLES.STUDENTS, [row], 'code', 'id');
+    if (res?.error) return res;
 
     if (langObj && typeof langObj === 'object') {
       const langRow = mapLanguageToDbRow(row.id, langObj);
-      await safeUpsertRows(client, TABLES.LANGUAGES, [langRow], 'student_id');
+      const languageResult = await safeUpsertRows(client, TABLES.LANGUAGES, [langRow], 'student_id');
+      if (languageResult?.error) return languageResult;
     }
     return res;
   } finally {
@@ -827,6 +834,7 @@ export async function upsertStudentToSupabase(student, langObj = null) {
  *    - Chia lô tối đa 200 học viên/256 KiB; báo lỗi nếu schema thiếu cột
  */
 export async function upsertStudentsBulkToSupabase(studentsList = [], languagesMap = {}, { createOnly = false } = {}) {
+  assertDatabaseWriteAllowed();
   if (!Array.isArray(studentsList) || studentsList.length === 0) return { data: [], error: null };
   const client = getSupabaseClient();
   beginSupabaseWrite();
@@ -879,8 +887,8 @@ export async function upsertStudentsBulkToSupabase(studentsList = [], languagesM
     const langRows = studentRows.filter(sr => !existingCodeToId.has(sr.code)).map(sr => {
       const l = (languagesMap && languagesMap[sr.id]) || {
         lang: 'Tiếng Nga',
-        currentLevel: sr.current_lang_level || 'A2',
-        itStandard: sr.it_standard || 'Đạt chuẩn CNTT cơ bản',
+        currentLevel: sr.current_lang_level || 'Chưa đạt',
+
         A1: 'Đ',
         A21: 'Đ',
         A22: 'Đ',
@@ -904,6 +912,7 @@ export async function upsertStudentsBulkToSupabase(studentsList = [], languagesM
  * 5. Xóa vĩnh viễn 1 Học viên trên Supabase (Xóa cả điểm và chứng chỉ ngoại ngữ liên quan)
  */
 export async function deleteStudentFromSupabase(studentId) {
+  assertDatabaseWriteAllowed();
   if (!studentId) return;
   const client = getSupabaseClient();
   const sid = String(studentId);
@@ -923,6 +932,7 @@ export async function deleteStudentFromSupabase(studentId) {
  * 6. Xóa vĩnh viễn TẤT CẢ Học viên trên Supabase (Làm trống 100% danh sách học viên, điểm số, ngoại ngữ)
  */
 export async function deleteAllStudentsFromSupabase() {
+  assertDatabaseWriteAllowed();
   const client = getSupabaseClient();
   beginSupabaseWrite();
   try {
@@ -940,6 +950,7 @@ export async function deleteAllStudentsFromSupabase() {
  * 7. Thêm mới hoặc Cập nhật 1 Môn học trên bảng `subjects` của Supabase
  */
 export async function upsertSubjectToSupabase(subject) {
+  assertDatabaseWriteAllowed();
   const row = mapSubjectToDbRow(subject);
   if (!row) return { error: 'Invalid subject' };
   const client = getSupabaseClient();
@@ -956,6 +967,7 @@ export async function upsertSubjectToSupabase(subject) {
  *     Hỗ trợ khi import bảng điểm từ Excel có các môn học mới theo khóa kết hợp (course_name + class_code + semester).
  */
 export async function upsertSubjectsBulkToSupabase(subjectsList = []) {
+  assertDatabaseWriteAllowed();
   if (!Array.isArray(subjectsList) || subjectsList.length === 0) return { data: [], error: null };
   const rows = subjectsList.map(mapSubjectToDbRow).filter(Boolean);
   if (rows.length === 0) return { data: [], error: null };
@@ -972,6 +984,7 @@ export async function upsertSubjectsBulkToSupabase(subjectsList = []) {
  * 8. Xóa vĩnh viễn 1 Môn học trên bảng `subjects` của Supabase (Xóa kèm điểm số của môn đó)
  */
 export async function deleteSubjectFromSupabase(subjectId) {
+  assertDatabaseWriteAllowed();
   if (!subjectId) return;
   const client = getSupabaseClient();
   const subId = String(subjectId);
@@ -988,6 +1001,7 @@ export async function deleteSubjectFromSupabase(subjectId) {
  * 9. Xóa vĩnh viễn tất cả các môn học trong một Học kỳ cụ thể trên Supabase
  */
 export async function deleteSubjectsByIdsFromSupabase(subjectIds = []) {
+  assertDatabaseWriteAllowed();
   if (!Array.isArray(subjectIds) || subjectIds.length === 0) return;
   const client = getSupabaseClient();
   beginSupabaseWrite();
@@ -1003,6 +1017,7 @@ export async function deleteSubjectsByIdsFromSupabase(subjectIds = []) {
  * 10. Xóa vĩnh viễn TẤT CẢ Môn học của toàn khóa (10 Học kỳ) trên Supabase
  */
 export async function deleteAllSubjectsFromSupabase() {
+  assertDatabaseWriteAllowed();
   const client = getSupabaseClient();
   beginSupabaseWrite();
   try {
@@ -1018,6 +1033,7 @@ export async function deleteAllSubjectsFromSupabase() {
  *     Tận dụng khóa UNIQUE (student_id, subject_id) để chống Race Condition khi nhiều lớp nhập điểm cùng lúc.
  */
 export async function upsertGradeToSupabase(studentId, subjectId, score) {
+  assertDatabaseWriteAllowed();
   if (!studentId || !subjectId) return;
   const client = getSupabaseClient();
   const row = {
@@ -1039,6 +1055,7 @@ export async function upsertGradeToSupabase(studentId, subjectId, score) {
  * 12. Xóa vĩnh viễn 1 ô Điểm số khi người dùng xóa trắng ô điểm trên bảng
  */
 export async function deleteGradeFromSupabase(studentId, subjectId) {
+  assertDatabaseWriteAllowed();
   if (!studentId || !subjectId) return;
   const client = getSupabaseClient();
   beginSupabaseWrite();
@@ -1059,6 +1076,7 @@ export async function deleteGradeFromSupabase(studentId, subjectId) {
  * 13. Lưu hàng loạt Điểm số (Khi nhập điểm từ file Excel)
  */
 export async function upsertGradesBulkToSupabase(gradeEntries = []) {
+  assertDatabaseWriteAllowed();
   if (!Array.isArray(gradeEntries) || gradeEntries.length === 0) return { data: [], error: null };
   const client = getSupabaseClient();
   const nowIso = new Date().toISOString();
@@ -1088,9 +1106,10 @@ export async function upsertGradesBulkToSupabase(gradeEntries = []) {
 }
 
 /**
- * 14. Lưu / Cập nhật Chứng chỉ ngoại ngữ & Chuẩn CNTT của 1 Học viên trên bảng `languages`
+ * 14. Lưu / Cập nhật Chứng chỉ ngoại ngữ của 1 Học viên trên bảng `languages`
  */
 export async function upsertLanguageToSupabase(studentId, langObj) {
+  assertDatabaseWriteAllowed();
   if (!studentId || !langObj) return;
   const client = getSupabaseClient();
   const row = mapLanguageToDbRow(studentId, langObj);
@@ -1108,6 +1127,7 @@ export async function upsertLanguageToSupabase(studentId, langObj) {
  *     khi 70-80 người cùng thao tác đồng thời.
  */
 export async function saveUnitSettingsToSupabase(appState, unitId = 'daidoi460') {
+  assertDatabaseWriteAllowed();
   if (!appState) return;
   const client = getSupabaseClient();
   const cleanLocks = { ...(appState.locks || {}) };
@@ -1121,6 +1141,7 @@ export async function saveUnitSettingsToSupabase(appState, unitId = 'daidoi460')
     updated_at: new Date().toISOString()
   };
 
+  if (globalThis.AppState?.role && globalThis.AppState.role !== 'admin') delete row.required_lang_standard;
   beginSupabaseWrite();
   try {
     return await safeUpsertRows(client, TABLES.UNIT_SETTINGS, [row], 'unit_id');

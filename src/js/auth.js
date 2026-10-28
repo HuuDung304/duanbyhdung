@@ -3,7 +3,7 @@
  * Quản lý Xác thực, Trang đăng nhập riêng biệt (No Autocomplete) & Phân quyền RBAC
  * tối ưu cho 70-80 người đăng nhập đồng thời:
  * 1. Tài khoản Admin cố định: `huudung` | `hd304` (Toàn quyền quản lý hệ thống).
- * 2. Tài khoản Cán bộ Đại đội cố định: `canbo` | `canbon460` (Toàn quyền quản lý, nhập điểm, xem toàn bộ đại đội).
+ * 2. Tài khoản Cán bộ Đại đội cố định: `canbo` | `canbon460` (Chỉ xem, lọc và xuất toàn bộ đại đội).
  * 3. 5 Tài khoản Lớp cố định (OTQS1, OTQS2, TTG1, TTG2, XMCB):
  *    - Tên đăng nhập: `otqs1`, `otqs2`, `ttg1`, `ttg2`, `xmcb`
  *    - Mật khẩu: `[tên_lớp]a@` (`otqs1a@`, `otqs2a@`, `ttg1a@`, `ttg2a@`, `xmcba@`)
@@ -19,6 +19,7 @@ import {
   AppState,
   getCurrentUserClassScope,
   showToast,
+  hideModal,
   updateAllViews,
   renderSpreadsheet,
   renderCumulativeTable,
@@ -52,7 +53,7 @@ export const CLASS_ACCOUNTS = {
 };
 
 export function canUserConfigureLangStandard() {
-  return AppState.role === 'admin' || AppState.role === 'company_officer';
+  return AppState.role === 'admin';
 }
 
 /**
@@ -153,6 +154,14 @@ export function enforceClassIsolationOnSelectors() {
 export function handleRoleChange(newRole) {
   if (!newRole) newRole = 'guest';
   AppState.role = newRole;
+  document.body.toggleAttribute('data-unit-readonly', newRole === 'company_officer');
+  if (newRole === 'company_officer') {
+    AppState.studentProfileEditMode = false;
+    for (const id of ['modalStudentProfile', 'modalAddCadet', 'modalAddSubject', 'modalUpdateLang', 'modalImportExcel', 'modalQuickImportExcel', 'modalCloudConfig']) hideModal(id);
+    AppState.isEditingForm = false;
+    AppState.editingModalId = null;
+    AppState.editingStudentId = null;
+  }
   const badge = document.getElementById('roleBadge');
   const studentPanel = document.getElementById('studentPersonalPanel');
   const adminOnlyElements = document.querySelectorAll('.admin-only');
@@ -193,8 +202,8 @@ export function handleRoleChange(newRole) {
       badge.className = 'text-[11px] px-2 py-0.5 rounded font-semibold bg-blue-700 text-blue-100';
     }
     if (studentPanel) studentPanel.classList.add('hidden');
-    adminOnlyElements.forEach(el => el.classList.remove('hidden'));
-    leaderAllowedElements.forEach(el => el.classList.remove('hidden'));
+    adminOnlyElements.forEach(el => el.classList.add('hidden'));
+    leaderAllowedElements.forEach(el => el.classList.add('hidden'));
   } else if (newRole.startsWith('class_leader_')) {
     const cls = newRole.replace('class_leader_', '');
     AppState.selectedClassLeaderClass = cls;
@@ -482,15 +491,15 @@ export function updateAuthUI() {
   } else if (AppState.role === 'company_officer') {
     if (authRoleIcon) authRoleIcon.textContent = '🎖️';
     if (authUserTitle) authUserTitle.textContent = u.displayName || 'Cán bộ Đại đội (canbo)';
-    if (authRoleDesc) authRoleDesc.textContent = 'Toàn quyền quản lý, nhập điểm & Xem Toàn Đại đội';
-    adminOnlyElements.forEach(el => { el.classList.remove('hidden'); el.style.display = ''; });
-    leaderAllowedElements.forEach(el => { el.classList.remove('hidden'); el.style.display = ''; });
+    if (authRoleDesc) authRoleDesc.textContent = 'Chỉ xem toàn Đại đội, không được chỉnh sửa';
+    adminOnlyElements.forEach(el => { el.classList.add('hidden'); el.style.display = 'none'; });
+    leaderAllowedElements.forEach(el => { el.classList.add('hidden'); el.style.display = 'none'; });
     if (studentPanel) { studentPanel.classList.add('hidden'); studentPanel.style.display = 'none'; }
 
     if (cBox) cBox.textContent = '🎖️';
     if (cTag) { cTag.textContent = 'CÁN BỘ ĐẠI ĐỘI'; cTag.className = 'px-1.5 py-0.5 rounded text-[10px] font-black uppercase bg-blue-100 text-blue-800 border border-blue-300'; }
     if (cTitle) cTitle.textContent = u.displayName || 'Cán bộ Đại đội (canbo)';
-    if (cDesc) cDesc.textContent = '(Quản lý & Xem toàn bộ Đại đội)';
+    if (cDesc) cDesc.textContent = '(Chỉ xem toàn bộ Đại đội)';
   } else if (AppState.role && AppState.role.startsWith('class_leader_')) {
     const cls = AppState.role.replace('class_leader_', '');
     if (authRoleIcon) authRoleIcon.textContent = '⭐';
