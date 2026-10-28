@@ -3537,35 +3537,22 @@ export function exportMasterExcel() {
 }
 
 export function exportLanguageExcel() {
-  const headers = ['STT', 'Mã HV', 'Họ và Tên', 'Lớp', 'Ngoại Ngữ', 'Trình Độ Hiện Tại', 'A1', 'A2.1', 'A2.2', 'B1.1', 'B1.2'];
-  const rows = [
-    ['TIỂU ĐOÀN 4 - ĐẠI ĐỘI 460'],
-    ['BẢNG THEO DÕI CHỨNG CHỈ NGOẠI NGỮ'],
-    [],
-    headers
-  ];
-
-  getScopedStudents().forEach((s, idx) => {
-    const l = AppState.languages[s.id] || { lang: 'Tiếng Nga', A1: 'Đ', A21: 'Đ', A22: 'Đ', B11: 'Đ', B12: 'CT' };
-    rows.push([
-      idx + 1,
-      s.code,
-      s.name,
-      s.class,
-      l.lang,
-      s.currentLangLevel || l.currentLevel || 'Chưa đạt',
-      l.A1,
-      l.A21,
-      l.A22,
-      l.B11,
-      l.B12
-    ]);
-  });
-
-  const ws = XLSX.utils.aoa_to_sheet(rows);
+  if (!['admin', 'company_officer'].includes(AppState.role) && !AppState.role?.startsWith('class_leader_')) {
+    showToast('Tài khoản không có quyền tải danh sách Tiếng Nga.', 'error'); return;
+  }
+  const students = getScopedStudents();
+  if (!students.length) { showToast('Chưa có học viên để xuất danh sách.', 'error'); return; }
+  const scope = getCurrentUserClassScope();
+  const standard = AppState.requiredLangStandard || 'A2';
+  const { roster } = collectLanguageStatistics(students, AppState.languages || {}, standard, evaluateLangLevelStatus, scope ? [scope] : DEFAULT_CLASSES);
+  const headers = ['STT', 'MÃ HỌC VIÊN', 'HỌ VÀ TÊN', 'NGÀY THÁNG NĂM SINH', 'TRÌNH ĐỘ THỰC TẾ', 'GHI CHÚ'];
+  const rows = roster.map(({ student, level }, index) => [index + 1, String(student.code || ''), student.name, normalizeDateVN(student.dob, ''), level, '']);
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+  ws['!reportHeaderRows'] = [1];
+  ws['!cols'] = [{ wch: 7 }, { wch: 20 }, { wch: 30 }, { wch: 24 }, { wch: 22 }, { wch: 30 }];
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Chung_Chi_Ngoai_Ngu');
-  writeReportWorkbook(wb, 'Chung_Chi_Ngoai_Ngu_Dai_Doi_460.xlsx');
+  XLSX.utils.book_append_sheet(wb, ws, 'Danh_sach_tieng_Nga');
+  writeReportWorkbook(wb, 'Danh sách tiếng Nga.xlsx');
 }
 
 export function getDashboardLanguageData() {

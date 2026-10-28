@@ -14,7 +14,7 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
    for(const type of ['admin','company_officer','class_account']) {
     await page.evaluate(type=>window.AuthState.setUser({type,class:'OTQS1',displayName:'Kiểm thử'}),type);
     await page.evaluate(()=>window.switchTab('tab-reports'));
-    assert.equal(await page.locator('button[id^="btnExport"]').count(),1);
+    assert.equal(await page.locator('button[id^="btnExport"]').count(),2);
     const selector=page.locator('#reportsClassSelect');
     if(type==='class_account') {
      assert.equal(await selector.isDisabled(),true); assert.equal(await selector.inputValue(),'OTQS1');
@@ -23,6 +23,15 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
      assert.deepEqual(await selector.locator('option').evaluateAll(items=>items.map(item=>item.value)),['','OTQS1','OTQS2','TTG1','TTG2','XMCB']);
      await selector.selectOption('OTQS1');
     }
+    const russianPending=page.waitForEvent('download');await page.locator('#btnExportLangExcel').click();
+    const russian=await russianPending;assert.equal(russian.suggestedFilename(),'Danh sách tiếng Nga.xlsx');
+    const russianBook=XLSX.read(fs.readFileSync(await russian.path()),{type:'buffer'});
+    const russianRows=XLSX.utils.sheet_to_json(russianBook.Sheets[russianBook.SheetNames[0]],{header:1,defval:''});
+    assert.deepEqual(russianRows[0],['STT','MÃ HỌC VIÊN','HỌ VÀ TÊN','NGÀY THÁNG NĂM SINH','TRÌNH ĐỘ THỰC TẾ','GHI CHÚ']);
+    assert.equal(russianRows.length,type==='class_account'?3:4);
+    const firstCadet=russianRows.find(row=>row[1]==='HV001');assert.equal(firstCadet[3],'01/02/2003');assert.equal(firstCadet[4],'A2');assert.equal(firstCadet[5],'');
+    assert.equal(russianRows.some(row=>row[1]==='HV003'),type!=='class_account');
+    assert.deepEqual(russianRows.slice(1).map(row=>row[0]),Array.from({length:russianRows.length-1},(_,i)=>i+1));
     const pending=page.waitForEvent('download'); await page.locator('#btnExportClassExcel').click();
     const file=await pending; assert.equal(file.suggestedFilename(),'Bảng điểm OTQS1.xlsx');
     const bytes=fs.readFileSync(await file.path()),book=XLSX.read(bytes,{type:'buffer'});
