@@ -2874,8 +2874,7 @@ export function exportReportExcel() {
 // --- 7. CHỨNG CHỈ NGOẠI NGỮ ---
 export function renderLanguages() {
   const summaryContainer = document.getElementById('languageClassSummary');
-  const tbody = document.getElementById('languageTableBody');
-  if (!summaryContainer || !tbody) return;
+  if (!summaryContainer) return;
 
   const canConfigStd = AppState.role === 'admin';
   const reqStd = AppState.requiredLangStandard || 'A2';
@@ -2888,7 +2887,7 @@ export function renderLanguages() {
   });
 
   const classScope = getCurrentUserClassScope();
-  const langClassSelect = document.getElementById('langFilterClass');
+  const langClassSelect = document.getElementById('cumulFilterClass');
   if (langClassSelect) {
     if (classScope) {
       langClassSelect.innerHTML = `<option value="${classScope}">Lớp ${classScope}</option>`;
@@ -2899,7 +2898,7 @@ export function renderLanguages() {
     }
   }
   const selectedLangClass = classScope || langClassSelect?.value || 'all';
-  const visibleClasses = classScope ? [classScope] : DEFAULT_CLASSES;
+  const visibleClasses = selectedLangClass !== 'all' ? [selectedLangClass] : DEFAULT_CLASSES;
 
   let summaryHtml = '';
   visibleClasses.forEach(cls => {
@@ -2921,72 +2920,8 @@ export function renderLanguages() {
   });
   summaryContainer.innerHTML = summaryHtml;
 
-  let langStudentsList = getScopedStudents();
-  if (selectedLangClass !== 'all') {
-    langStudentsList = langStudentsList.filter(s => s.class === selectedLangClass);
-  }
-
-  let tableHtml = '';
-
-  if (langStudentsList.length === 0) {
-    tableHtml = `<tr><td colspan="12" class="py-8 text-center text-slate-400">Chưa có dữ liệu học viên.</td></tr>`;
-  } else {
-    langStudentsList.forEach((student, idx) => {
-      const l = AppState.languages[student.id] || { lang: 'Tiếng Nga', A1: 'Đ', A21: 'Đ', A22: 'Đ', B11: 'Đ', B12: 'CT' };
-      const curLvl = student.currentLangLevel || l.currentLevel || 'Chưa đạt';
-      const evalStatus = evaluateLangLevelStatus(curLvl, reqStd);
-
-      const badge = (status) => {
-        if (status === 'Đ') return '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">Đạt (Đ)</span>';
-        if (status === 'KĐ') return '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300">K.Đạt (KĐ)</span>';
-        return '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-300">Chưa thi</span>';
-      };
-
-      const canEditLang = AppState.role === 'admin' ||
-        (AppState.role && AppState.role.startsWith('class_leader_') && AppState.role.replace('class_leader_', '') === student.class);
-
-      const levelSelectHtml = canEditLang
-        ? `<select class="select-lang-tab-level border ${evalStatus.isPassed ? 'border-slate-300 text-army-900' : 'border-rose-400 text-rose-800 bg-rose-50/40'} rounded-lg px-2 py-1 text-xs font-bold bg-white" data-id="${student.id}">
-            ${LANGUAGE_LEVEL_OPTIONS.map(opt => `<option value="${opt}" ${opt === curLvl ? 'selected' : ''}>${opt}</option>`).join('')}
-          </select>`
-        : `<span class="font-bold text-army-900">${curLvl}</span>`;
-
-      tableHtml += `
-        <tr class="${evalStatus.isPassed ? 'hover:bg-slate-50' : 'bg-rose-50 text-rose-800'} transition">
-          <td class="py-2.5 px-3 text-center text-slate-500 font-medium">${idx + 1}</td>
-          <td class="py-2.5 px-3 font-mono font-bold">
-            <button type="button" class="btn-view-cadet-detail text-army-800 hover:text-gold-600 hover:underline" data-id="${student.id}">${student.code}</button>
-          </td>
-          <td class="py-2.5 px-4 font-bold text-slate-900">
-            <button type="button" class="btn-view-cadet-detail hover:text-army-800 hover:underline text-left font-bold" data-id="${student.id}">${student.name}</button>
-          </td>
-          <td class="py-2.5 px-3 text-center font-bold text-army-800">${student.class}</td>
-          <td class="py-2.5 px-3 text-center font-semibold text-slate-700">${l.lang}</td>
-          <td class="py-2.5 px-3 text-center">${badge(l.A1)}</td>
-          <td class="py-2.5 px-3 text-center">${badge(l.A21)}</td>
-          <td class="py-2.5 px-3 text-center">${badge(l.A22)}</td>
-          <td class="py-2.5 px-3 text-center">${badge(l.B11)}</td>
-          <td class="py-2.5 px-3 text-center">${badge(l.B12)}</td>
-          <td class="py-2.5 px-3 text-center">
-            <div class="flex flex-col items-center gap-1">
-              ${levelSelectHtml}
-              ${evalStatus.badgeHtml}
-            </div>
-          </td>
-          <td class="py-2.5 px-3 text-center">
-            ${canEditLang
-              ? `<button type="button" class="btn-edit-lang text-xs text-army-700 hover:text-army-900 font-semibold underline" data-id="${student.id}">Cập nhật</button>`
-              : `<span class="text-[11px] text-slate-400 italic">Chỉ xem</span>`
-            }
-          </td>
-        </tr>
-      `;
-    });
-  }
-  tbody.innerHTML = tableHtml;
-
-  // Event Delegation xử lý .btn-edit-lang & .select-lang-tab-level tại document
 }
+
 
 export function openLangModal(studentId) {
   if (AppState.role === 'company_officer') { showToast('Tài khoản cán bộ chỉ được xem.', 'error'); return; }
@@ -4291,6 +4226,7 @@ export async function handleInlineCumulativeMetaChange(studentId, field, value, 
 }
 
 export function renderCumulativeTable() {
+  renderLanguages();
   const tbody = document.getElementById('cumulativeTableBody');
   const footer = document.getElementById('cumulativeTableFooter');
   if (!tbody) return;

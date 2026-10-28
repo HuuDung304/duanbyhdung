@@ -98,7 +98,7 @@ export function syncNavigationTabLabels(role) {
     tabSheet.textContent = isStudent ? 'Bảng Điểm' : 'Bảng Điểm Lớp';
   }
   if (tabCumulative) {
-    tabCumulative.textContent = 'Điểm Tích Lũy';
+    tabCumulative.textContent = 'Tiếng Nga và Tích lũy';
   }
   if (tabProfiles) {
     tabProfiles.textContent = 'Hồ Sơ Quân Nhân';
@@ -331,6 +331,7 @@ export function initAuthSubscription() {
 }
 
 export function switchTab(targetTabId) {
+  if (targetTabId === 'tab-languages') targetTabId = 'tab-cumulative';
   if (!targetTabId) targetTabId = 'tab-sheet';
   closeCadetDetailPage(true);
 

@@ -53,6 +53,14 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
    assert.equal(await page.locator('#reportYearSemesterMatrixBody tr').count(),7);
    assert.doesNotMatch(await page.locator('#reportCompanyTableBody').innerText(),/Tỷ lệ Đạt tích lũy|Tỷ lệ Rớt tích lũy/);
    await page.evaluate(()=>window.switchTab('tab-cumulative'));
+   assert.equal(await page.locator('.nav-tab[data-tab="tab-languages"]').count(),0);
+   assert.match(await page.locator('.nav-tab[data-tab="tab-cumulative"]').innerText(),/Tiếng Nga và Tích lũy/);
+   assert.equal(await page.locator('#languageTableBody').count(),0);
+   await page.locator('#cumulFilterClass').selectOption('all');
+   assert.equal(await page.locator('#tab-cumulative #languageClassSummary > div').count(),5);
+   await page.locator('#cumulFilterClass').selectOption('OTQS1');
+   assert.equal(await page.locator('#languageClassSummary > div').count(),1);
+   await page.locator('#cumulFilterClass').selectOption('all');
    const cumulativeTable = page.locator('#cumulativeTableBody').locator('..');
    assert.equal(await cumulativeTable.locator('thead th').count(),12);
    assert.equal(await cumulativeTable.locator('tbody tr').first().locator('td').count(),12);

@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="app-release" content="030db452719a">
+  <meta name="app-release" content="fe4e82349c7f">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Hệ thống Quản lý Điểm & Báo cáo Học tập Đại đội 460</title>
   <!-- Tailwind CSS CDN & Digital Academy palette (legacy color aliases preserved) -->
@@ -222,7 +222,7 @@ body {
       </button>
             <button data-tab="tab-cumulative" class="nav-tab flex items-center gap-2 py-3 px-4 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-slate-300 hover:text-white whitespace-nowrap transition">
         <svg class="w-4 h-4 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-        <span class="tab-label-text">Điểm Tích Lũy Toàn Khóa</span>
+        <span class="tab-label-text">Tiếng Nga và Tích lũy</span>
       </button>
       <button data-tab="tab-master" class="nav-tab flex items-center gap-2 py-3 px-4 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-slate-300 hover:text-white whitespace-nowrap transition">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
@@ -232,10 +232,7 @@ body {
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
         <span class="tab-dashboard-label">Báo Cáo Giao Ban</span>
       </button>
-      <button data-tab="tab-languages" class="nav-tab flex items-center gap-2 py-3 px-4 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-slate-300 hover:text-white whitespace-nowrap transition">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path></svg>
-        Chứng Chỉ Ngoại Ngữ
-      </button>
+
 
       <button data-tab="tab-audit" class="nav-tab flex items-center gap-2 py-3 px-4 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-slate-300 hover:text-white whitespace-nowrap transition">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -632,7 +629,7 @@ body {
       <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
         <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
-            <h3 class="text-base font-bold text-slate-900 uppercase">Bảng Điểm Tích Lũy &amp; Chuẩn Đầu Ra Ngoại Ngữ</h3>
+            <h3 class="text-base font-bold text-slate-900 uppercase">Tiếng Nga và Tích lũy</h3>
             <p class="text-xs text-slate-500">Cấu trúc điểm kỳ DTB HK1 (10) &amp; DTB HKII (10) • Chọn trực tiếp Trình độ ngoại ngữ hiện tại </p>
           </div>
           <div class="flex flex-wrap items-center gap-2">
@@ -723,6 +720,8 @@ body {
           </div>
         </div>
       </div>
+
+      <div><h3 class="text-sm font-bold text-slate-900 mb-3">Tỷ lệ đạt chuẩn Tiếng Nga theo lớp</h3><div id="languageClassSummary" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3"></div></div>
 
       <!-- Cumulative table: course totals and current language level -->
       <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
@@ -1085,72 +1084,7 @@ body {
     <!-- ========================================== -->
     <!-- TAB 4: CHỨNG CHỈ NGOẠI NGỮ (NGA / ANH)     -->
     <!-- ========================================== -->
-    <section id="tab-languages" class="tab-content hidden space-y-4">
-      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div>
-          <h3 class="text-base font-bold text-slate-900 uppercase">Theo Dõi Chuẩn Ngoại Ngữ Học Viên (Tiếng Nga / Tiếng Anh)</h3>
-          <p class="text-xs text-slate-500">Quản lý chuẩn đầu ra ngoại ngữ quân sự theo khung cấp độ: A1, A2.1, A2.2, B1.1, B1.2</p>
-        </div>
-        <div class="flex flex-wrap items-center gap-2">
-          <div class="flex items-center gap-1.5 bg-amber-50 border border-amber-300 rounded-lg px-2.5 py-1.5">
-            <span class="text-[11px] font-bold text-army-900 whitespace-nowrap">Chuẩn phải đạt:</span>
-            <select class="required-lang-standard-select bg-white border border-army-600 text-army-900 text-xs font-extrabold rounded px-2 py-1">
-              <option value="A1.1">A1.1</option>
-              <option value="A1">A1</option>
-              <option value="A2.1">A2.1</option>
-              <option value="A2" selected>A2</option>
-              <option value="A2.2">A2.2</option>
-              <option value="B1.1">B1.1</option>
-              <option value="B1">B1</option>
-              <option value="B1.2">B1.2</option>
-              <option value="B2">B2</option>
-            </select>
-          </div>
-          <select id="langFilterClass" class="bg-slate-50 border border-slate-300 text-slate-800 text-xs font-semibold rounded-lg px-2.5 py-2">
-            <option value="all">-- Toàn bộ Đại đội (5 Lớp) --</option>
-            <option value="OTQS1">Lớp OTQS1</option>
-            <option value="OTQS2">Lớp OTQS2</option>
-            <option value="TTG1">Lớp TTG1</option>
-            <option value="TTG2">Lớp TTG2</option>
-            <option value="XMCB">Lớp XMCB</option>
-          </select>
 
-
-        </div>
-      </div>
-
-      <!-- Language Stats per Class -->
-      <div id="languageClassSummary" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
-        <!-- populated by JS -->
-      </div>
-
-      <!-- Language Matrix Table -->
-      <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        <div class="overflow-x-auto custom-scrollbar">
-          <table class="w-full text-xs text-left border-collapse whitespace-nowrap">
-            <thead class="bg-slate-100 text-slate-800 font-semibold border-b border-slate-300">
-              <tr>
-                <th class="py-3 px-3 text-center w-12">STT</th>
-                <th class="py-3 px-3 w-28">Mã HV</th>
-                <th class="py-3 px-4">Họ và Tên</th>
-                <th class="py-3 px-3 text-center">Lớp</th>
-                <th class="py-3 px-3 text-center">Ngoại Ngữ</th>
-                <th class="py-3 px-3 text-center">Chuẩn A1</th>
-                <th class="py-3 px-3 text-center">Chuẩn A2.1</th>
-                <th class="py-3 px-3 text-center">Chuẩn A2.2</th>
-                <th class="py-3 px-3 text-center">Chuẩn B1.1</th>
-                <th class="py-3 px-3 text-center">Chuẩn B1.2</th>
-                <th class="py-3 px-3 text-center">Trình Độ Thực Tế &amp; So Chuẩn</th>
-                <th class="py-3 px-3 text-center">Cập Nhật</th>
-              </tr>
-            </thead>
-            <tbody id="languageTableBody" class="divide-y divide-slate-200">
-              <!-- Populated by JS -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
 
     <!-- Đã xóa hoàn toàn mục Văn bản Báo cáo Quân sự theo yêu cầu Mục 7 -->
 
@@ -2279,15 +2213,15 @@ body {
 {
   "imports": {
     "./src/js/access-controls.js": "./src/js/access-controls.js?v=0c31f2921589",
-    "./src/js/auth.js": "./src/js/auth.js?v=87b9181b4ec3",
+    "./src/js/auth.js": "./src/js/auth.js?v=4c59c28f16cf",
     "./src/js/components/bento-dashboard.js": "./src/js/components/bento-dashboard.js?v=cdf91e6ac1ee",
     "./src/js/components/destructive-confirm.js": "./src/js/components/destructive-confirm.js?v=d3493f707a09",
     "./src/js/components/expanding-rail.js": "./src/js/components/expanding-rail.js?v=30e2d9c62544",
     "./src/js/components/notched-field.js": "./src/js/components/notched-field.js?v=553608c192ae",
     "./src/js/components/report-center.js": "./src/js/components/report-center.js?v=2b5475a88875",
     "./src/js/dashboard-statistics.js": "./src/js/dashboard-statistics.js?v=2c12c43c6749",
-    "./src/js/grades.js": "./src/js/grades.js?v=0a9cd6216774",
-    "./src/js/main.js": "./src/js/main.js?v=030db452719a",
+    "./src/js/grades.js": "./src/js/grades.js?v=eddf269368a6",
+    "./src/js/main.js": "./src/js/main.js?v=fe4e82349c7f",
     "./src/js/profile-rules.js": "./src/js/profile-rules.js?v=3a3bbf350b00",
     "./src/js/report-workbook.js": "./src/js/report-workbook.js?v=905d0e767b16",
     "./src/js/students.js": "./src/js/students.js?v=8e2d4c1a6d39",
@@ -2295,7 +2229,7 @@ body {
   }
 }
   </script>
-  <script type="module" src="./src/js/main.js?v=030db452719a"></script>
+  <script type="module" src="./src/js/main.js?v=fe4e82349c7f"></script>
   <script type="module" src="./src/js/components/expanding-rail.js?v=30e2d9c62544"></script>
   <script type="module" src="./src/js/components/notched-field.js?v=553608c192ae"></script>
   <script type="module" src="./src/js/components/bento-dashboard.js?v=cdf91e6ac1ee"></script>

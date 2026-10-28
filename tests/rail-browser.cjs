@@ -69,7 +69,7 @@ const assert = require('node:assert/strict');
         }
         await page.evaluate(() => { window.switchTab('tab-settings'); window.switchTab('tab-sheet'); window.switchTab('tab-languages'); });
         await page.waitForFunction(() => document.querySelector('.u040-page-heading h2').textContent === 'Chứng Chỉ Ngoại Ngữ');
-        assert.equal(await page.locator('.u040-it[aria-current="page"]').getAttribute('data-tab'), 'tab-languages');
+        assert.equal(await page.locator('.u040-it[aria-current="page"]').getAttribute('data-tab'), 'tab-cumulative');
         if (motion === 'reduce') {
           assert.ok(await rail.evaluate(element => parseFloat(getComputedStyle(element).transitionDuration) < .001));
           assert.equal(await title.evaluate(element => element.classList.contains('swap')), false);

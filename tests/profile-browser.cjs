@@ -40,21 +40,14 @@ const assert = require('node:assert/strict');
   assert.doesNotMatch(await page.locator('body').innerText(), /CNTT/);
   assert.equal(await page.locator('#studentSelfItStandardSelect,#inlineProfItStandard,#profFormFatherDobMode,#profFormMotherDobMode').count(), 0);
   await page.evaluate(() => window.switchTab('tab-languages'));
-  assert.match(await page.locator('#languageTableBody').innerText(), /Chưa đạt \(B1\)/);
-  const standard = page.locator('#tab-languages .required-lang-standard-select');
+  assert.match(await page.locator('#cumulativeTableBody').innerText(), /Chưa đạt \(B1\)/);
+  const standard = page.locator('#tab-cumulative .required-lang-standard-select');
   await standard.selectOption('B2');
   await page.waitForFunction(() => window.AppState.requiredLangStandard === 'B2');
-  await page.waitForFunction(() => document.getElementById('languageTableBody').textContent.includes('Chưa đạt (B2)'));
-  const actualLevel = page.locator('#languageTableBody .select-lang-tab-level');
+  await page.waitForFunction(() => document.getElementById('cumulativeTableBody').textContent.includes('Chưa đạt (B2)'));
+  const actualLevel = page.locator('#cumulativeTableBody .select-cumul-lang');
   await actualLevel.selectOption('B2');
-  await page.waitForFunction(() => document.getElementById('languageTableBody').textContent.includes('Đạt (B2)'));
-  await page.locator('#languageTableBody .btn-edit-lang').first().dispatchEvent('click');
-  await page.locator('#langActualLevel').selectOption('B1');
-  await page.locator('#formUpdateLang').evaluate(form => form.requestSubmit());
-  await page.waitForFunction(() => document.getElementById('modalUpdateLang').getAttribute('aria-hidden') === 'true');
-  assert.match(await page.locator('#languageTableBody').innerText(), /Chưa đạt \(B2\)/);
-  await actualLevel.selectOption('B2');
-  await page.waitForFunction(() => document.getElementById('languageTableBody').textContent.includes('Đạt (B2)'));
+  await page.waitForFunction(() => document.getElementById('cumulativeTableBody').textContent.includes('Đạt (B2)'));
 
 
   await page.evaluate(() => window.openStudentProfileModal('hv_test'));
@@ -90,8 +83,8 @@ const assert = require('node:assert/strict');
   assert.equal(await page.locator('body').getAttribute('data-unit-readonly'), '');
   assert.equal(await page.locator('#modalStudentProfile').isVisible(), false);
   assert.equal(await standard.isDisabled(), true);
-  assert.equal(await page.locator('#languageTableBody .select-lang-tab-level').count(), 0);
-  assert.match(await page.locator('#languageTableBody').innerText(), /Chỉ xem/);
+  assert.equal(await page.locator('#cumulativeTableBody .select-cumul-lang').isDisabled(), true);
+
   await page.evaluate(() => window.switchTab('tab-profiles'));
   assert.equal(await page.locator('#btnImportProfileExcel').isVisible(), false);
   assert.equal(await page.locator('.btn-open-profile').first().isVisible(), false);
