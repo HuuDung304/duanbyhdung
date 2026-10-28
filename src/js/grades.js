@@ -1,3 +1,4 @@
+import { buildClassTranscript } from './class-transcript.js';
 import { studentBirthYear, collectLanguageStatistics, failedStudentExportRows } from './dashboard-statistics.js';
 import { writeReportWorkbook } from './report-workbook.js';
 import { requestDestructiveConfirmation } from './components/destructive-confirm.js';
@@ -3462,59 +3463,31 @@ export function exportClassExcel() {
     return;
   }
 
-  const cls = getCurrentUserClassScope() || AppState.currentSheetClass || 'OTQS1';
-  const yearNum = parseInt(AppState.currentSheetSemester, 10) || 1;
-  const sem1 = 2 * yearNum - 1;
-  const sem2 = 2 * yearNum;
-  const classStudents = cls === 'all' ? [...AppState.students] : AppState.students.filter(s => s.class === cls);
-  const subs1 = getSubjectsForClass(cls, sem1);
-  const subs2 = getSubjectsForClass(cls, sem2);
-
-  // Kiểm tra nếu có môn trùng tên giữa HK1 và HK2 trong cùng 1 năm để gắn nhãn kỳ rõ ràng,
-  // còn lại hiển thị trực tiếp Tên môn học (course_name / s.name) thay vì mã ID/mã môn học.
-  const subs1Names = new Set(subs1.map(s => normalizeCourseText(getFullSubjectName(s))));
-  const subs2Names = new Set(subs2.map(s => normalizeCourseText(getFullSubjectName(s))));
-
-  const headers = ['STT', 'Mã HV', 'Họ và Tên', 'Cấp bậc', 'Lớp', 'Ngày sinh'];
-  subs1.forEach(s => {
-    const fullName = getFullSubjectName(s);
-    const isDupInYear = subs2Names.has(normalizeCourseText(fullName));
-    headers.push(isDupInYear ? `${fullName} (HK${sem1})` : fullName);
-  });
-  headers.push('ĐTB HK1');
-  subs2.forEach(s => {
-    const fullName = getFullSubjectName(s);
-    const isDupInYear = subs1Names.has(normalizeCourseText(fullName));
-    headers.push(isDupInYear ? `${fullName} (HK${sem2})` : fullName);
-  });
-  headers.push('ĐTB HK2', 'Điểm trung bình 1 năm học', 'Xếp loại năm đấy');
-
-  const rows = [
-    ['BỘ QUỐC PHÒNG - HỌC VIỆN KỸ THUẬT QUÂN SỰ'],
-    ['TIỂU ĐOÀN 4 - ĐẠI ĐỘI 460'],
-    [`BẢNG ĐIỂM LỚP ${cls} - NĂM HỌC THỨ ${yearNum} (HỌC KỲ ${sem1} & HỌC KỲ ${sem2})`],
-    [],
-    headers
-  ];
-
-  classStudents.forEach((student, idx) => {
-    const studentGrades = AppState.grades[student.id] || {};
-    const row = [idx + 1, student.code, student.name, student.rank, student.class, formatVN(student.dob)];
-    subs1.forEach(s => row.push(studentGrades[s.id] !== undefined ? studentGrades[s.id] : ''));
-    row.push(calculateSemesterGPA(student.id, sem1).toFixed(2));
-    subs2.forEach(s => row.push(studentGrades[s.id] !== undefined ? studentGrades[s.id] : ''));
-    const gy = calculateAcademicYearGPA(student.id, yearNum);
-    row.push(calculateSemesterGPA(student.id, sem2).toFixed(2), gy.toFixed(2), getClassification(gy));
-    rows.push(row);
-  });
-
-  const ws = XLSX.utils.aoa_to_sheet(rows);
-  ws['!cols'] = headers.map(() => ({ wch: 15 }));
-  ws['!cols'][2] = { wch: 24 };
-
+  const cls = getCurrentUserClassScope() || AppState.currentSheetClass;
+  if (!DEFAULT_CLASSES.includes(cls)) {
+    showToast('Vui lòng chọn một lớp để tải bảng điểm.', 'error');
+    return;
+  }
+  const students = getScopedStudents().filter(student => student.class === cls);
+  if (!students.length) { showToast('Lớp chưa có học viên để xuất bảng điểm.', 'error'); return; }
+  const semesters = Array.from({ length: 10 }, (_, index) => ({ semester: index + 1, subjects: getSubjectsForClass(cls, index + 1) }));
+  const { headers, rows, completed } = buildClassTranscript(students, semesters, AppState.grades,
+    calculateSemesterGPA, calculateAcademicYearGPA, getFullSubjectName, studentBirthYear);
+  if (!completed.length) { showToast('Lớp chưa có kỳ nào đầy đủ điểm toàn bộ học viên.', 'error'); return; }
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+  ws['!reportHeaderRows'] = [1];
+  ws['!cols'] = headers.map((header, index) => ({ wch: index === 1 ? 28 : header.startsWith('ĐIỂM CÁC MÔN') ? 60 : 18 }));
+  for (let row = 1; row <= rows.length; row++) {
+    for (let column = 4; column < headers.length; column++) {
+      if (headers[column].startsWith('ĐIỂM TB')) {
+        const cell = ws[XLSX.utils.encode_cell({ r: row, c: column })];
+        if (cell) cell.z = '0.00';
+      }
+    }
+  }
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, `Diem_${cls}_Nam${yearNum}`);
-  writeReportWorkbook(wb, `Bang_Diem_${cls}_Nam_Hoc_${yearNum}.xlsx`);
+  XLSX.utils.book_append_sheet(wb, ws, `Bang_diem_${cls}`);
+  writeReportWorkbook(wb, `Bảng điểm ${cls}.xlsx`);
 }
 
 export function exportMasterExcel() {

@@ -18,7 +18,7 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
    await page.evaluate(()=>window.switchTab('tab-reports'));
    assert.equal(await page.locator('#tab-reports .report-export-card:visible').count(),5);
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
-   const download=async id=>{const pending=page.waitForEvent('download');await page.locator(id).click();const file=await pending;const data=fs.readFileSync(await file.path());const archive=XLSX.CFB.read(data,{type:'buffer'});const styles=new TextDecoder().decode(archive.FileIndex.find(f=>f.name==='styles.xml').content);assert.match(styles,/name val="Times New Roman"/);assert.doesNotMatch(styles,/name val="Calibri"/);assert.match(styles,/<left style="thin">/);assert.match(styles,/<right style="thin">/);assert.match(styles,/horizontal="center" vertical="center" wrapText="1"/);return XLSX.read(data,{type:'buffer'});};
+   const download=async id=>{if(id==='#btnExportClassExcel' && await page.locator('#reportsClassSelect').isEnabled()) await page.locator('#reportsClassSelect').selectOption('OTQS1');const pending=page.waitForEvent('download');await page.locator(id).click();const file=await pending;if(id==='#btnExportClassExcel' && await page.evaluate(()=>window.AppState.role!=='student')) assert.equal(file.suggestedFilename(),'Bảng điểm OTQS1.xlsx');const data=fs.readFileSync(await file.path());const archive=XLSX.CFB.read(data,{type:'buffer'});const styles=new TextDecoder().decode(archive.FileIndex.find(f=>f.name==='styles.xml').content);assert.match(styles,/name val="Times New Roman"/);assert.doesNotMatch(styles,/name val="Calibri"/);assert.match(styles,/<left style="thin">/);assert.match(styles,/<right style="thin">/);assert.match(styles,/horizontal="center" vertical="center" wrapText="1"/);return XLSX.read(data,{type:'buffer'});};
    await page.evaluate(()=>{window.AppState.students[0].currentLangLevel='A1, A2, B11';});
    const language=await download('#btnExportLanguageSummary');
    const list=XLSX.utils.sheet_to_json(language.Sheets.Danh_Sach_Hoc_Vien,{header:1,defval:''});
@@ -27,7 +27,7 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
    await page.locator('#reportsClassSelect').selectOption('TTG1');const scoped=await download('#btnExportLanguageSummary');assert.equal(XLSX.utils.sheet_to_json(scoped.Sheets.Danh_Sach_Hoc_Vien,{header:1}).length,6);
    await page.locator('#reportsClassSelect').selectOption('all');
    for(const id of ['#btnExportProfileExcel','#btnExportClassExcel','#btnExportFailedStudents','#btnExportAchievements','#btnExportReportExcel','#btnExportCumulativeExcel','#btnExportMasterExcel']){
-    const book=await download(id);assert.ok(book.SheetNames.length>0);
+    const book=await download(id); if(id==='#btnExportClassExcel') { const transcriptRows=XLSX.utils.sheet_to_json(book.Sheets[book.SheetNames[0]],{header:1}); assert.deepEqual(transcriptRows[0],['MÃ HỌC VIÊN','HỌ VÀ TÊN','LỚP','NĂM SINH','ĐIỂM CÁC MÔN KỲ 1','ĐIỂM TB KỲ 1']); assert.match(transcriptRows[1][4],/Toán cao cấp/); } if(id==='#btnExportClassExcel') await page.locator('#reportsClassSelect').selectOption('all');assert.ok(book.SheetNames.length>0);
     if(id==='#btnExportAchievements')assert.ok(XLSX.utils.sheet_to_json(book.Sheets.Thanh_Tich_Hoc_Tap,{header:1}).flat().some(value=>String(value).includes('Chiến sĩ tiên tiến')));
    }
    await page.evaluate(()=>window.AuthState.setUser({type:'class_account',class:'OTQS1',displayName:'OTQS1'}));await page.evaluate(()=>window.switchTab('tab-reports'));
@@ -87,7 +87,7 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
    assert.equal(await page.locator('#reportsClassSelect').isDisabled(),false);
    assert.equal(await page.locator('#reportsClassSelect').inputValue(),'all');
    for(const id of ['#btnExportProfileExcel','#btnExportClassExcel','#btnExportFailedStudents','#btnExportAchievements','#btnExportReportExcel','#btnExportCumulativeExcel','#btnExportMasterExcel','#btnExportLanguageSummary']) {
-    const book=await download(id); assert.ok(book.SheetNames.length>0);
+    const book=await download(id); if(id==='#btnExportClassExcel') { const transcriptRows=XLSX.utils.sheet_to_json(book.Sheets[book.SheetNames[0]],{header:1}); assert.deepEqual(transcriptRows[0],['MÃ HỌC VIÊN','HỌ VÀ TÊN','LỚP','NĂM SINH','ĐIỂM CÁC MÔN KỲ 1','ĐIỂM TB KỲ 1']); assert.match(transcriptRows[1][4],/Toán cao cấp/); } if(id==='#btnExportClassExcel') await page.locator('#reportsClassSelect').selectOption('all'); assert.ok(book.SheetNames.length>0);
     if(id==='#btnExportFailedStudents') assert.ok(XLSX.utils.sheet_to_json(book.Sheets[book.SheetNames[0]],{header:1}).flat().includes('HV001'));
    }
    await page.evaluate(()=>window.AuthState.setUser({type:'student',studentId:'s1',code:'HV001',class:'OTQS1',displayName:'Nguyễn Minh Anh'}));
