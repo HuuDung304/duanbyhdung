@@ -29,6 +29,7 @@ import {
   logAuditTrail,
   updateAllViews,
   renderSpreadsheet,
+  filterSheetStudents,
   setSheetScaleMode,
   toggleCurrentSheetLock,
   renderMasterTable,
@@ -1535,6 +1536,8 @@ function registerGlobalEventDelegation() {
   window.__dd460InputHandler = function(e) {
     const target = e.target;
     if (!target || !target.id) return;
+
+    if (target.id === 'sheetSearchInput') { filterSheetStudents(); return; }
 
     if (target.id === 'masterSearch') {
       AppState.masterFilters.search = target.value;

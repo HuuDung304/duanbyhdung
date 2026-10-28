@@ -1202,6 +1202,23 @@ export function showToast(message, type = 'error') {
 }
 
 // --- 4. GIAO DIỆN BẢNG ĐIỂM: LỚP (THEO NĂM HỌC 1-5) & HỌC VIÊN (CUỘN DỌC NĂM 1-5) ---
+export function filterSheetStudents() {
+  const normalize = value => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[đĐ]/g, 'd').toLowerCase().trim().replace(/\s+/g, ' ');
+  const query = normalize(document.getElementById('sheetSearchInput')?.value);
+  const students = new Map(AppState.students.map(student => [String(student.id), student]));
+  const rows = document.querySelectorAll('#spreadsheetTbody tr[data-student-id]');
+  let visible = 0;
+  rows.forEach(row => {
+    const student = students.get(row.dataset.studentId);
+    const matches = !query || (student && normalize(`${student.name} ${student.code}`).includes(query));
+    row.hidden = !matches;
+    row.querySelectorAll('.grid-cell-input').forEach(input => { input.dataset.row = matches ? String(visible) : ''; });
+    if (matches) visible++;
+  });
+  const status = document.getElementById('sheetSearchStatus');
+  if (status) status.textContent = query ? `Tìm thấy ${visible}/${rows.length} học viên` : `${rows.length} học viên`;
+}
+
 export function renderSpreadsheet() {
   const isStudent = AppState.role === 'student';
   const classWrapper = document.getElementById('classSpreadsheetWrapper');
@@ -1212,6 +1229,7 @@ export function renderSpreadsheet() {
   const btnAddCadet = document.getElementById('btnAddCadetModalBtn');
   const btnAddSubj = document.getElementById('btnAddSubjectFromSheetBtn');
   const btnExport = document.getElementById('btnExportClassExcel');
+  document.getElementById('sheetSearchBox')?.classList.toggle('hidden', isStudent);
   const sheetClassBox = document.getElementById('sheetClassSelectBox');
   const sheetYearBox = document.getElementById('sheetYearSelectBox');
   const sheetLockBox = document.getElementById('sheetLockBox');
@@ -1496,6 +1514,7 @@ export function renderSpreadsheet() {
     : null;
 
   tbody.innerHTML = tbodyHtml;
+  filterSheetStudents();
 
   if (classStudents.length === 0) {
     tfoot.innerHTML = `<tr><td colspan="100%" class="py-2.5 px-3 text-center text-slate-400 text-xs italic">Quân số lớp ${selectedClass}: 0 đồng chí</td></tr>`;

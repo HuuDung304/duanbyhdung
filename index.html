@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="app-release" content="16c6dc3796dc">
+  <meta name="app-release" content="ef7a6501ed7a">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Quản lý đơn vị</title>
   <link rel="icon" type="image/svg+xml" href="./src/assets/favicon.svg?v=43c991ef71f6">
@@ -375,6 +375,12 @@ body {
               <option value="4">Năm học thứ 4 (Học kỳ 7 &amp; Học kỳ 8)</option>
               <option value="5">Năm học thứ 5 (Học kỳ 9 &amp; Học kỳ 10 - Tốt nghiệp)</option>
             </select>
+          </div>
+
+          <div id="sheetSearchBox">
+            <label for="sheetSearchInput" class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Tìm học viên</label>
+            <input id="sheetSearchInput" type="search" placeholder="Họ tên hoặc mã học viên…" autocomplete="off" aria-controls="spreadsheetTbody" aria-describedby="sheetSearchStatus" class="w-full sm:w-64 bg-slate-50 border border-slate-300 text-slate-800 text-sm rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-500">
+            <div id="sheetSearchStatus" role="status" class="text-xs text-slate-500 mt-1"></div>
           </div>
 
           <!-- Toggle Chuyển Đổi Hệ Điểm: [ Xem Hệ 10 ] | [ Xem Hệ 4 ] -->
@@ -2206,8 +2212,8 @@ body {
     "./src/js/components/notched-field.js": "./src/js/components/notched-field.js?v=553608c192ae",
     "./src/js/components/report-center.js": "./src/js/components/report-center.js?v=5413244c0643",
     "./src/js/dashboard-statistics.js": "./src/js/dashboard-statistics.js?v=6e42e8415b31",
-    "./src/js/grades.js": "./src/js/grades.js?v=1153babc9ed1",
-    "./src/js/main.js": "./src/js/main.js?v=16c6dc3796dc",
+    "./src/js/grades.js": "./src/js/grades.js?v=ad3c16244cbd",
+    "./src/js/main.js": "./src/js/main.js?v=ef7a6501ed7a",
     "./src/js/profile-rules.js": "./src/js/profile-rules.js?v=3a3bbf350b00",
     "./src/js/report-workbook.js": "./src/js/report-workbook.js?v=905d0e767b16",
     "./src/js/students.js": "./src/js/students.js?v=0099d83f79db",
@@ -2215,7 +2221,7 @@ body {
   }
 }
   </script>
-  <script type="module" src="./src/js/main.js?v=16c6dc3796dc"></script>
+  <script type="module" src="./src/js/main.js?v=ef7a6501ed7a"></script>
   <script type="module" src="./src/js/components/expanding-rail.js?v=30e2d9c62544"></script>
   <script type="module" src="./src/js/components/notched-field.js?v=553608c192ae"></script>
   <script type="module" src="./src/js/components/bento-dashboard.js?v=86c9eec93026"></script>

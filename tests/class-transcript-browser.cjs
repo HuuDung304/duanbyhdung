@@ -15,6 +15,19 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
     await page.evaluate(type=>window.AuthState.setUser({type,class:'OTQS1',displayName:'Kiểm thử'}),type);
     await page.evaluate(()=>window.switchTab('tab-reports'));
     assert.equal(await page.locator('button[id^="btnExport"]').count(),3);
+    await page.evaluate(()=>window.switchTab('tab-sheet'));
+    if(await page.locator('#sheetClassSelect').isEnabled()) await page.locator('#sheetClassSelect').selectOption('OTQS1');
+    await page.locator('#sheetSearchInput').fill('nguyen minh anh');
+    assert.equal(await page.locator('#spreadsheetTbody tr[data-student-id]:visible').count(),1);
+    assert.equal(await page.locator('#spreadsheetTbody tr[data-student-id]:visible').getAttribute('data-student-id'),'s1');
+    await page.locator('#sheetSearchInput').fill('HV002');
+    assert.equal(await page.locator('#spreadsheetTbody tr[data-student-id]:visible').getAttribute('data-student-id'),'s2');
+    await page.locator('#sheetSearchInput').fill('khong co hoc vien');
+    assert.equal(await page.locator('#spreadsheetTbody tr[data-student-id]:visible').count(),0);
+    assert.match(await page.locator('#sheetSearchStatus').innerText(),/0\/2/);
+    await page.locator('#sheetSearchInput').fill('');
+    assert.equal(await page.locator('#spreadsheetTbody tr[data-student-id]:visible').count(),2);
+    await page.evaluate(()=>window.switchTab('tab-reports'));
     const selector=page.locator('#reportsClassSelect');
     if(type==='class_account') {
      assert.equal(await selector.isDisabled(),true); assert.equal(await selector.inputValue(),'OTQS1');
