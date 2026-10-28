@@ -66,8 +66,7 @@ if (root) {
   const period = $('bentoPeriod');
   for (let year = 1; year <= 5; year++) period?.append(new Option(`Năm học ${year}`, `year:${year}`));
   for (let semester = 1; semester <= 10; semester++) period?.append(new Option(`Học kỳ ${semester}`, `semester:${semester}`));
-  const classSelect = $('dashboardClassFilter');
-  if (classSelect) $('bentoScope')?.append(classSelect.parentElement);
+  // Keep the report scope control in the report toolbar, outside optional Bento cards.
 }
 
 let chart;
@@ -128,6 +127,13 @@ export function renderBentoDashboard() {
     searchIdentity = identity;
     if ($('bentoSearchResults')) $('bentoSearchResults').hidden = true;
     if ($('bentoSearch')) { $('bentoSearch').value = ''; $('bentoSearch').setAttribute('aria-expanded', 'false'); }
+  }
+  const unitOverview = ['admin', 'company_officer'].includes(AppState.role);
+  const cards = document.querySelector('.bento-grid');
+  if (cards) cards.hidden = unitOverview;
+  if (unitOverview) {
+    if (chart) { chart.destroy(); chart = null; }
+    return;
   }
   const students = scopedStudents();
   const frame = timeframe();

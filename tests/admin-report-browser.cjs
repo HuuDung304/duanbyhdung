@@ -44,7 +44,7 @@ const fs = require('node:fs');
     assert.equal(await page.locator('#reportCompanyTableBody tr').count(),7); // five ranks + pass/fail
     for (const className of classes) {
       await page.locator('#dashboardClassFilter').selectOption(className);
-      assert.equal(await page.locator('#statTotalCadets').innerText(),'1');
+      assert.equal(await page.locator('#statTotalCadets').innerText(),'5');
       const debtText=await page.locator('#reportDebtCadetsTableBody').innerText();
       if(className==='XMCB')assert.match(debtText,/HV004/);else assert.doesNotMatch(debtText,/HV004/);
     }

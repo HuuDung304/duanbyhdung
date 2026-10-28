@@ -24,6 +24,14 @@ Hồ sơ chỉ có một nút **Nhập Excel Hồ Sơ**, vẫn đối chiếu th
 
 File Excel gồm 3 sheet: tổng hợp đủ ba bảng, chi tiết từng năm/học kỳ, danh sách học viên rớt kèm phụ lục từng môn. `src/js/report-workbook.js` bổ sung thiết lập OOXML A4 ngang, lề in, vùng in và vừa một trang ngang vì SheetJS CE không tự ghi `pageSetup`. Có thể kiểm tra toàn bộ luồng với `tests/admin-report-browser.cjs`, dùng database giả lập.
 
+## Phạm vi Tổng quan và thống kê ngoại ngữ
+
+Với Admin/cán bộ, bốn khối Bento (bức tranh tổng quan, học phần cần bồi dưỡng, nhịp hoạt động, hành trình học kỳ) được bỏ khỏi màn hình Tổng quan. KPI luôn tính toàn bộ quân số đại đội; tài khoản lớp chỉ tính lớp mình. Bộ lọc lớp vẫn dùng cho ba bảng báo cáo chi tiết, không thu hẹp KPI hay bảng thống kê ngoại ngữ.
+
+Bảng ngoại ngữ có 5 hàng theo 5 lớp cho Admin/cán bộ và 1 hàng cho tài khoản lớp. Mỗi hàng có quân số, số lượng/tỷ lệ đạt và chưa đạt; mẫu số là quân số của chính lớp đó. Lớp trống hiển thị 0,0%, không chia cho 0. Chỉ Admin được thay chuẩn; mọi số liệu và file xuất sử dụng chuẩn đang chọn, trình độ thiếu/không hợp lệ tính chưa đạt.
+
+**Xuất thống kê ngoại ngữ** gồm sheet tổng hợp theo lớp và danh sách học viên. Danh sách xếp tất cả học viên đạt lên trước, rồi đến chưa đạt, với mã, họ tên, năm sinh, lớp, trình độ hiện tại và trạng thái. **Xuất học viên rớt môn** nằm trong thẻ KPI rớt môn, có mã, họ tên, năm sinh, lớp, tên đầy đủ từng môn rớt (tín chỉ) và tổng tín chỉ chỉ của các môn rớt. Chỉ điểm dưới 4,00 tính rớt; 4,00 và điểm trống không tính rớt. Các file xuất theo toàn phạm vi tài khoản và không ghi dữ liệu lên database.
+
 ## 1. Hệ thống Tài khoản & Phân quyền (RBAC)
 
 Giao diện đăng nhập được chia thành 4 nhóm tài khoản cố định (đã xóa bỏ hoàn toàn chức năng cấp quyền):

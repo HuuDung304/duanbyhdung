@@ -44,6 +44,8 @@ import {
   exportClassExcel,
   exportMasterExcel,
   exportLanguageExcel,
+  exportDashboardLanguageExcel,
+  exportFailedStudentsExcel,
   downloadExcelTemplate,
   handleExcelFileUpload,
   executeExcelImport,
@@ -1123,6 +1125,9 @@ function registerGlobalEventDelegation() {
       exportMasterExcel();
       return;
     }
+
+    if (target.closest('#btnExportLanguageSummary')) { e.preventDefault(); exportDashboardLanguageExcel(); return; }
+    if (target.closest('#btnExportFailedStudents')) { e.preventDefault(); exportFailedStudentsExcel(); return; }
 
     if (target.closest('#btnExportLangExcel')) {
       e.preventDefault();

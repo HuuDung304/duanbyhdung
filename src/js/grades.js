@@ -1,3 +1,4 @@
+import { studentBirthYear, collectLanguageStatistics, failedStudentExportRows } from './dashboard-statistics.js';
 import { writeReportWorkbook } from './report-workbook.js';
 import { requestDestructiveConfirmation } from './components/destructive-confirm.js';
 /**
@@ -2255,41 +2256,46 @@ export function renderDashboard() {
   // 2. Tính toán Tỷ lệ theo Từng Năm & Từng Học kỳ: Năm 1 -> Năm 5 (Bảng 2)
   const yearsBreakdown = buildReportYearsBreakdownStats(scopedStudents);
 
+  const overviewStudents = getScopedStudents();
+  const overviewStats = selectedClass === (classScope || 'all') ? courseStats : computeReportAcademicStats(overviewStudents);
+  const overviewYears = selectedClass === (classScope || 'all') ? yearsBreakdown : buildReportYearsBreakdownStats(overviewStudents);
+  renderDashboardLanguageSummary();
+
   // Cập nhật 4 thẻ KPI tổng quan trên đầu Báo cáo giao ban
-  elTotal.textContent = courseStats.totalCadets;
+  elTotal.textContent = overviewStats.totalCadets;
   const elScopeSub = document.getElementById('statScopeSubtitle');
   if (elScopeSub) {
-    elScopeSub.textContent = `${selectedClass === 'all' ? 'Toàn Đại đội 460 (5 lớp)' : 'Lớp ' + selectedClass} • Tích lũy từ đầu khóa đến nay`;
+    elScopeSub.textContent = `${classScope ? 'Lớp ' + classScope : 'Toàn Đại đội 460 (5 lớp)'} • Tích lũy từ đầu khóa đến nay`;
   }
 
   const elAvg = document.getElementById('statAvgGPA');
-  if (elAvg) elAvg.textContent = courseStats.avgGpa;
+  if (elAvg) elAvg.textContent = overviewStats.avgGpa;
   const elAvgSub = document.getElementById('statAvgGPASub');
   if (elAvgSub) {
-    const yGpas = yearsBreakdown.map(yb => `N${yb.year}: ${yb.fullYear.avgGpa}`).join(' • ');
+    const yGpas = overviewYears.map(yb => `N${yb.year}: ${yb.fullYear.avgGpa}`).join(' • ');
     elAvgSub.textContent = yGpas;
   }
 
   const elGoodRate = document.getElementById('statGoodRate');
-  if (elGoodRate) elGoodRate.textContent = `${courseStats.goodRate}%`;
+  if (elGoodRate) elGoodRate.textContent = `${overviewStats.goodRate}%`;
   const elGoodCount = document.getElementById('statGoodCount');
   if (elGoodCount) {
-    elGoodCount.textContent = `XS & Giỏi: ${courseStats.goodCount}/${courseStats.totalCadets} đ/c • Khá trở lên: ${courseStats.khaGioiXsCount} đ/c (${courseStats.khaGioiXsRate}%)`;
+    elGoodCount.textContent = `XS & Giỏi: ${overviewStats.goodCount}/${overviewStats.totalCadets} đ/c • Khá trở lên: ${overviewStats.khaGioiXsCount} đ/c (${overviewStats.khaGioiXsRate}%)`;
   }
 
   const elPassRate = document.getElementById('statCoursePassRate');
-  if (elPassRate) elPassRate.textContent = `${courseStats.coursePassRate}%`;
+  if (elPassRate) elPassRate.textContent = `${overviewStats.coursePassRate}%`;
   const elFailRate = document.getElementById('statCourseFailRate');
-  if (elFailRate) elFailRate.textContent = `${courseStats.courseFailRate}%`;
+  if (elFailRate) elFailRate.textContent = `${overviewStats.courseFailRate}%`;
   const elPassFailDetail = document.getElementById('statCoursePassFailDetail');
   if (elPassFailDetail) {
-    elPassFailDetail.textContent = `${courseStats.passedCourseInstances} lượt Đạt (${courseStats.coursePassRate}%) • ${courseStats.failedCourseInstances} lượt Rớt (${courseStats.courseFailRate}%)`;
+    elPassFailDetail.textContent = `${overviewStats.passedCourseInstances} lượt Đạt (${overviewStats.coursePassRate}%) • ${overviewStats.failedCourseInstances} lượt Rớt (${overviewStats.courseFailRate}%)`;
   }
 
   const elDebtCount = document.getElementById('statDebtCount');
-  if (elDebtCount) elDebtCount.textContent = `${courseStats.debtStudentCount} (${courseStats.debtStudentRate}%)`;
+  if (elDebtCount) elDebtCount.textContent = `${overviewStats.debtStudentCount} (${overviewStats.debtStudentRate}%)`;
   const elDebtFails = document.getElementById('statDebtTotalFails');
-  if (elDebtFails) elDebtFails.textContent = courseStats.totalDebtFailsCount;
+  if (elDebtFails) elDebtFails.textContent = overviewStats.totalDebtFailsCount;
 
   const elActiveModeBadge = document.getElementById('reportActiveModeBadge');
   if (elActiveModeBadge) {
@@ -3791,6 +3797,77 @@ export function exportLanguageExcel() {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Chung_Chi_Ngoai_Ngu');
   XLSX.writeFile(wb, 'Chung_Chi_Ngoai_Ngu_Dai_Doi_460.xlsx');
+}
+
+export function getDashboardLanguageData() {
+  const scope = getCurrentUserClassScope();
+  const classes = scope ? [scope] : DEFAULT_CLASSES;
+  const standard = evaluateLangLevelStatus('Chưa đạt', AppState.requiredLangStandard).requiredStandard;
+  return { standard, scope, ...collectLanguageStatistics(getScopedStudents(), AppState.languages || {}, standard, evaluateLangLevelStatus, classes) };
+}
+
+export function renderDashboardLanguageSummary() {
+  const tbody = document.getElementById('dashboardLanguageSummaryBody');
+  if (!tbody) return;
+  if (!['admin', 'company_officer'].includes(AppState.role) && !AppState.role?.startsWith('class_leader_')) { tbody.replaceChildren(); return; }
+  const { rows, standard, scope } = getDashboardLanguageData();
+  const select = document.getElementById('dashboardLanguageStandard');
+  if (select) {
+    const options = LANGUAGE_LEVEL_OPTIONS.filter(level => level !== 'Chưa đạt');
+    if (!select.options.length) options.forEach(level => select.append(new Option(level, level)));
+    select.value = standard;
+    select.disabled = AppState.role !== 'admin';
+  }
+  const caption = document.getElementById('dashboardOverviewScope');
+  if (caption) caption.textContent = `${scope ? 'Lớp ' + scope : 'Toàn Đại đội 460 · 5 lớp'} · Chuẩn hiện tại: ${standard} · Tỷ lệ tính trên quân số từng lớp.`;
+  const percent = value => `${value.toLocaleString('vi-VN', { maximumFractionDigits: 1, minimumFractionDigits: 1 })}%`;
+  tbody.replaceChildren(...rows.map(item => {
+    const row = document.createElement('tr');
+    [item.className, item.total, item.passed, percent(item.passedRate), item.notPassed, percent(item.notPassedRate)].forEach((value, index) => {
+      const cell = document.createElement(index === 0 ? 'th' : 'td');
+      if (index === 0) cell.scope = 'row';
+      if (index === 2 || index === 3) cell.className = 'language-summary-pass';
+      if (index === 4 || index === 5) cell.className = 'language-summary-fail';
+      cell.textContent = value; row.append(cell);
+    });
+    return row;
+  }));
+}
+
+export function exportDashboardLanguageExcel() {
+  if (!['admin', 'company_officer'].includes(AppState.role) && !AppState.role?.startsWith('class_leader_')) { showToast('Tài khoản không có quyền xuất thống kê đơn vị.', 'error'); return; }
+  const { rows, roster, standard, scope } = getDashboardLanguageData();
+  const preamble = [['ĐẠI ĐỘI 460'], ['THỐNG KÊ ĐẠT CHUẨN NGOẠI NGỮ'], [`Chuẩn ngoại ngữ hiện tại: ${standard}`], [`Phạm vi: ${scope || 'Toàn Đại đội 460'}`]];
+  const summary = XLSX.utils.aoa_to_sheet([...preamble,
+    ['Lớp', 'Quân số', 'Số lượng đạt', 'Tỷ lệ đạt (%)', 'Số lượng chưa đạt', 'Tỷ lệ chưa đạt (%)'],
+    ...rows.map(item => [item.className, item.total, item.passed, Number(item.passedRate.toFixed(1)), item.notPassed, Number(item.notPassedRate.toFixed(1))])
+  ]);
+  const list = XLSX.utils.aoa_to_sheet([...preamble,
+    ['Mã học viên', 'Họ và tên', 'Năm sinh', 'Lớp', 'Trình độ hiện tại', 'Trạng thái'],
+    ...roster.map(({ student, level, passed }) => [student.code, student.name, studentBirthYear(student.dob), student.class, level, passed ? 'Đạt' : 'Chưa đạt'])
+  ]);
+  summary['!cols'] = [{ wch: 16 }, { wch: 12 }, { wch: 18 }, { wch: 20 }, { wch: 20 }, { wch: 22 }];
+  list['!cols'] = [{ wch: 18 }, { wch: 30 }, { wch: 12 }, { wch: 14 }, { wch: 22 }, { wch: 18 }];
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, summary, 'Thong_Ke_Theo_Lop');
+  XLSX.utils.book_append_sheet(workbook, list, 'Danh_Sach_Hoc_Vien');
+  writeReportWorkbook(workbook, `Thong_Ke_Ngoai_Ngu_${scope || 'Dai_Doi_460'}_${standard}.xlsx`);
+}
+
+export function exportFailedStudentsExcel() {
+  if (!['admin', 'company_officer'].includes(AppState.role) && !AppState.role?.startsWith('class_leader_')) { showToast('Tài khoản không có quyền xuất thống kê đơn vị.', 'error'); return; }
+  const scope = getCurrentUserClassScope();
+  const stats = computeReportAcademicStats(getScopedStudents());
+  const records = failedStudentExportRows(stats.debtCadetsList, getFullSubjectName);
+  const sheet = XLSX.utils.aoa_to_sheet([
+    ['ĐẠI ĐỘI 460'], ['DANH SÁCH HỌC VIÊN RỚT MÔN'], [`Phạm vi: ${scope || 'Toàn Đại đội 460'}`], ['Chỉ học phần dưới 4,00; tổng tín chỉ là tổng tín chỉ các học phần rớt.'],
+    ['Mã học viên', 'Họ và tên', 'Năm sinh', 'Lớp', 'Môn học rớt (tín chỉ)', 'Tổng số tín chỉ rớt'], ...records
+  ]);
+  sheet['!cols'] = [{ wch: 18 }, { wch: 30 }, { wch: 12 }, { wch: 14 }, { wch: 65 }, { wch: 22 }];
+  sheet['!rows'] = Array.from({ length: records.length + 5 }, (_, index) => ({ hpt: index < 5 ? 20 : Math.max(24, String(records[index - 5][4]).split('\n').length * 18) }));
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, sheet, 'Hoc_Vien_Rot_Mon');
+  writeReportWorkbook(workbook, `Hoc_Vien_Rot_Mon_${scope || 'Dai_Doi_460'}.xlsx`);
 }
 
 export function downloadExcelTemplate() {

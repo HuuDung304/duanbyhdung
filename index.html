@@ -113,7 +113,7 @@ body {
 }
 
   </style>
-  <link rel="stylesheet" href="./src/css/bento-dashboard.css?v=b5942e0fb795">
+  <link rel="stylesheet" href="./src/css/bento-dashboard.css?v=f59cb1923ed2">
 </head>
 <body class="bento-app bg-slate-100 text-slate-800 min-h-screen flex flex-col">
 
@@ -908,8 +908,8 @@ body {
             <span id="reportActiveModeBadge" class="px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-300 text-army-900 text-xs font-extrabold">
               Phạm vi: Toàn Đại đội 460 (5 Lớp)
             </span>
-            <div class="flex items-center gap-1.5">
-              <label for="dashboardClassFilter" class="text-xs font-bold text-slate-700 whitespace-nowrap">Phạm vi Lớp:</label>
+            <div id="dashboardReportScope" class="flex items-center gap-1.5">
+              <label for="dashboardClassFilter" class="text-xs font-bold text-slate-700 whitespace-nowrap">Lọc bảng báo cáo:</label>
               <select id="dashboardClassFilter" class="bg-slate-50 border border-slate-300 text-slate-800 text-xs font-bold rounded-lg px-3 py-2 focus:outline-none">
                 <option value="all">-- Toàn bộ Đại đội 460 (5 Lớp) --</option>
                 <option value="OTQS1">Lớp OTQS1</option>
@@ -973,8 +973,18 @@ body {
             <span class="text-xs text-rose-700 font-semibold">lượt rớt</span>
           </div>
           <div class="text-[10px] text-rose-600 font-medium mt-1">Tính tích lũy từ đầu khóa đến nay (Học phần điểm &lt; 4.0)</div>
+          <button type="button" id="btnExportFailedStudents" class="dashboard-failed-export">Xuất học viên rớt môn (.xlsx)</button>
         </div>
       </div>
+
+      <article id="dashboardLanguageSummary" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+        <div class="language-summary-head">
+          <div><h3>Tỷ lệ đạt chuẩn ngoại ngữ</h3><p>Thống kê theo quân số hiện có của từng lớp. Chưa có trình độ được tính là chưa đạt.</p></div>
+          <div class="language-summary-actions"><label for="dashboardLanguageStandard">Chuẩn hiện tại</label><select id="dashboardLanguageStandard" class="required-lang-standard-select" aria-label="Chuẩn ngoại ngữ hiện tại"></select><button type="button" id="btnExportLanguageSummary">Xuất thống kê ngoại ngữ (.xlsx)</button></div>
+        </div>
+        <p id="dashboardOverviewScope" class="language-summary-note"></p>
+        <div class="overflow-x-auto"><table class="language-summary-table"><thead><tr><th scope="col">Lớp</th><th scope="col">Quân số</th><th scope="col">Đạt chuẩn</th><th scope="col">Tỷ lệ đạt</th><th scope="col">Chưa đạt</th><th scope="col">Tỷ lệ chưa đạt</th></tr></thead><tbody id="dashboardLanguageSummaryBody"></tbody></table></div>
+      </article>
 
       <!-- ========================================================================= -->
       <!-- BẢNG 1: TỶ LỆ TÍCH LŨY                                                    -->
@@ -2280,12 +2290,13 @@ body {
   "imports": {
     "./src/js/access-controls.js": "./src/js/access-controls.js?v=0c31f2921589",
     "./src/js/auth.js": "./src/js/auth.js?v=64b72b6e8c0a",
-    "./src/js/components/bento-dashboard.js": "./src/js/components/bento-dashboard.js?v=34169ba4a9ac",
+    "./src/js/components/bento-dashboard.js": "./src/js/components/bento-dashboard.js?v=7f6e27319c7c",
     "./src/js/components/destructive-confirm.js": "./src/js/components/destructive-confirm.js?v=d3493f707a09",
     "./src/js/components/expanding-rail.js": "./src/js/components/expanding-rail.js?v=30e2d9c62544",
     "./src/js/components/notched-field.js": "./src/js/components/notched-field.js?v=553608c192ae",
-    "./src/js/grades.js": "./src/js/grades.js?v=fe92d90d2534",
-    "./src/js/main.js": "./src/js/main.js?v=9c09c07dce73",
+    "./src/js/dashboard-statistics.js": "./src/js/dashboard-statistics.js?v=21c4e0117651",
+    "./src/js/grades.js": "./src/js/grades.js?v=efad2fd59e47",
+    "./src/js/main.js": "./src/js/main.js?v=625ae443a095",
     "./src/js/profile-rules.js": "./src/js/profile-rules.js?v=3a3bbf350b00",
     "./src/js/report-workbook.js": "./src/js/report-workbook.js?v=6439de73c06f",
     "./src/js/students.js": "./src/js/students.js?v=c1dd5810dd56",
@@ -2293,9 +2304,9 @@ body {
   }
 }
   </script>
-  <script type="module" src="./src/js/main.js?v=9c09c07dce73"></script>
+  <script type="module" src="./src/js/main.js?v=625ae443a095"></script>
   <script type="module" src="./src/js/components/expanding-rail.js?v=30e2d9c62544"></script>
   <script type="module" src="./src/js/components/notched-field.js?v=553608c192ae"></script>
-  <script type="module" src="./src/js/components/bento-dashboard.js?v=34169ba4a9ac"></script>
+  <script type="module" src="./src/js/components/bento-dashboard.js?v=7f6e27319c7c"></script>
 </body>
 </html>
