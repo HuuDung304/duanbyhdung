@@ -3472,15 +3472,15 @@ export function exportClassExcel() {
   if (!students.length) { showToast('Lớp chưa có học viên để xuất bảng điểm.', 'error'); return; }
   const semesters = Array.from({ length: 10 }, (_, index) => ({ semester: index + 1, subjects: getSubjectsForClass(cls, index + 1) }));
   const { headers, headerRows, merges, rows, completed } = buildClassTranscript(students, semesters, AppState.grades,
-    calculateSemesterGPA, calculateAcademicYearGPA, getFullSubjectName, studentBirthYear);
+    calculateSemesterGPA, calculateAcademicYearGPA, getFullSubjectName, value => normalizeDateVN(value, ''));
   if (!completed.length) { showToast('Lớp chưa có kỳ nào đầy đủ điểm toàn bộ học viên.', 'error'); return; }
   const ws = XLSX.utils.aoa_to_sheet([...headerRows, ...rows]);
   ws['!reportHeaderRows'] = [1, 2, 3];
   ws['!merges'] = merges;
   ws['!rows'] = [{ hpt: 28 }, { hpt: 100 }, { hpt: 22 }];
-  ws['!cols'] = headers.map((header, index) => ({ wch: index === 1 ? 28 : index < 4 ? 18 : header.startsWith('ĐIỂM TB') ? 16 : 12 }));
+  ws['!cols'] = headers.map((header, index) => ({ wch: index === 0 ? 7 : index === 2 ? 28 : index < 5 ? 18 : header.startsWith('ĐIỂM TB') ? 16 : 12 }));
   for (let row = headerRows.length; row < rows.length + headerRows.length; row++) {
-    for (let column = 4; column < headers.length; column++) {
+    for (let column = 5; column < headers.length; column++) {
       const cell = ws[XLSX.utils.encode_cell({ r: row, c: column })];
       if (cell) cell.z = '0.00';
     }

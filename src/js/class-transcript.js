@@ -1,12 +1,12 @@
 // Build the class transcript independently of the screen's selected year.
-export function buildClassTranscript(students, semesters, grades, semesterGpa, yearGpa, fullName, birthYear) {
+export function buildClassTranscript(students, semesters, grades, semesterGpa, yearGpa, fullName, birthDate) {
   const validScore = value => value !== '' && value !== null && value !== undefined
     && Number.isFinite(Number(value)) && Number(value) >= 0 && Number(value) <= 10;
   const completed = semesters.filter(({ subjects }) => subjects.length > 0 && students.length > 0
     && students.every(student => subjects.every(subject => validScore(grades[student.id]?.[subject.id]))));
   const completedNumbers = new Set(completed.map(item => item.semester));
-  const headers = ['MÃ HỌC VIÊN', 'HỌ VÀ TÊN', 'LỚP', 'NĂM SINH'];
-  const groups = [...headers], credits = ['', '', '', ''];
+  const headers = ['STT', 'MÃ HỌC VIÊN', 'HỌ VÀ TÊN', 'LỚP', 'NGÀY THÁNG NĂM SINH'];
+  const groups = [...headers], credits = headers.map(() => '');
   const merges = headers.map((_, c) => ({ s: { r: 0, c }, e: { r: 2, c } }));
   for (const { semester, subjects } of completed) {
     const start = headers.length;
@@ -23,9 +23,9 @@ export function buildClassTranscript(students, semesters, grades, semesterGpa, y
       merges.push({ s: { r: 0, c }, e: { r: 2, c } });
     }
   }
-  const headerRows = [groups, headers.map((value, index) => index < 4 || value.startsWith('ĐIỂM TB NĂM') ? '' : value), credits];
-  const rows = students.map(student => {
-    const row = [String(student.code || ''), student.name, student.class, birthYear(student.dob)];
+  const headerRows = [groups, headers.map((value, index) => index < 5 || value.startsWith('ĐIỂM TB NĂM') ? '' : value), credits];
+  const rows = students.map((student, index) => {
+    const row = [index + 1, String(student.code || ''), student.name, student.class, birthDate(student.dob)];
     for (const { semester, subjects } of completed) {
       row.push(...subjects.map(subject => Number(grades[student.id][subject.id])), Number(semesterGpa(student.id, semester).toFixed(2)));
       if (semester % 2 === 0 && completedNumbers.has(semester - 1)) row.push(Number(yearGpa(student.id, semester / 2).toFixed(2)));
