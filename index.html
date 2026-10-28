@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Hệ thống Quản lý Điểm & Báo cáo Học tập Đại đội 460</title>
-  <!-- Tailwind CSS CDN & Custom Military Theme Config -->
+  <!-- Tailwind CSS CDN & Digital Academy palette (legacy color aliases preserved) -->
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script>
     tailwind.config = {
@@ -12,20 +12,20 @@
         extend: {
           colors: {
             army: {
-              50: '#f4f7f4',
-              100: '#e5ece5',
-              200: '#cbdacb',
-              600: '#2d5a3e',
-              700: '#1e3f2b',
-              800: '#162e20',
-              900: '#0e1f15',
-              950: '#07120b',
+              50: '#eff6ff',
+              100: '#dbeafe',
+              200: '#bfdbfe',
+              600: '#2563eb',
+              700: '#4f46e5',
+              800: '#3730a3',
+              900: '#1e40af',
+              950: '#0f172a',
             },
             gold: {
-              300: '#fde047',
-              400: '#facc15',
-              500: '#eab308',
-              600: '#ca8a04',
+              300: '#fed7aa',
+              400: '#fb923c',
+              500: '#f97316',
+              600: '#c2410c',
             }
           }
         }
@@ -37,10 +37,10 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- Application Stylesheet -->
-  <link rel="stylesheet" href="./src/css/main.css?v=dd635109c346">
+  <link rel="stylesheet" href="./src/css/main.css?v=b384ae7e3b53">
   <link rel="stylesheet" href="./src/css/access-controls.css?v=08e6e66cda2b">
-  <link rel="stylesheet" href="./src/css/expanding-rail.css?v=7d03765e6c7b">
-  <link rel="stylesheet" href="./src/css/notched-field.css?v=a3d21d7cf84a">
+  <link rel="stylesheet" href="./src/css/expanding-rail.css?v=0630ca1c9481">
+  <link rel="stylesheet" href="./src/css/notched-field.css?v=decbefe57ad3">
   <style id="app-inline-css">
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
@@ -53,8 +53,8 @@ body {
 
 /* Spreadsheet Grid Cell Focus State */
 .grid-cell-input:focus {
-  outline: 2px solid #ca8a04;
-  background-color: #fefce8;
+  outline: 2px solid #3b82f6;
+  background-color: #eff6ff;
   z-index: 10;
 }
 
@@ -113,7 +113,7 @@ body {
 }
 
   </style>
-  <link rel="stylesheet" href="./src/css/bento-dashboard.css?v=f59cb1923ed2">
+  <link rel="stylesheet" href="./src/css/bento-dashboard.css?v=c6899c1c095f">
 </head>
 <body class="bento-app bg-slate-100 text-slate-800 min-h-screen flex flex-col">
 
@@ -897,7 +897,7 @@ body {
       </div>
 
       <!-- Toolbar & Title + Bộ lọc phạm vi Lớp & Xuất file Báo cáo -->
-      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+      <div class="digital-report-banner bg-white p-4 rounded-xl shadow-sm border border-slate-200">
         <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
           <div>
             <div class="text-[11px] font-bold text-gold-600 uppercase tracking-wider">Học viện Kỹ thuật Quân sự • Tiểu đoàn 4</div>
@@ -2290,23 +2290,23 @@ body {
   "imports": {
     "./src/js/access-controls.js": "./src/js/access-controls.js?v=0c31f2921589",
     "./src/js/auth.js": "./src/js/auth.js?v=64b72b6e8c0a",
-    "./src/js/components/bento-dashboard.js": "./src/js/components/bento-dashboard.js?v=7f6e27319c7c",
+    "./src/js/components/bento-dashboard.js": "./src/js/components/bento-dashboard.js?v=2394f4d2d5f6",
     "./src/js/components/destructive-confirm.js": "./src/js/components/destructive-confirm.js?v=d3493f707a09",
     "./src/js/components/expanding-rail.js": "./src/js/components/expanding-rail.js?v=30e2d9c62544",
     "./src/js/components/notched-field.js": "./src/js/components/notched-field.js?v=553608c192ae",
     "./src/js/dashboard-statistics.js": "./src/js/dashboard-statistics.js?v=21c4e0117651",
-    "./src/js/grades.js": "./src/js/grades.js?v=efad2fd59e47",
+    "./src/js/grades.js": "./src/js/grades.js?v=ac92410822e4",
     "./src/js/main.js": "./src/js/main.js?v=625ae443a095",
     "./src/js/profile-rules.js": "./src/js/profile-rules.js?v=3a3bbf350b00",
     "./src/js/report-workbook.js": "./src/js/report-workbook.js?v=6439de73c06f",
-    "./src/js/students.js": "./src/js/students.js?v=c1dd5810dd56",
-    "./src/js/supabase.js": "./src/js/supabase.js?v=95281f6a8b31"
+    "./src/js/students.js": "./src/js/students.js?v=e0ce7a2a857c",
+    "./src/js/supabase.js": "./src/js/supabase.js?v=2e9f5cfd5ca9"
   }
 }
   </script>
   <script type="module" src="./src/js/main.js?v=625ae443a095"></script>
   <script type="module" src="./src/js/components/expanding-rail.js?v=30e2d9c62544"></script>
   <script type="module" src="./src/js/components/notched-field.js?v=553608c192ae"></script>
-  <script type="module" src="./src/js/components/bento-dashboard.js?v=7f6e27319c7c"></script>
+  <script type="module" src="./src/js/components/bento-dashboard.js?v=2394f4d2d5f6"></script>
 </body>
 </html>

@@ -2,14 +2,14 @@
 .u040 {
   color-scheme:light;
   /* Map the application's Tailwind army/gold palette locally; there are no global theme variables. */
-  --ux-page:#f4f7f4;--ux-surface:#fff;--ux-surface-2:#e5ece5;--ux-surface-3:#cbdacb;
-  --ux-ink:#0e1f15;--ux-ink-2:#2d5a3e;--ux-ink-3:#64748b;
-  --ux-line:rgba(14,31,21,.09);--ux-line-2:rgba(14,31,21,.17);
-  --ux-accent:#ca8a04;--ux-accent-2:#2d5a3e;--ux-accent-soft:rgba(202,138,4,.12);--ux-accent-ink:#fff;
+  --ux-page:#eff6ff;--ux-surface:#fff;--ux-surface-2:#dbeafe;--ux-surface-3:#bfdbfe;
+  --ux-ink:#1e40af;--ux-ink-2:#2563eb;--ux-ink-3:#64748b;
+  --ux-line:rgba(59,130,246,.09);--ux-line-2:rgba(59,130,246,.17);
+  --ux-accent:#c2410c;--ux-accent-2:#2563eb;--ux-accent-soft:rgba(202,138,4,.12);--ux-accent-ink:#fff;
   --ux-mint:#119C72;--ux-warn:#D6731E;--ux-danger:#D93A55;
   --ux-glass:rgba(255,255,255,.58);--ux-glass-line:rgba(255,255,255,.85);
-  --ux-shadow:rgba(14,31,21,.14);--ux-shadow-strong:rgba(14,31,21,.3);
-  --ux-grad:linear-gradient(120deg,#facc15,#2d5a3e 55%,#1e3f2b);
+  --ux-shadow:rgba(59,130,246,.14);--ux-shadow-strong:rgba(59,130,246,.3);
+  --ux-grad:linear-gradient(120deg,#fb923c,#2563eb 55%,#4f46e5);
   --ux-ease:cubic-bezier(.2,.8,.2,1);--ux-spring:cubic-bezier(.34,1.45,.64,1);
   --rw:76px;position:relative;display:flex;gap:10px;width:100%;min-width:0;padding:12px;
   font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
@@ -19,38 +19,38 @@
 @media(prefers-color-scheme:dark){
   html:not([data-theme="light"]):not(.light) .u040:not([data-theme="light"]) {
   color-scheme:dark;
-  --ux-page:#07120b;--ux-surface:#162e20;--ux-surface-2:#1e3f2b;--ux-surface-3:#2d5a3e;
-  --ux-ink:#f4f7f4;--ux-ink-2:rgba(244,247,244,.68);--ux-ink-3:rgba(244,247,244,.56);
+  --ux-page:#0f172a;--ux-surface:#3730a3;--ux-surface-2:#4f46e5;--ux-surface-3:#2563eb;
+  --ux-ink:#eff6ff;--ux-ink-2:rgba(248,250,252,.68);--ux-ink-3:rgba(248,250,252,.56);
   --ux-line:rgba(255,255,255,.08);--ux-line-2:rgba(255,255,255,.16);
-  --ux-accent:#fde047;--ux-accent-2:#cbdacb;--ux-accent-soft:rgba(253,224,71,.15);--ux-accent-ink:#07120b;
+  --ux-accent:#fed7aa;--ux-accent-2:#bfdbfe;--ux-accent-soft:rgba(253,224,71,.15);--ux-accent-ink:#0f172a;
   --ux-mint:#7EE8C0;--ux-warn:#FFB26B;--ux-danger:#FF7D8C;
   --ux-glass:rgba(255,255,255,.07);--ux-glass-line:rgba(255,255,255,.18);
   --ux-shadow:rgba(0,0,0,.45);--ux-shadow-strong:rgba(0,0,0,.72);
-  --ux-grad:linear-gradient(120deg,#fde047,#cbdacb 55%,#2d5a3e);
+  --ux-grad:linear-gradient(120deg,#fed7aa,#bfdbfe 55%,#2563eb);
   }
 }
 html[data-theme="dark"] .u040,html.dark .u040,.u040[data-theme="dark"] {
   color-scheme:dark;
-  --ux-page:#07120b;--ux-surface:#162e20;--ux-surface-2:#1e3f2b;--ux-surface-3:#2d5a3e;
-  --ux-ink:#f4f7f4;--ux-ink-2:rgba(244,247,244,.68);--ux-ink-3:rgba(244,247,244,.56);
+  --ux-page:#0f172a;--ux-surface:#3730a3;--ux-surface-2:#4f46e5;--ux-surface-3:#2563eb;
+  --ux-ink:#eff6ff;--ux-ink-2:rgba(248,250,252,.68);--ux-ink-3:rgba(248,250,252,.56);
   --ux-line:rgba(255,255,255,.08);--ux-line-2:rgba(255,255,255,.16);
-  --ux-accent:#fde047;--ux-accent-2:#cbdacb;--ux-accent-soft:rgba(253,224,71,.15);--ux-accent-ink:#07120b;
+  --ux-accent:#fed7aa;--ux-accent-2:#bfdbfe;--ux-accent-soft:rgba(253,224,71,.15);--ux-accent-ink:#0f172a;
   --ux-mint:#7EE8C0;--ux-warn:#FFB26B;--ux-danger:#FF7D8C;
   --ux-glass:rgba(255,255,255,.07);--ux-glass-line:rgba(255,255,255,.18);
   --ux-shadow:rgba(0,0,0,.45);--ux-shadow-strong:rgba(0,0,0,.72);
-  --ux-grad:linear-gradient(120deg,#fde047,#cbdacb 55%,#2d5a3e);
+  --ux-grad:linear-gradient(120deg,#fed7aa,#bfdbfe 55%,#2563eb);
 }
 html[data-theme="light"] .u040,.u040[data-theme="light"] {
   color-scheme:light;
   /* Map the application's Tailwind army/gold palette locally; there are no global theme variables. */
-  --ux-page:#f4f7f4;--ux-surface:#fff;--ux-surface-2:#e5ece5;--ux-surface-3:#cbdacb;
-  --ux-ink:#0e1f15;--ux-ink-2:#2d5a3e;--ux-ink-3:#64748b;
-  --ux-line:rgba(14,31,21,.09);--ux-line-2:rgba(14,31,21,.17);
-  --ux-accent:#ca8a04;--ux-accent-2:#2d5a3e;--ux-accent-soft:rgba(202,138,4,.12);--ux-accent-ink:#fff;
+  --ux-page:#eff6ff;--ux-surface:#fff;--ux-surface-2:#dbeafe;--ux-surface-3:#bfdbfe;
+  --ux-ink:#1e40af;--ux-ink-2:#2563eb;--ux-ink-3:#64748b;
+  --ux-line:rgba(59,130,246,.09);--ux-line-2:rgba(59,130,246,.17);
+  --ux-accent:#c2410c;--ux-accent-2:#2563eb;--ux-accent-soft:rgba(202,138,4,.12);--ux-accent-ink:#fff;
   --ux-mint:#119C72;--ux-warn:#D6731E;--ux-danger:#D93A55;
   --ux-glass:rgba(255,255,255,.58);--ux-glass-line:rgba(255,255,255,.85);
-  --ux-shadow:rgba(14,31,21,.14);--ux-shadow-strong:rgba(14,31,21,.3);
-  --ux-grad:linear-gradient(120deg,#facc15,#2d5a3e 55%,#1e3f2b);
+  --ux-shadow:rgba(59,130,246,.14);--ux-shadow-strong:rgba(59,130,246,.3);
+  --ux-grad:linear-gradient(120deg,#fb923c,#2563eb 55%,#4f46e5);
 }
 .u040,.u040 *,.u040 *::before,.u040 *::after{box-sizing:border-box}
 .u040[hidden],.u040 [hidden]{display:none!important}
@@ -78,7 +78,7 @@ html[data-theme="light"] .u040,.u040[data-theme="light"] {
 .u040 .u040-it span{display:block;min-width:0;font-size:14.5px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;transform:translateX(-8px);transition:opacity .2s,transform .35s var(--ux-ease)}
 .u040.is-wide .u040-it span{opacity:1;transform:none;transition:opacity .3s var(--ux-ease),transform .5s var(--ux-spring);transition-delay:calc(.12s + var(--i) * 35ms)}
 .u040 .u040-me{position:absolute;left:10px;right:10px;bottom:12px;display:flex;align-items:center;gap:10px;height:52px;padding:0 0 0 10px;border-radius:16px;background:color-mix(in srgb,var(--ux-page) 8%,transparent)}
-.u040 .u040-me i{width:34px;height:34px;flex:none;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fde047,#ca8a04 60%,#2d5a3e)}
+.u040 .u040-me i{width:34px;height:34px;flex:none;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fed7aa,#c2410c 60%,#2563eb)}
 .u040 .u040-me span{display:block;min-width:0;font-size:13px;font-weight:650;white-space:nowrap;opacity:0;transition:opacity .25s}
 .u040 .u040-me b,.u040 .u040-me small{display:block;overflow:hidden;text-overflow:ellipsis;font-weight:inherit}
 .u040 .u040-me small{font-size:11.5px;opacity:.6}

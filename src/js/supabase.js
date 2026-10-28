@@ -67,7 +67,7 @@ export async function withButtonLock(btnOrId, loadingText = '⏳ Đang xử lý.
     btn.disabled = true;
     btn.setAttribute('aria-busy', 'true');
     btn.classList.add('opacity-70', 'cursor-not-allowed');
-    btn.textContent = loadingText;
+    btn.textContent = String(loadingText).replace(/^\s*⏳\s*/u, '');
   }
 
   try {

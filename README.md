@@ -32,6 +32,14 @@ Bảng ngoại ngữ có 5 hàng theo 5 lớp cho Admin/cán bộ và 1 hàng ch
 
 **Xuất thống kê ngoại ngữ** gồm sheet tổng hợp theo lớp và danh sách học viên. Danh sách xếp tất cả học viên đạt lên trước, rồi đến chưa đạt, với mã, họ tên, năm sinh, lớp, trình độ hiện tại và trạng thái. **Xuất học viên rớt môn** nằm trong thẻ KPI rớt môn, có mã, họ tên, năm sinh, lớp, tên đầy đủ từng môn rớt (tín chỉ) và tổng tín chỉ chỉ của các môn rớt. Chỉ điểm dưới 4,00 tính rớt; 4,00 và điểm trống không tính rớt. Các file xuất theo toàn phạm vi tài khoản và không ghi dữ liệu lên database.
 
+## Giao diện Tech Academy 4.0
+
+Palette hiển thị dùng Blue → Indigo → Cobalt, nền Slate-50, điểm nhấn Amber/Coral và bề mặt trắng mờ. Alias Tailwind `army`/`gold` được ánh xạ sang màu mới để các class do JavaScript sinh ra tiếp tục hoạt động. ID, `data-*`, phân quyền, thuật toán điểm và luồng Supabase/SheetJS giữ nguyên.
+
+Nút chính dùng gradient, nút phụ nền trắng/viền mảnh, nút xóa nền Rose nhạt. Trạng thái `aria-busy` có spinner và giữ khóa nút sẵn có; nhập Excel cũng dùng trạng thái này và khôi phục nút khi hoàn tất hoặc lỗi. Ô điểm có focus Blue, tab có hiệu ứng xuất hiện nhẹ, modal mở trong 200ms. `prefers-reduced-motion` tắt chuyển động để giữ trải nghiệm nhập liệu ổn định.
+
+Kiểm thử giao diện: `tests/digital-ui-browser.cjs`; đặt `TEST_BASE_URL` tới máy chủ tĩnh và `DIGITAL_TEST_CSS_PATH` tới CSS Tailwind được biên dịch từ cùng cấu hình CDN nếu cần kiểm tra ngoại tuyến. Kiểm thử dùng dữ liệu giả lập, không ghi lên Supabase thật.
+
 ## 1. Hệ thống Tài khoản & Phân quyền (RBAC)
 
 Giao diện đăng nhập được chia thành 4 nhóm tài khoản cố định (đã xóa bỏ hoàn toàn chức năng cấp quyền):

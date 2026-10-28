@@ -75,7 +75,7 @@ const assert = require('node:assert/strict');
           assert.equal(await title.evaluate(element => element.classList.contains('swap')), false);
         }
         const themedInk = await root.evaluate(element => getComputedStyle(element).getPropertyValue('--ux-ink').trim());
-        assert.equal(themedInk, '#182522');
+        assert.equal(themedInk, '#0f172a');
         // Explicit theme overrides the OS preference, within the component only.
         await page.evaluate(value => { document.documentElement.dataset.theme = value; }, theme === 'dark' ? 'light' : 'dark');
         const overriddenInk = await root.evaluate(element => getComputedStyle(element).getPropertyValue('--ux-ink').trim());

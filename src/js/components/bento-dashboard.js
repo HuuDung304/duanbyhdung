@@ -189,10 +189,10 @@ export function renderBentoDashboard() {
   const canvas = $('bentoSemesterChart');
   if (typeof window.Chart === 'function') {
     canvas.hidden = false; bars.classList.add('bento-chart-data');
-    const colors = values.map((_, i) => i === best ? '#10b981' : '#dce9e2');
+    const colors = values.map((_, i) => i === best ? '#4f46e5' : '#dbeafe');
     if (!chart) chart = new window.Chart(canvas, {
       type: 'bar', data: { labels: values.map((_, i) => `HK${i + 1}`), datasets: [{ label: 'Điểm trung bình', data: values, backgroundColor: colors, borderRadius: 8, borderSkipped: false, maxBarThickness: 38 }] },
-      options: { responsive: true, maintainAspectRatio: false, animation: matchMedia('(prefers-reduced-motion: reduce)').matches ? false : { duration: 450 }, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1b4332', padding: 12 } }, scales: { y: { min: 0, max: 10, border: { display: false }, ticks: { stepSize: 2 }, grid: { color: '#f0f2f4' } }, x: { border: { display: false }, grid: { display: false } } } }
+      options: { responsive: true, maintainAspectRatio: false, animation: matchMedia('(prefers-reduced-motion: reduce)').matches ? false : { duration: 450 }, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1e1b4b', padding: 12 } }, scales: { y: { min: 0, max: 10, border: { display: false }, ticks: { stepSize: 2 }, grid: { color: '#f0f2f4' } }, x: { border: { display: false }, grid: { display: false } } } }
     });
     else { chart.data.datasets[0].data = values; chart.data.datasets[0].backgroundColor = colors; chart.update('none'); }
   }

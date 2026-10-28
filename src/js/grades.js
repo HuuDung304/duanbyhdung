@@ -1132,11 +1132,11 @@ export function getClassification(gpa) {
 export function getClassificationBadge(rank) {
   switch (rank) {
     case 'Xuất sắc':
-      return '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-purple-100 text-purple-800 border border-purple-300 whitespace-nowrap">Xuất sắc</span>';
+      return '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 whitespace-nowrap">Xuất sắc</span>';
     case 'Giỏi':
-      return '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 whitespace-nowrap">Giỏi</span>';
+      return '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 whitespace-nowrap">Giỏi</span>';
     case 'Khá':
-      return '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-blue-100 text-blue-800 border border-blue-300 whitespace-nowrap">Khá</span>';
+      return '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap">Khá</span>';
     case 'Trung bình khá':
       return '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-cyan-100 text-cyan-800 border border-cyan-300 whitespace-nowrap">Trung bình khá</span>';
     case 'Trung bình':
@@ -1945,9 +1945,9 @@ export function renderMasterTable() {
 // --- 6. BÁO CÁO GIAO BAN (3 BẢNG CHUẨN): BẢNG 1 (TỶ LỆ TÍCH LŨY) • BẢNG 2 (TỶ LỆ TỪNG NĂM & TỪNG HỌC KỲ) • BẢNG 3 (DANH SÁCH HỌC VIÊN RỚT MÔN CẦN BỒI DƯỠNG) ---
 
 export const RANK_META = [
-  { name: 'Xuất sắc', standard: '9.00 ≤ ĐTB ≤ 10.00', desc: 'Đạt danh hiệu Học viên Xuất sắc / Chiến sĩ thi đua', badge: 'bg-purple-100 text-purple-900 border-purple-300' },
-  { name: 'Giỏi', standard: '8.00 ≤ ĐTB < 9.00', desc: 'Đạt danh hiệu Học viên Giỏi tiêu biểu', badge: 'bg-emerald-100 text-emerald-900 border-emerald-300' },
-  { name: 'Khá', standard: '7.00 ≤ ĐTB < 8.00', desc: 'Học lực vững chắc, hoàn thành tốt nhiệm vụ', badge: 'bg-blue-100 text-blue-900 border-blue-300' },
+  { name: 'Xuất sắc', standard: '9.00 ≤ ĐTB ≤ 10.00', desc: 'Đạt danh hiệu Học viên Xuất sắc / Chiến sĩ thi đua', badge: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
+  { name: 'Giỏi', standard: '8.00 ≤ ĐTB < 9.00', desc: 'Đạt danh hiệu Học viên Giỏi tiêu biểu', badge: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
+  { name: 'Khá', standard: '7.00 ≤ ĐTB < 8.00', desc: 'Học lực vững chắc, hoàn thành tốt nhiệm vụ', badge: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
   { name: 'Trung bình khá', standard: '6.50 ≤ ĐTB < 7.00', desc: 'Cần tiếp tục củng cố kiến thức và nâng cao kết quả học tập', badge: 'bg-cyan-100 text-cyan-900 border-cyan-300' },
   { name: 'Trung bình', standard: '5.50 ≤ ĐTB < 6.50', desc: 'Đạt yêu cầu, cần tăng cường tự học nâng cao điểm số', badge: 'bg-amber-100 text-amber-900 border-amber-300' },
   { name: 'Yếu', standard: '5.00 ≤ ĐTB < 5.50', desc: 'Cần tăng cường ôn tập để nâng cao kết quả', badge: 'bg-orange-100 text-orange-900 border-orange-300' },
@@ -1955,9 +1955,9 @@ export const RANK_META = [
 ];
 
 export const REPORT_RANK_META = [
-  { name: 'Xuất sắc', standard: '8.50 ≤ ĐTB ≤ 10.00', desc: 'Kết quả học tập xuất sắc, tiếp tục phát huy', badge: 'bg-purple-100 text-purple-900 border-purple-300' },
-  { name: 'Giỏi', standard: '8.00 ≤ ĐTB < 8.50', desc: 'Kết quả học tập tốt, duy trì chất lượng', badge: 'bg-emerald-100 text-emerald-900 border-emerald-300' },
-  { name: 'Khá', standard: '7.00 ≤ ĐTB < 8.00', desc: 'Học lực vững, tiếp tục củng cố kiến thức', badge: 'bg-blue-100 text-blue-900 border-blue-300' },
+  { name: 'Xuất sắc', standard: '8.50 ≤ ĐTB ≤ 10.00', desc: 'Kết quả học tập xuất sắc, tiếp tục phát huy', badge: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
+  { name: 'Giỏi', standard: '8.00 ≤ ĐTB < 8.50', desc: 'Kết quả học tập tốt, duy trì chất lượng', badge: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
+  { name: 'Khá', standard: '7.00 ≤ ĐTB < 8.00', desc: 'Học lực vững, tiếp tục củng cố kiến thức', badge: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
   { name: 'Trung bình', standard: '5.00 ≤ ĐTB < 7.00', desc: 'Cần tăng cường tự học và ôn tập', badge: 'bg-amber-100 text-amber-900 border-amber-300' },
   { name: 'Yếu', standard: 'ĐTB < 5.00', desc: 'Ưu tiên bồi dưỡng; chỉ học phần dưới 4.00 mới tính là rớt', badge: 'bg-rose-100 text-rose-900 border-rose-300' }
 ];
@@ -4043,7 +4043,8 @@ export async function executeExcelImport() {
 
   if (btnConfirm) {
     btnConfirm.disabled = true;
-    btnConfirm.textContent = '⏳ Đang xử lý...';
+    btnConfirm.setAttribute('aria-busy', 'true');
+    btnConfirm.textContent = 'Đang xử lý...';
   }
 
   try {
@@ -4310,6 +4311,7 @@ export async function executeExcelImport() {
   } finally {
     if (btnConfirm) {
       btnConfirm.disabled = false;
+      btnConfirm.removeAttribute('aria-busy');
       btnConfirm.textContent = origText;
     }
   }

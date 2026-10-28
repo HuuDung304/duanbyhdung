@@ -1088,7 +1088,8 @@ export async function executeQuickImport() {
 
   if (btnExec) {
     btnExec.disabled = true;
-    btnExec.textContent = '⏳ Đang xử lý...';
+    btnExec.setAttribute('aria-busy', 'true');
+    btnExec.textContent = 'Đang xử lý...';
   }
 
   try {
@@ -1164,6 +1165,7 @@ export async function executeQuickImport() {
   } finally {
     if (btnExec) {
       btnExec.disabled = false;
+      btnExec.removeAttribute('aria-busy');
       btnExec.textContent = originalBtnText;
     }
   }

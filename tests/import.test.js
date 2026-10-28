@@ -101,7 +101,7 @@ function importContext(file = 'src/js/grades.js', overrides = {}) {
   const source = readFileSync(file, 'utf8');
   const start = source.indexOf('async function executeExcelImport()');
   const end = source.indexOf('// --- 16. ĐIỂM TÍCH LŨY', start);
-  const button = { disabled: false, textContent: 'Nhập' };
+  const button = { disabled: false, textContent: 'Nhập', attributes: {}, setAttribute(key,value) { this.attributes[key]=value; }, removeAttribute(key) { delete this.attributes[key]; } };
   const messages = [];
   const writes = [];
   const context = vm.createContext({
@@ -397,7 +397,7 @@ function profileContext(rows, setupState) {
   const context = vm.createContext({
     structuredClone, console, calendarDate, parentBirthYear, politicalDates, AppState: state, DEFAULT_CLASSES: ['OTQS1', 'OTQS2'], POLITICAL_BADGES: {},
     document: { getElementById(id) {
-      if (!elements.has(id)) elements.set(id, { disabled: false, classList: { add() {}, remove() {} } });
+      if (!elements.has(id)) elements.set(id, { disabled: false, classList: { add() {}, remove() {} }, setAttribute() {}, removeAttribute() {} });
       return elements.get(id);
     } },
     FileReader: class { readAsArrayBuffer() { this.onload({ target: { result: new ArrayBuffer(0) } }); } },
@@ -493,4 +493,19 @@ test('an explicitly blank political status defaults to union member, while an om
   const omitted = profileContext([['Mã HV','SĐT'], ['HV02','123']], setup).context.parsedRows()[0];
   assert.equal(omitted.politicalStatus, 'DANG_VIEN_CHINH_THUC');
   assert.equal(omitted.party_joined_date, '2023-01-01');
+});
+
+
+test('Excel loading exposes busy state and restores the button after a failed save', async () => {
+  let release;
+  const pending = new Promise(resolve => { release = resolve; });
+  const { context, button } = importContext('src/js/grades.js', { upsertStudentsBulkToSupabase: async () => { await pending; throw new Error('Unavailable'); } });
+  const work = context.executeExcelImport();
+  assert.equal(button.disabled,true);
+  assert.equal(button.attributes['aria-busy'],'true');
+  assert.equal(button.textContent,'Đang xử lý...');
+  release(); await work;
+  assert.equal(button.disabled,false);
+  assert.equal(button.attributes['aria-busy'],undefined);
+  assert.equal(button.textContent,'Nhập');
 });
