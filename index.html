@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="app-release" content="e777710e39d5">
+  <meta name="app-release" content="f8cf14b1e860">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Quản lý đơn vị</title>
   <link rel="icon" type="image/svg+xml" href="./src/assets/favicon.svg?v=43c991ef71f6">
@@ -117,7 +117,7 @@ body {
 }
 
   </style>
-  <link rel="stylesheet" href="./src/css/bento-dashboard.css?v=2033b3d9f507">
+  <link rel="stylesheet" href="./src/css/bento-dashboard.css?v=863bc32b2929">
 </head>
 <body class="bento-app bg-slate-100 text-slate-800 min-h-screen flex flex-col">
 
@@ -1160,10 +1160,13 @@ body {
     </section>
 
     <section id="tab-reports" class="tab-content hidden space-y-4">
-      <div class="report-export-heading"><h2>Xuất báo cáo</h2><p>Chọn mẫu báo cáo cần tải. Bộ chọn lớp chỉ áp dụng cho bảng điểm lớp.</p>
-        <div class="report-export-controls export-unit-only"><label for="reportsClassSelect">Lớp tải bảng điểm</label><select id="reportsClassSelect" aria-label="Chọn lớp tải bảng điểm"></select></div>
-      </div>
-      <div class="report-export-grid"><article class="report-export-card export-unit-only"><h3>Bảng điểm lớp</h3><p>STT, mã học viên, họ tên, lớp, ngày tháng năm sinh; mỗi môn một cột, tín chỉ dưới tên môn; ĐTB từng kỳ và ĐTB năm khi đủ hai kỳ. Excel dùng Times New Roman, kẻ bảng và căn giữa.</p><div><button type="button" id="btnExportClassExcel"><span>Tải bảng điểm lớp (.xlsx)</span></button></div></article><article class="report-export-card export-unit-only"><h3>Danh sách tiếng Nga</h3><p>STT, mã học viên, họ tên, ngày tháng năm sinh, trình độ thực tế và ghi chú. Admin và cán bộ tải toàn đơn vị; tài khoản lớp tải lớp mình, không phụ thuộc ô chọn lớp bảng điểm.</p><div><button type="button" id="btnExportLangExcel">Tải danh sách tiếng Nga (.xlsx)</button></div></article></div>
+      <article class="report-export-heading report-export-card export-unit-only">
+        <h2>Xuất báo cáo</h2>
+        <h3>Bảng điểm lớp</h3>
+        <p>STT, mã học viên, họ tên, lớp, ngày tháng năm sinh; mỗi môn một cột, tín chỉ dưới tên môn; ĐTB từng kỳ và ĐTB năm khi đủ hai kỳ. Excel dùng Times New Roman, kẻ bảng và căn giữa.</p>
+        <div class="report-export-controls"><label for="reportsClassSelect">Lớp tải bảng điểm</label><select id="reportsClassSelect" aria-label="Chọn lớp tải bảng điểm"></select><button type="button" id="btnExportClassExcel"><span>Tải bảng điểm lớp (.xlsx)</span></button></div>
+      </article>
+      <div class="report-export-grid"><article class="report-export-card export-unit-only"><h3>Danh sách tiếng Nga</h3><p>STT, mã học viên, họ tên, ngày tháng năm sinh, trình độ thực tế và ghi chú. Admin và cán bộ tải toàn đơn vị; tài khoản lớp tải lớp mình, không phụ thuộc ô chọn lớp bảng điểm.</p><div><button type="button" id="btnExportLangExcel">Tải danh sách tiếng Nga (.xlsx)</button></div></article></div>
     </section>
   </main>
 
@@ -2211,7 +2214,7 @@ body {
     "./src/js/components/report-center.js": "./src/js/components/report-center.js?v=5413244c0643",
     "./src/js/dashboard-statistics.js": "./src/js/dashboard-statistics.js?v=2c12c43c6749",
     "./src/js/grades.js": "./src/js/grades.js?v=a1aba120cbe6",
-    "./src/js/main.js": "./src/js/main.js?v=e777710e39d5",
+    "./src/js/main.js": "./src/js/main.js?v=f8cf14b1e860",
     "./src/js/profile-rules.js": "./src/js/profile-rules.js?v=3a3bbf350b00",
     "./src/js/report-workbook.js": "./src/js/report-workbook.js?v=905d0e767b16",
     "./src/js/students.js": "./src/js/students.js?v=8e2d4c1a6d39",
@@ -2219,7 +2222,7 @@ body {
   }
 }
   </script>
-  <script type="module" src="./src/js/main.js?v=e777710e39d5"></script>
+  <script type="module" src="./src/js/main.js?v=f8cf14b1e860"></script>
   <script type="module" src="./src/js/components/expanding-rail.js?v=30e2d9c62544"></script>
   <script type="module" src="./src/js/components/notched-field.js?v=553608c192ae"></script>
   <script type="module" src="./src/js/components/bento-dashboard.js?v=86c9eec93026"></script>

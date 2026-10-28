@@ -120,3 +120,5 @@ body.bento-app{--digital-primary:#2563eb;--digital-indigo:#4f46e5;--digital-acce
 .bento-app .u040-content table th:is(.bg-army-800,.bg-army-900,.bg-army-950,.bg-slate-800,.bg-slate-900){background:#e0e7ff;color:#1e293b}
 
 #tab-reports #btnExportClassExcel{display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;min-height:44px;box-shadow:0 3px 10px #4f46e526;transition:box-shadow .2s,transform .2s}#tab-reports #btnExportClassExcel svg{width:18px;height:18px;flex:none}#tab-reports #btnExportClassExcel:hover{box-shadow:0 5px 16px #4f46e540}#tab-reports #btnExportClassExcel:active{transform:scale(.98)}#tab-reports #btnExportClassExcel:focus-visible{outline:2px solid #2563eb;outline-offset:3px}@media(prefers-reduced-motion:reduce){#tab-reports #btnExportClassExcel{transition:none}#tab-reports #btnExportClassExcel:active{transform:none}}
+
+#tab-reports .report-export-heading>h3{margin-top:18px}
