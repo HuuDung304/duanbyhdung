@@ -1,0 +1,26 @@
+/* Lucian UX/UI Prompt #025 · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/#025 */
+/* Local mapping to the existing army/gold palette, matching the rail's theme conventions. */
+.u025{--ux-surface:#fff;--ux-ink:#0e1f15;--ux-ink-2:#2d5a3e;--ux-ink-3:#64748b;--ux-line-2:rgba(14,31,21,.17);--ux-accent:#ca8a04;--ux-danger:#d93a55;--ux-ease:cubic-bezier(.2,.8,.2,1);--ux-spring:cubic-bezier(.34,1.45,.64,1);position:relative;width:100%;min-width:0;color-scheme:light}
+@media(prefers-color-scheme:dark){html:not([data-theme="light"]):not(.light) .u025{--ux-surface:#162e20;--ux-ink:#f4f7f4;--ux-ink-2:rgba(244,247,244,.68);--ux-ink-3:#b1bdb5;--ux-line-2:rgba(255,255,255,.16);--ux-accent:#fde047;--ux-danger:#ff7d8c;color-scheme:dark}}
+html[data-theme="dark"] .u025,html.dark .u025{--ux-surface:#162e20;--ux-ink:#f4f7f4;--ux-ink-2:rgba(244,247,244,.68);--ux-ink-3:#b1bdb5;--ux-line-2:rgba(255,255,255,.16);--ux-accent:#fde047;--ux-danger:#ff7d8c;color-scheme:dark}
+.u025,.u025 *{box-sizing:border-box}
+.u025 .u025-box{position:relative;height:62px}
+.u025 .u025-in{position:absolute;inset:0;width:100%;height:100%;padding:18px 48px 0 18px;border:0;outline:0;border-radius:16px;background:var(--ux-surface);font:inherit;font-size:16.5px;font-weight:560;color:var(--ux-ink);letter-spacing:-.01em}
+.u025 .u025-line{position:absolute;inset:0;display:flex;pointer-events:none;border-radius:16px}
+.u025 .u025-line i{display:block;border:1.5px solid var(--ux-line-2);transition:border-color .3s var(--ux-ease)}
+.u025 .u025-line .l{width:14px;border-right:0;border-radius:16px 0 0 16px}
+.u025 .u025-line .g{width:var(--gap,0px);border-left:0;border-right:0;transition:width .35s var(--ux-ease),border-color .3s var(--ux-ease)}
+.u025 .u025-line .r{flex:1;border-left:0;border-radius:0 16px 16px 0}
+.u025.is-up .u025-line .g{border-top-color:transparent!important}
+.u025.is-focus .u025-line i{border-color:var(--ux-accent);border-width:2px}
+.u025.is-bad .u025-line i{border-color:var(--ux-danger)}
+.u025 .u025-lab{position:absolute;left:18px;top:21px;padding:0 4px;margin-left:-4px;font-size:16px;font-weight:560;color:var(--ux-ink-3);transform-origin:0 0;pointer-events:none;white-space:nowrap;transition:transform .35s var(--ux-ease),color .3s var(--ux-ease)}
+.u025.is-up .u025-lab{transform:translate(0,-30px) scale(.8);color:var(--ux-ink-2);font-weight:650}
+.u025.is-focus .u025-lab{color:var(--ux-accent)}
+.u025.is-bad .u025-lab{color:var(--ux-danger)}
+.u025.is-up .u025-in{padding-top:0}
+.u025.is-shake .u025-box{animation:u025-shake .42s var(--ux-ease)}
+@keyframes u025-shake{20%{transform:translateX(-7px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(2px)}}
+.u025 .u025-in:focus-visible{outline:none}
+@media(prefers-reduced-motion:reduce){.u025,.u025 *,.u025 *::before,.u025 *::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}}
+.u025 .u025-in[autocapitalize="characters"]{text-transform:uppercase}

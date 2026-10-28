@@ -40,6 +40,7 @@
   <link rel="stylesheet" href="./src/css/main.css">
   <link rel="stylesheet" href="./src/css/access-controls.css">
   <link rel="stylesheet" href="./src/css/expanding-rail.css">
+  <link rel="stylesheet" href="./src/css/notched-field.css">
   <style id="app-inline-css">
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
@@ -1328,10 +1329,8 @@ body {
         <input type="text" name="prevent_autofill_user" autocomplete="off" tabindex="-1" class="hidden" aria-hidden="true">
         <input type="password" name="prevent_autofill_pass" autocomplete="new-password" tabindex="-1" class="hidden" aria-hidden="true">
 
-        <div>
-          <label for="loginAdminUser" class="block font-bold text-slate-700 text-xs mb-1.5">
-            Tên đăng nhập:
-          </label>
+        <div class="u025 u025-f">
+          <div class="u025-box">
           <input
             type="text"
             id="loginAdminUser"
@@ -1340,15 +1339,15 @@ body {
             autocorrect="off"
             autocapitalize="off"
             spellcheck="false"
-            placeholder="Nhập tên đăng nhập..."
-            class="w-full border border-slate-300 rounded-xl p-3 font-mono text-xs font-semibold focus:ring-2 focus:ring-army-600 focus:outline-none bg-slate-50 focus:bg-white transition"
+            class="u025-in"
           >
+          <span class="u025-line" aria-hidden="true"><i class="l"></i><i class="g"></i><i class="r"></i></span>
+          <label for="loginAdminUser" class="u025-lab">Tên đăng nhập</label>
+          </div>
         </div>
 
-        <div>
-          <label for="loginAdminPass" class="block font-bold text-slate-700 text-xs mb-1.5">
-            Mật khẩu:
-          </label>
+        <div class="u025 u025-f">
+          <div class="u025-box">
           <input
             type="password"
             id="loginAdminPass"
@@ -1357,9 +1356,11 @@ body {
             autocorrect="off"
             autocapitalize="off"
             spellcheck="false"
-            placeholder="Nhập mật khẩu..."
-            class="w-full border border-slate-300 rounded-xl p-3 font-mono text-xs focus:ring-2 focus:ring-army-600 focus:outline-none bg-slate-50 focus:bg-white transition"
+            class="u025-in"
           >
+          <span class="u025-line" aria-hidden="true"><i class="l"></i><i class="g"></i><i class="r"></i></span>
+          <label for="loginAdminPass" class="u025-lab">Mật khẩu</label>
+          </div>
         </div>
 
         <div id="loginAdminError" class="hidden text-rose-700 font-bold text-xs bg-rose-50 border border-rose-300 p-3 rounded-xl flex items-center gap-2">
@@ -1378,10 +1379,8 @@ body {
           Nhập chính xác <strong>Mã Học Viên</strong> của bản thân để truy cập bảng điểm và hồ sơ quân nhân cá nhân.
         </div>
 
-        <div>
-          <label for="loginCadetCode" class="block font-bold text-slate-700 mb-1.5">
-            Mã Học Viên:
-          </label>
+        <div class="u025 u025-f">
+          <div class="u025-box">
           <input
             type="text"
             id="loginCadetCode"
@@ -1390,10 +1389,12 @@ body {
             autocorrect="off"
             autocapitalize="characters"
             spellcheck="false"
-            placeholder="Nhập mã học viên..."
             required
-            class="w-full border border-slate-300 rounded-xl p-3 font-mono font-bold text-sm text-army-900 uppercase focus:ring-2 focus:ring-army-600 focus:outline-none bg-slate-50 focus:bg-white transition"
+            class="u025-in"
           >
+          <span class="u025-line" aria-hidden="true"><i class="l"></i><i class="g"></i><i class="r"></i></span>
+          <label for="loginCadetCode" class="u025-lab">Mã Học Viên</label>
+          </div>
         </div>
 
         <div id="loginCadetError" class="hidden text-rose-700 font-bold text-xs bg-rose-50 border border-rose-300 p-3 rounded-xl flex items-center gap-2">
@@ -2318,5 +2319,6 @@ body {
   </div>
   <script type="module" src="./src/js/main.js"></script>
   <script type="module" src="./src/js/components/expanding-rail.js"></script>
+  <script type="module" src="./src/js/components/notched-field.js"></script>
 </body>
 </html>
