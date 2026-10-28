@@ -125,7 +125,7 @@ export function renderStudentView() {
   const langSel = document.getElementById('studentSelfLangLevelSelect');
   if (langSel) {
     langSel.innerHTML = LANGUAGE_LEVEL_OPTIONS.map(opt =>
-      `<option value="${opt}" ${opt === (student.currentLangLevel || 'Chưa đạt') ? 'selected' : ''}>${opt}</option>`
+      `<option value="${opt}" ${opt === evaluateLangLevelStatus(student.currentLangLevel).actualLevel ? 'selected' : ''}>${opt}</option>`
     ).join('');
     langSel.disabled = (AppState.role === 'student');
   }
@@ -495,7 +495,7 @@ export function renderStudentInlineProfile(options = {}) {
                 ${evaluateLangLevelStatus(student.currentLangLevel || 'Chưa đạt', AppState.requiredLangStandard).badgeHtml}
               </label>
               <select id="inlineProfLangLevel" ${AppState.role === 'student' ? 'disabled' : disAttr} class="w-full border rounded-lg p-2.5 font-bold ${AppState.role === 'student' ? 'bg-slate-100 border-slate-200 text-slate-700 cursor-not-allowed' : inputBg}">
-                ${LANGUAGE_LEVEL_OPTIONS.map(opt => `<option value="${opt}" ${opt === (student.currentLangLevel || 'Chưa đạt') ? 'selected' : ''}>${opt}</option>`).join('')}
+                ${LANGUAGE_LEVEL_OPTIONS.map(opt => `<option value="${opt}" ${opt === evaluateLangLevelStatus(student.currentLangLevel).actualLevel ? 'selected' : ''}>${opt}</option>`).join('')}
               </select>
             </div>
 

@@ -28,6 +28,10 @@ test('failed student export totals only failed credits and preserves full course
 test('language export selects one highest level and accepts abbreviated level codes',()=>{
   assert.equal(highestLanguageLevel('A1, A21, A2'),'A2');
   assert.equal(highestLanguageLevel('A2; B11; B1'),'B1');
-  assert.equal(highestLanguageLevel('B11'),'B1.1');
+  assert.equal(highestLanguageLevel('B11'),'B11');
   assert.equal(highestLanguageLevel(null),'Chưa đạt');
+});
+
+test('Russian roster accepts only the five supported levels and canonicalizes legacy dotted spelling', () => {
+ for(const [input,expected] of [['A1','A1'],['A2.1','A21'],['A21','A21'],['A2','A2'],['B1.1','B11'],['B11','B11'],['B1','B1'],['A1, A21, A2','A2'],['A2.2','Chưa đạt'],['B1.2','Chưa đạt'],['B2','Chưa đạt'],['A1.1','Chưa đạt']]) assert.equal(highestLanguageLevel(input),expected);
 });

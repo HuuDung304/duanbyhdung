@@ -149,38 +149,18 @@ export function hideModal(modalId) {
 
 export const DEFAULT_CLASSES = ['OTQS1', 'OTQS2', 'TTG1', 'TTG2', 'XMCB'];
 
-export const LANGUAGE_LEVEL_OPTIONS = [
-  'Chưa đạt',
-  'A1.1',
-  'A1',
-  'A2.1',
-  'A2',
-  'A2.2',
-  'B1.1',
-  'B1',
-  'B1.2',
-  'B2'
-];
+export const LANGUAGE_LEVEL_OPTIONS = ['Chưa đạt', 'A1', 'A21', 'A2', 'B11', 'B1'];
 
-export const LANGUAGE_LEVEL_RANK = {
-  'Chưa đạt': 0,
-  'A1.1': 1,
-  'A1': 2,
-  'A2.1': 3,
-  'A2': 4,
-  'A2.2': 5,
-  'B1.1': 6,
-  'B1': 7,
-  'B1.2': 8,
-  'B2': 9
-};
+export const LANGUAGE_LEVEL_RANK = { 'Chưa đạt': 0, A1: 1, A21: 2, A2: 3, B11: 4, B1: 5 };
 
 export function evaluateLangLevelStatus(actualLevel, requiredStandard = null) {
-  const requested = requiredStandard || AppState.requiredLangStandard || 'A2';
+  const normalize = value => String(value || '').trim().toUpperCase().replace(/^A2[.,]1$/, 'A21').replace(/^B1[.,]1$/, 'B11');
+  const requested = normalize(requiredStandard || AppState.requiredLangStandard || 'A2');
   const std = LANGUAGE_LEVEL_RANK[requested] !== undefined ? requested : 'A2';
-  const cur = actualLevel || 'Chưa đạt';
+  const candidate = normalize(actualLevel);
+  const cur = LANGUAGE_LEVEL_RANK[candidate] !== undefined ? candidate : 'Chưa đạt';
   const curRank = LANGUAGE_LEVEL_RANK[cur] !== undefined ? LANGUAGE_LEVEL_RANK[cur] : 0;
-  const reqRank = LANGUAGE_LEVEL_RANK[std] !== undefined ? LANGUAGE_LEVEL_RANK[std] : 4;
+  const reqRank = LANGUAGE_LEVEL_RANK[std] !== undefined ? LANGUAGE_LEVEL_RANK[std] : 3;
   const isPassed = curRank >= reqRank && cur !== 'Chưa đạt';
   return {
     isPassed,
@@ -1079,13 +1059,13 @@ export function setSheetScaleMode(scaleMode) {
 export function getHighestRussianCertInfo(studentId) {
   const st = AppState.students.find(s => s.id === studentId);
   const l = AppState.languages[studentId] || { lang: 'Tiếng Nga', A1: 'Đ', A21: 'Đ', A22: 'Đ', B11: 'CT', B12: 'CT', extraCert: '' };
-  const currentLvl = st?.currentLangLevel || l.currentLevel || 'Chưa đạt';
+  const currentLvl = evaluateLangLevelStatus(st?.currentLangLevel || l.currentLevel).actualLevel;
 
   const russianLevelsOrder = [
-    { key: 'B12', label: 'B1.2', desc: 'Chuẩn Đầu ra Tốt nghiệp' },
-    { key: 'B11', label: 'B1.1', desc: 'Chuẩn Năm thứ 4' },
-    { key: 'A22', label: 'A2.2', desc: 'Chuẩn Năm thứ 3' },
-    { key: 'A21', label: 'A2.1', desc: 'Chuẩn Năm thứ 2' },
+    { key: 'B12', label: 'B1', desc: 'Chuẩn Đầu ra Tốt nghiệp' },
+    { key: 'B11', label: 'B11', desc: 'Chuẩn Năm thứ 4' },
+    { key: 'A22', label: 'A2', desc: 'Chuẩn Năm thứ 3' },
+    { key: 'A21', label: 'A21', desc: 'Chuẩn Năm thứ 2' },
     { key: 'A1',  label: 'A1',   desc: 'Chuẩn Năm thứ 1' }
   ];
 
@@ -2873,7 +2853,7 @@ export function renderLanguages() {
   if (!summaryContainer) return;
 
   const canConfigStd = AppState.role === 'admin';
-  const reqStd = AppState.requiredLangStandard || 'A2';
+  const reqStd = evaluateLangLevelStatus('Chưa đạt').requiredStandard;
   document.querySelectorAll('.required-lang-standard-select').forEach(sel => {
     sel.value = reqStd;
     sel.disabled = !canConfigStd;
@@ -2956,7 +2936,7 @@ export function loadStudentLangData(studentId) {
   const actualLevel = document.getElementById('langActualLevel');
   if (actualLevel) {
     actualLevel.innerHTML = LANGUAGE_LEVEL_OPTIONS.map(level => `<option value="${level}">${level}</option>`).join('');
-    actualLevel.value = student.currentLangLevel || l.currentLevel || 'Chưa đạt';
+    actualLevel.value = evaluateLangLevelStatus(student.currentLangLevel || l.currentLevel).actualLevel;
   }
   document.getElementById('langLevelA1').value = l.A1 || 'Đ';
   document.getElementById('langLevelA21').value = l.A21 || 'Đ';
@@ -4279,7 +4259,7 @@ export function renderCumulativeTable() {
     const totalCourseTC = getTotalCourseCredits(s.class);
     const debts = getDebtSubjects(s.id);
     const rank = getClassification(gpa10);
-    const curLang = s.currentLangLevel || AppState.languages[s.id]?.currentLevel || 'Chưa đạt';
+    const curLang = evaluateLangLevelStatus(s.currentLangLevel || AppState.languages[s.id]?.currentLevel).actualLevel;
 
     const langEval = evaluateLangLevelStatus(curLang, AppState.requiredLangStandard);
     const canEditMeta = AppState.role === 'admin' ||
@@ -4335,7 +4315,7 @@ export function renderCumulativeTable() {
   if (footer) {
     footer.innerHTML = `
       <span>Hiển thị <strong>${filtered.length}</strong> / ${scoped.length} quân nhân • Tích lũy toàn khóa</span>
-      <span class="text-[11px] text-slate-500">Hỗ trợ chọn trực tiếp Trình độ ngoại ngữ hiện tại (A1.1, A1, A2.1, A2, B1.1, B1...) </span>
+      <span class="text-[11px] text-slate-500">Hỗ trợ chọn trực tiếp Trình độ ngoại ngữ hiện tại (A1, A21, A2, B11, B1) </span>
     `;
   }
 

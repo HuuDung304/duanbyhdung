@@ -93,8 +93,10 @@ test('language warnings follow the admin threshold and include its level under a
   assert.match(below.badgeHtml, /text-rose/);
   assert.match(below.badgeHtml, /Chưa đạt \(B1\)/);
   assert.equal(context.evaluateLangLevelStatus('B1').isPassed, true);
-  context.AppState.requiredLangStandard = 'B2';
-  assert.equal(context.evaluateLangLevelStatus('B1').isPassed, false);
+  context.AppState.requiredLangStandard = 'B11';
+  assert.equal(context.evaluateLangLevelStatus('A2').isPassed, false);
+  assert.equal(context.evaluateLangLevelStatus('B1.1').actualLevel, 'B11');
+  assert.equal(context.evaluateLangLevelStatus('A2.1').actualLevel, 'A21');
 });
 
 test('party date fields are enabled, required and visible only for the selected status', () => {
