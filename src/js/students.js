@@ -267,7 +267,7 @@ export function openCadetDetailPage(studentId) {
         <td class="py-2.5 px-3 text-center">${getClassificationBadge(yrRank)}</td>
         <td class="py-2.5 px-3 text-left">
           ${yDebts.length > 0
-            ? yDebts.map(d => `<span class="inline-block px-2 py-0.5 rounded bg-rose-100 text-rose-800 font-bold text-[11px] mr-1">${formatFailedSubjectItem(d.subject)} (${d.score.toFixed(1)})</span>`).join('')
+            ? yDebts.map(d => `<span class="inline-block px-2 py-0.5 rounded bg-rose-100 text-rose-800 font-bold text-[11px] mr-1">${formatFailedSubjectItem(d.subject)} (${d.score.toFixed(2)})</span>`).join('')
             : '<span class="text-emerald-700 font-semibold text-xs">✅ Đạt 100%</span>'
           }
         </td>

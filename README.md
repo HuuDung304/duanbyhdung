@@ -64,3 +64,9 @@ URL cũ `/quan_ly_diem_dai_doi.html` được Netlify chuyển hướng sang tra
 Nhập điểm dùng bảng tra cứu học viên và cache môn học theo cột/lớp trong từng lần nhập, tránh quét lại danh sách cho mọi ô điểm. Cache không được dùng lại giữa các lần nhập. Ghi theo lô tuần tự: tối đa 500 điểm, 200 hồ sơ hoặc 250 môn/chứng chỉ; mỗi payload tối đa 256 KiB tính theo UTF-8. Bản ghi đơn vượt giới hạn được báo lỗi trước khi ghi lô đó. REST dự phòng dùng `return=minimal`, không tải ngược bản ghi vừa ghi.
 
 Đọc điểm chỉ lấy `student_id,subject_id,score`, vẫn phân trang để giữ đủ dữ liệu cho bảng và xuất Excel. Kết quả kiểm thử giả lập: 10.000 điểm dùng 20 yêu cầu ghi thay vì 100 như trước; 1.000 ô cùng môn/lớp chỉ đối chiếu danh mục môn một lần thay vì 1.000 lần. Đây là số yêu cầu/lượt tra cứu, không phải cam kết thời gian trên Supabase thật. Bản tối ưu này không yêu cầu thay đổi schema mới; các khóa upsert vẫn theo `supabase_schema.sql`.
+
+## Xếp loại học tập hệ 10
+
+Xuất sắc: từ 9,00; Giỏi: từ 8,00 đến dưới 9,00; Khá: từ 7,00 đến dưới 8,00; Trung bình khá: từ 6,50 đến dưới 7,00; Trung bình: từ 5,50 đến dưới 6,50; Yếu: từ 5,00 đến dưới 5,50; Kém: dưới 5,00 (bao gồm khoảng 4,00–4,99 và ĐTB thấp hơn 4,00). Xếp loại dùng ĐTB thực tế trước khi định dạng hiển thị.
+
+Trạng thái rớt xét riêng từng môn: điểm môn **dưới 4,00** mới tính rớt; 3,99 rớt, 4,00 không rớt. Điểm trống không được tính là rớt. Nhập tay, nhập Excel và hiển thị/xuất điểm môn giữ hai chữ số thập phân để không biến 3,99 thành 4,0. Quy đổi điểm chữ/hệ 4 giữ quy tắc hiện tại; không dùng nó để xếp loại hệ 10. Thay đổi này không cần sửa schema Supabase (cột điểm hiện là NUMERIC(4,2)).

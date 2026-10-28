@@ -345,3 +345,11 @@ test('oversized individual profiles fail before any write instead of exceeding t
   await assert.rejects(api.upsertStudentsBulkToSupabase([{ code: 'HV01', name: 'Đ'.repeat(150000) }]), /vượt giới hạn 256 KiB/);
   assert.equal(requests.filter(request => request.options.method === 'POST').length, 0);
 });
+
+
+test('Excel import retains 3.99 as a failing score, without rounding to 4.0', async () => {
+  const { context, writes } = importContext();
+  context.parsedImportData.rows[0][3] = '3,99';
+  await context.executeExcelImport();
+  assert.equal(writes.at(-1)[0].score, 3.99);
+});

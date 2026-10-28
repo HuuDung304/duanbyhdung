@@ -1118,15 +1118,17 @@ export function getHighestRussianCertInfo(studentId) {
   };
 }
 
-export const RANK_LEVELS_5 = ['Xuất sắc', 'Giỏi', 'Khá', 'Trung bình', 'Yếu'];
+export const RANK_LEVELS = ['Xuất sắc', 'Giỏi', 'Khá', 'Trung bình khá', 'Trung bình', 'Yếu', 'Kém'];
 
 export function getClassification(gpa) {
   const val = Number(gpa) || 0;
   if (val >= 9.0) return 'Xuất sắc';
   if (val >= 8.0) return 'Giỏi';
   if (val >= 7.0) return 'Khá';
-  if (val >= 5.0) return 'Trung bình';
-  return 'Yếu';
+  if (val >= 6.5) return 'Trung bình khá';
+  if (val >= 5.5) return 'Trung bình';
+  if (val >= 5.0) return 'Yếu';
+  return 'Kém';
 }
 
 export function getClassificationBadge(rank) {
@@ -1137,12 +1139,14 @@ export function getClassificationBadge(rank) {
       return '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 whitespace-nowrap">Giỏi</span>';
     case 'Khá':
       return '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-blue-100 text-blue-800 border border-blue-300 whitespace-nowrap">Khá</span>';
-    case 'Trung bình Khá':
-      return '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-cyan-100 text-cyan-800 border border-cyan-300 whitespace-nowrap">TB Khá</span>';
+    case 'Trung bình khá':
+      return '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-cyan-100 text-cyan-800 border border-cyan-300 whitespace-nowrap">Trung bình khá</span>';
     case 'Trung bình':
       return '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300 whitespace-nowrap">Trung bình</span>';
+    case 'Yếu':
+      return '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-orange-100 text-orange-800 border border-orange-300 whitespace-nowrap">Yếu</span>';
     default:
-      return '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-300 whitespace-nowrap">Yếu</span>';
+      return '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-300 whitespace-nowrap">Kém</span>';
   }
 }
 
@@ -1469,15 +1473,15 @@ export function renderSpreadsheet() {
                 data-subject="${subj.id}"
                 data-row="${sIdx}"
                 data-col="${subColIdx}"
-                value="${score !== '' ? Number(score).toFixed(1) : ''}"
+                value="${score !== '' ? Number(score).toFixed(2) : ''}"
                 class="grid-cell-input w-full h-8 text-center text-xs font-semibold bg-transparent border-0 focus:outline-none transition"
-                maxlength="4" />
+                maxlength="5" />
             </td>
           `;
         } else {
           return `
             <td class="p-0 text-center ${isFail ? 'bg-rose-50 text-rose-700 font-bold' : 'text-slate-800'}">
-              <input type="text" value="${score !== '' ? Number(score).toFixed(1) : '-'}" disabled readonly
+              <input type="text" value="${score !== '' ? Number(score).toFixed(2) : '-'}" disabled readonly
                 class="w-full h-8 text-center text-xs font-semibold bg-slate-50/70 text-slate-700 border-0 cursor-not-allowed select-none" />
             </td>
           `;
@@ -1592,7 +1596,7 @@ export function renderStudentVerticalGrades() {
       const hasScore = sc !== undefined && sc !== null && sc !== '' && !isNaN(sc);
       const isFail = hasScore && Number(sc) < 4.0;
       const { letter, scale4 } = getGradeLetterAndScale4(sc);
-      const dispScore = !hasScore ? '-' : isScale4 ? `${scale4.toFixed(1)} (${letter})` : Number(sc).toFixed(1);
+      const dispScore = !hasScore ? '-' : isScale4 ? `${scale4.toFixed(1)} (${letter})` : Number(sc).toFixed(2);
       const isSpec = s.category === 'specialized';
 
       return `
@@ -1763,15 +1767,15 @@ export async function handleGradeChange(inputEl) {
     return;
   }
 
-  const num = parseFloat(rawVal);
+  const num = Number(rawVal);
   if (isNaN(num) || num < 0.0 || num > 10.0) {
     showToast('Điểm không hợp lệ! Vui lòng nhập số từ 0.0 đến 10.0', 'error');
     inputEl.value = origVal;
     return;
   }
 
-  const rounded = Math.round(num * 10) / 10;
-  inputEl.value = rounded.toFixed(1);
+  const rounded = Math.round(num * 100) / 100;
+  inputEl.value = rounded.toFixed(2);
 
   inputEl.dataset.saving = 'true';
   inputEl.disabled = true;
@@ -1782,8 +1786,8 @@ export async function handleGradeChange(inputEl) {
     AppState.grades[studentId][subjectId] = rounded;
     await upsertGradeToSupabase(studentId, subjectId, rounded);
 
-    if (origVal !== rounded.toFixed(1)) {
-      logAuditTrail(studentId, subjectId, origVal, rounded.toFixed(1), 'Cập nhật điểm trực tiếp lên Supabase');
+    if (origVal !== rounded.toFixed(2)) {
+      logAuditTrail(studentId, subjectId, origVal, rounded.toFixed(2), 'Cập nhật điểm trực tiếp lên Supabase');
     }
 
     renderSpreadsheet();
@@ -1944,16 +1948,18 @@ export function renderMasterTable() {
 
 // --- 6. BÁO CÁO GIAO BAN (3 BẢNG CHUẨN): BẢNG 1 (TỶ LỆ TÍCH LŨY) • BẢNG 2 (TỶ LỆ TỪNG NĂM & TỪNG HỌC KỲ) • BẢNG 3 (DANH SÁCH HỌC VIÊN RỚT MÔN CẦN BỒI DƯỠNG) ---
 
-export const RANK_META_5 = [
-  { name: 'Xuất sắc', standard: 'ĐTB ≥ 9.0', desc: 'Đạt danh hiệu Học viên Xuất sắc / Chiến sĩ thi đua', badge: 'bg-purple-100 text-purple-900 border-purple-300' },
-  { name: 'Giỏi', standard: '8.00 ≤ ĐTB < 9.0', desc: 'Đạt danh hiệu Học viên Giỏi tiêu biểu', badge: 'bg-emerald-100 text-emerald-900 border-emerald-300' },
+export const RANK_META = [
+  { name: 'Xuất sắc', standard: '9.00 ≤ ĐTB ≤ 10.00', desc: 'Đạt danh hiệu Học viên Xuất sắc / Chiến sĩ thi đua', badge: 'bg-purple-100 text-purple-900 border-purple-300' },
+  { name: 'Giỏi', standard: '8.00 ≤ ĐTB < 9.00', desc: 'Đạt danh hiệu Học viên Giỏi tiêu biểu', badge: 'bg-emerald-100 text-emerald-900 border-emerald-300' },
   { name: 'Khá', standard: '7.00 ≤ ĐTB < 8.00', desc: 'Học lực vững chắc, hoàn thành tốt nhiệm vụ', badge: 'bg-blue-100 text-blue-900 border-blue-300' },
-  { name: 'Trung bình', standard: '5.00 ≤ ĐTB < 7.00', desc: 'Đạt yêu cầu, cần tăng cường tự học nâng cao điểm số', badge: 'bg-amber-100 text-amber-900 border-amber-300' },
-  { name: 'Yếu', standard: 'ĐTB < 5.00', desc: 'Cần phân công cán sự kèm cặp phụ đạo và ôn thi lại', badge: 'bg-rose-100 text-rose-900 border-rose-300' }
+  { name: 'Trung bình khá', standard: '6.50 ≤ ĐTB < 7.00', desc: 'Cần tiếp tục củng cố kiến thức và nâng cao kết quả học tập', badge: 'bg-cyan-100 text-cyan-900 border-cyan-300' },
+  { name: 'Trung bình', standard: '5.50 ≤ ĐTB < 6.50', desc: 'Đạt yêu cầu, cần tăng cường tự học nâng cao điểm số', badge: 'bg-amber-100 text-amber-900 border-amber-300' },
+  { name: 'Yếu', standard: '5.00 ≤ ĐTB < 5.50', desc: 'Cần tăng cường ôn tập để nâng cao kết quả', badge: 'bg-orange-100 text-orange-900 border-orange-300' },
+  { name: 'Kém', standard: 'ĐTB < 5.00', desc: 'Cần bồi dưỡng; chỉ môn dưới 4.00 mới tính là rớt', badge: 'bg-rose-100 text-rose-900 border-rose-300' }
 ];
 
 /**
- * Tính toán toàn diện thống kê học lực 5 mức (Xuất sắc, Giỏi, Khá, Trung bình, Yếu),
+ * Tính toán toàn diện thống kê học lực 7 mức (Xuất sắc, Giỏi, Khá, Trung bình khá, Trung bình, Yếu, Kém),
  * Tỷ lệ đạt/rớt học phần, Tổng số học viên rớt môn, Tổng số lượt rớt và Danh sách chi tiết môn rớt
  * theo từng mốc thời gian:
  * - mode = 'semester' : Theo Học kỳ (HK1 -> HK10)
@@ -1965,29 +1971,11 @@ export function computeTimeframeAcademicStats(studentsList = [], mode = 'course'
   const yearNum = Number(year) || 1;
   const totalCadets = Array.isArray(studentsList) ? studentsList.length : 0;
 
-  const rankCounts = {
-    'Xuất sắc': 0,
-    'Giỏi': 0,
-    'Khá': 0,
-    'Trung bình': 0,
-    'Yếu': 0
-  };
+  const rankCounts = Object.fromEntries(RANK_LEVELS.map(rank => [rank, 0]));
 
-  const rankDebtStudents = {
-    'Xuất sắc': 0,
-    'Giỏi': 0,
-    'Khá': 0,
-    'Trung bình': 0,
-    'Yếu': 0
-  };
+  const rankDebtStudents = Object.fromEntries(RANK_LEVELS.map(rank => [rank, 0]));
 
-  const rankFailInstances = {
-    'Xuất sắc': 0,
-    'Giỏi': 0,
-    'Khá': 0,
-    'Trung bình': 0,
-    'Yếu': 0
-  };
+  const rankFailInstances = Object.fromEntries(RANK_LEVELS.map(rank => [rank, 0]));
 
   const classScope = getCurrentUserClassScope();
   const visibleClasses = classScope ? [classScope] : DEFAULT_CLASSES;
@@ -1999,7 +1987,10 @@ export function computeTimeframeAcademicStats(studentsList = [], mode = 'course'
       xs: 0,
       gioi: 0,
       kha: 0,
+      tbk: 0,
       tb: 0,
+      kem: 0,
+      rankCounts: Object.fromEntries(RANK_LEVELS.map(rank => [rank, 0])),
       yeu: 0,
       passedCourses: 0,
       failedCourses: 0,
@@ -2108,11 +2099,14 @@ export function computeTimeframeAcademicStats(studentsList = [], mode = 'course'
     if (cs) {
       cs.count++;
       cs.totalGpa += gpa;
+      cs.rankCounts[effectiveRank]++;
       if (effectiveRank === 'Xuất sắc') cs.xs++;
       else if (effectiveRank === 'Giỏi') cs.gioi++;
       else if (effectiveRank === 'Khá') cs.kha++;
+      else if (effectiveRank === 'Trung bình khá') cs.tbk++;
       else if (effectiveRank === 'Trung bình') cs.tb++;
-      else cs.yeu++;
+      else if (effectiveRank === 'Yếu') cs.yeu++;
+      else cs.kem++;
 
       cs.passedCourses += studentPassedCourses;
       cs.failedCourses += studentFailedCourses;
@@ -2140,7 +2134,7 @@ export function computeTimeframeAcademicStats(studentsList = [], mode = 'course'
     : '0.0';
 
   const rankRates = {};
-  RANK_LEVELS_5.forEach(r => {
+  RANK_LEVELS.forEach(r => {
     rankRates[r] = totalCadets > 0 ? (((rankCounts[r] || 0) / totalCadets) * 100).toFixed(1) : '0.0';
   });
 
@@ -2294,18 +2288,14 @@ export function renderDashboard() {
   const companyTbody = document.getElementById('reportCompanyTableBody');
   const companyTfoot = document.getElementById('reportCompanyTableFooter');
   if (companyTbody) {
-    const rankRowsHtml = RANK_META_5.map((item, idx) => {
+    const rankRowsHtml = RANK_META.map((item, idx) => {
       const cCourse = courseStats.rankCounts[item.name] || 0;
       const rCourse = courseStats.rankRates[item.name] || '0.0';
 
       const classBreakdownStr = visibleClasses.map(clsName => {
         const cs = courseStats.classStats[clsName];
         if (!cs) return `${clsName}: 0`;
-        const val = item.name === 'Xuất sắc' ? cs.xs
-          : item.name === 'Giỏi' ? cs.gioi
-          : item.name === 'Khá' ? cs.kha
-          : item.name === 'Trung bình' ? cs.tb
-          : cs.yeu;
+        const val = cs.rankCounts[item.name] || 0;
         return `<span class="inline-block px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-semibold text-[10px] mr-1">${clsName}: <strong>${val}</strong></span>`;
       }).join('');
 
@@ -2326,7 +2316,7 @@ export function renderDashboard() {
       `;
     }).join('');
 
-    // Hàng 6 & 7 trong Bảng 1: Tỷ lệ Đạt / Rớt tích lũy từ đầu khóa đến nay
+    // Hai hàng sau các mức xếp loại trong Bảng 1: Tỷ lệ Đạt / Rớt tích lũy từ đầu khóa đến nay
     const passClassesStr = visibleClasses.map(clsName => {
       const cs = courseStats.classStats[clsName];
       const passCnt = cs ? Math.max(0, cs.count - cs.debtStudents) : 0;
@@ -2342,7 +2332,7 @@ export function renderDashboard() {
 
     const passFailRowsHtml = `
       <tr class="bg-emerald-50/40 hover:bg-emerald-50/70 transition border-t-2 border-emerald-200">
-        <td class="py-2.5 px-3 text-center text-emerald-800 font-bold">6</td>
+        <td class="py-2.5 px-3 text-center text-emerald-800 font-bold">${RANK_LEVELS.length + 1}</td>
         <td class="py-2.5 px-4 font-extrabold text-emerald-900">
           ✅ Tỷ lệ Đạt tích lũy (Từ đầu khóa đến nay)
         </td>
@@ -2358,7 +2348,7 @@ export function renderDashboard() {
         <td class="py-2.5 px-4 text-emerald-800 font-semibold">Hoàn thành đạt chuẩn các học phần tích lũy từ đầu khóa</td>
       </tr>
       <tr class="bg-rose-50/50 hover:bg-rose-50/80 transition">
-        <td class="py-2.5 px-3 text-center text-rose-800 font-bold">7</td>
+        <td class="py-2.5 px-3 text-center text-rose-800 font-bold">${RANK_LEVELS.length + 2}</td>
         <td class="py-2.5 px-4 font-extrabold text-rose-900">
           ⚠️ Tỷ lệ Rớt tích lũy (Từ đầu khóa đến nay)
         </td>
@@ -2447,8 +2437,8 @@ export function renderDashboard() {
       </tr>
     `;
 
-    // 5 hàng xếp loại học lực: Xuất sắc, Giỏi, Khá, Trung bình, Yếu
-    const rankMatrixRows = RANK_META_5.map((item, rIdx) => {
+    // 7 hàng xếp loại học lực
+    const rankMatrixRows = RANK_META.map((item, rIdx) => {
       const yearCells = yearsBreakdown.map(yb => {
         const c1 = yb.hk1.rankCounts[item.name] || 0;
         const r1 = yb.hk1.rankRates[item.name] || '0.0';
@@ -2493,7 +2483,7 @@ export function renderDashboard() {
       `;
     }).join('');
 
-    // Hàng 6: Tỷ lệ Đạt học phần (%)
+    // Hàng kế tiếp: Tỷ lệ Đạt học phần (%)
     const passRowCells = yearsBreakdown.map(yb => `
       <td class="py-2.5 px-2 text-center border-l border-slate-200 text-emerald-700 font-bold">
         ${yb.hk1.coursePassRate}% <span class="text-[10px] font-normal text-slate-500">(${yb.hk1.passedCourseInstances} lượt)</span>
@@ -2510,7 +2500,7 @@ export function renderDashboard() {
       <td class="py-2.5 px-2 text-center text-slate-400 font-medium">0 lượt rớt</td>
     `).join('');
 
-    // Hàng 7: Tỷ lệ Rớt học phần (%) + Tổng số học viên rớt môn + Tổng số lượt rớt của từng Năm
+    // Hàng kế tiếp: Tỷ lệ Rớt học phần (%) + Tổng số học viên rớt môn + Tổng số lượt rớt của từng Năm
     const failRowCells = yearsBreakdown.map(yb => `
       <td class="py-2.5 px-2 text-center border-l border-slate-200 ${yb.hk1.failedCourseInstances > 0 ? 'text-rose-700 font-bold' : 'text-slate-500'}">
         ${yb.hk1.courseFailRate}% <span class="text-[10px] font-normal">(${yb.hk1. debtStudentCount} HV / ${yb.hk1.totalDebtFailsCount} lượt)</span>
@@ -2532,13 +2522,13 @@ export function renderDashboard() {
     matrixTbody.innerHTML = `
       ${rankMatrixRows}
       <tr class="divide-x divide-slate-200 bg-emerald-50/30 border-t-2 border-emerald-200">
-        <td class="py-2.5 px-2 text-center font-bold text-emerald-800 sticky left-0 bg-emerald-50 z-10">6</td>
+        <td class="py-2.5 px-2 text-center font-bold text-emerald-800 sticky left-0 bg-emerald-50 z-10">${RANK_LEVELS.length + 1}</td>
         <td class="py-2.5 px-3 font-extrabold text-emerald-900 sticky left-10 bg-emerald-50 z-10">Tỷ lệ Đạt học phần (%)</td>
         <td class="py-2.5 px-2 text-center font-mono text-[11px] text-emerald-800 font-bold">Điểm ≥ 4.0</td>
         ${passRowCells}
       </tr>
       <tr class="divide-x divide-slate-200 bg-rose-50/40">
-        <td class="py-2.5 px-2 text-center font-bold text-rose-800 sticky left-0 bg-rose-50 z-10">7</td>
+        <td class="py-2.5 px-2 text-center font-bold text-rose-800 sticky left-0 bg-rose-50 z-10">${RANK_LEVELS.length + 2}</td>
         <td class="py-2.5 px-3 font-extrabold text-rose-900 sticky left-10 bg-rose-50 z-10">Tỷ lệ Rớt &amp; Tổng hợp Rớt môn</td>
         <td class="py-2.5 px-2 text-center font-mono text-[11px] text-rose-800 font-bold">Điểm &lt; 4.0</td>
         ${failRowCells}
@@ -2633,7 +2623,7 @@ export function renderDebtCadetsSection(debtCadetsList = null, failedCourseDetai
         return `
           <span class="inline-flex items-center gap-1.5 bg-rose-100 text-rose-900 font-bold px-2.5 py-1 rounded-md text-xs border border-rose-300 mr-1.5 mb-1 shadow-sm">
             <span>${fullCourseName} (${credits} TC • HK${sem})</span>
-            <span class="bg-rose-600 text-white px-1.5 py-0.2 rounded text-[10px] font-black" title="Điểm học phần: ${Number(d.score).toFixed(1)}">Điểm: ${Number(d.score).toFixed(1)}</span>
+            <span class="bg-rose-600 text-white px-1.5 py-0.2 rounded text-[10px] font-black" title="Điểm học phần: ${Number(d.score).toFixed(2)}">Điểm: ${Number(d.score).toFixed(2)}</span>
           </span>
         `;
       }).join('');
@@ -2684,7 +2674,7 @@ export function renderDebtCadetsSection(debtCadetsList = null, failedCourseDetai
  * Xuất file Báo cáo Tình hình Học tập (exportReportExcel):
  * - Chuẩn hóa hiển thị đầy đủ Tên môn học (tuyệt đối không dùng tên viết tắt hay mã môn).
  * - Bao gồm đầy đủ 3 bảng và các chỉ số:
- *   1. Bảng 1: Tỷ lệ Tích lũy (5 mức Xuất sắc, Giỏi, Khá, Trung bình, Yếu + tỷ lệ đạt/rớt từ đầu khóa đến nay)
+ *   1. Bảng 1: Tỷ lệ Tích lũy (7 mức Xuất sắc, Giỏi, Khá, Trung bình khá, Trung bình, Yếu, Kém + tỷ lệ đạt/rớt từ đầu khóa đến nay)
  *   2. Bảng 2: Tỷ lệ theo Từng Năm & Từng Học kỳ: Năm 1 (HK1, HK2, Cả năm, Số học viên rớt môn, Số lượt rớt) -> Năm 2 -> Năm 3 -> Năm 4 -> Năm 5
  *   3. Bảng 3: Danh sách Học viên Rớt môn (Thi lại / Nợ học phần) Cần Bồi dưỡng & Chi tiết cụ thể từng học viên bị rớt môn nào (Tên môn đầy đủ, học kỳ, số tín chỉ, điểm số).
  */
@@ -2712,7 +2702,7 @@ export function exportReportExcel() {
     ['STT', 'Chỉ tiêu / Xếp loại học lực tích lũy', 'Tiêu chuẩn đánh giá (Hệ 10)', 'Số lượng', 'Tỷ lệ tích lũy (%)', 'Ghi chú / Đánh giá chất lượng']
   ];
 
-  RANK_META_5.forEach((item, idx) => {
+  RANK_META.forEach((item, idx) => {
     rows1.push([
       idx + 1,
       `Xếp loại ${item.name}`,
@@ -2725,7 +2715,7 @@ export function exportReportExcel() {
 
   rows1.push(
     [
-      6,
+      RANK_LEVELS.length + 1,
       'Tỷ lệ Đạt học phần tích lũy (Từ đầu khóa đến nay)',
       'Điểm học phần >= 4.0',
       `${courseStats.passedCourseInstances} lượt học phần đạt (${courseStats.passStudentCount} HV đạt 100%)`,
@@ -2733,7 +2723,7 @@ export function exportReportExcel() {
       `Tỷ lệ quân số không nợ môn: ${courseStats.passStudentRate}%`
     ],
     [
-      7,
+      RANK_LEVELS.length + 2,
       'Tỷ lệ Rớt học phần tích lũy (Từ đầu khóa đến nay)',
       'Điểm học phần < 4.0',
       `${courseStats.failedCourseInstances} lượt học phần rớt (${courseStats.debtStudentCount} HV rớt môn)`,
@@ -2769,7 +2759,7 @@ export function exportReportExcel() {
   rows1.push(matrixHeader1);
   rows1.push(matrixHeader2);
 
-  RANK_META_5.forEach((item, idx) => {
+  RANK_META.forEach((item, idx) => {
     const r = [idx + 1, item.name, item.standard];
     yearsBreakdown.forEach(yb => {
       const c1 = yb.hk1.rankCounts[item.name] || 0;
@@ -2785,8 +2775,8 @@ export function exportReportExcel() {
     rows1.push(r);
   });
 
-  const passRow = [6, 'Tỷ lệ Đạt học phần (%)', 'Điểm >= 4.0'];
-  const failRow = [7, 'Tỷ lệ Rớt học phần (%) & Tổng hợp Rớt môn', 'Điểm < 4.0'];
+  const passRow = [RANK_LEVELS.length + 1, 'Tỷ lệ Đạt học phần (%)', 'Điểm >= 4.0'];
+  const failRow = [RANK_LEVELS.length + 2, 'Tỷ lệ Rớt học phần (%) & Tổng hợp Rớt môn', 'Điểm < 4.0'];
   const avgRow = ['TỔNG', 'Điểm trung bình (ĐTB) & Tổng số rớt theo Năm', 'Hệ 10'];
 
   yearsBreakdown.forEach(yb => {
@@ -2836,7 +2826,7 @@ export function exportReportExcel() {
     courseStats.debtCadetsList.forEach((item, idx) => {
       const s = item.student;
       const fullCoursesStr = item.debts
-        .map(d => `${getFullSubjectName(d.subject)} (${d.subject.credits} TC - Học kỳ ${d.subject.semester} - Điểm: ${Number(d.score).toFixed(1)})`)
+        .map(d => `${getFullSubjectName(d.subject)} (${d.subject.credits} TC - Học kỳ ${d.subject.semester} - Điểm: ${Number(d.score).toFixed(2)})`)
         .join('; ');
       rows1.push([
         idx + 1,
@@ -2871,7 +2861,7 @@ export function exportReportExcel() {
         `Học kỳ ${d.semester}`,
         `Năm thứ ${d.academicYear}`,
         d.credits,
-        Number(d.score).toFixed(1)
+        Number(d.score).toFixed(2)
       ]);
     });
   }
@@ -2890,9 +2880,7 @@ export function exportReportExcel() {
       'Quân số',
       'Xuất sắc (SL / %)',
       'Giỏi (SL / %)',
-      'Khá (SL / %)',
-      'Trung bình (SL / %)',
-      'Yếu (SL / %)',
+      ...RANK_LEVELS.slice(2).map(rank => `${rank} (SL / %)`),
       'Tỷ lệ Đạt học phần (%)',
       'Tỷ lệ Rớt học phần (%)',
       'Số học viên rớt môn',
@@ -2907,11 +2895,7 @@ export function exportReportExcel() {
         `Năm ${yb.year}`,
         subTitle,
         st.totalCadets,
-        `${st.rankCounts['Xuất sắc']} (${st.rankRates['Xuất sắc']}%)`,
-        `${st.rankCounts['Giỏi']} (${st.rankRates['Giỏi']}%)`,
-        `${st.rankCounts['Khá']} (${st.rankRates['Khá']}%)`,
-        `${st.rankCounts['Trung bình']} (${st.rankRates['Trung bình']}%)`,
-        `${st.rankCounts['Yếu']} (${st.rankRates['Yếu']}%)`,
+        ...RANK_LEVELS.map(rank => `${st.rankCounts[rank]} (${st.rankRates[rank]}%)`),
         `${st.coursePassRate}%`,
         `${st.courseFailRate}%`,
         `${st.debtStudentCount} học viên (${st.debtStudentRate}%)`,
@@ -2961,7 +2945,7 @@ export function exportReportExcel() {
       `Học kỳ ${d.semester}`,
       `Năm thứ ${d.academicYear}`,
       d.credits,
-      Number(d.score).toFixed(1),
+      Number(d.score).toFixed(2),
       Number(d.gpa).toFixed(2),
       d.classification,
       `Phân công Cán sự lớp ${d.studentClass} kèm cặp; ôn và thi lại môn ${fullCourseName}`
@@ -2975,11 +2959,9 @@ export function exportReportExcel() {
   ];
 
   const ws2 = XLSX.utils.aoa_to_sheet(rows2);
-  ws2['!cols'] = [
-    { wch: 12 }, { wch: 30 }, { wch: 10 }, { wch: 16 }, { wch: 16 },
-    { wch: 16 }, { wch: 18 }, { wch: 16 }, { wch: 18 }, { wch: 18 },
-    { wch: 22 }, { wch: 16 }, { wch: 12 }
-  ];
+  ws2['!cols'] = [{ wch: 12 }, { wch: 30 }, { wch: 10 },
+    ...RANK_LEVELS.map(() => ({ wch: 20 })),
+    { wch: 18 }, { wch: 18 }, { wch: 25 }, { wch: 16 }, { wch: 12 }];
 
   const ws3 = XLSX.utils.aoa_to_sheet(rows3);
   ws3['!cols'] = [
@@ -4150,7 +4132,7 @@ export async function executeExcelImport() {
         }
 
         if (targetSubject && targetSubject.id) {
-          const rounded = Math.round(num * 10) / 10;
+          const rounded = Math.round(num * 100) / 100;
           AppState.grades[student.id][targetSubject.id] = rounded;
           bulkGradeEntries.push({
             studentId: student.id,
@@ -4533,7 +4515,7 @@ export function openTranscriptModal(studentId) {
         <td class="p-2 font-mono font-bold text-slate-700">${sub.code}</td>
         <td class="p-2 font-medium text-slate-900">${getFullSubjectName(sub)} ${sub.category === 'specialized' ? `<span class="text-[10px] font-bold text-amber-800">(CN ${sub.targetClass})</span>` : ''}</td>
         <td class="p-2 text-center font-bold text-gold-600">${sub.credits}</td>
-        <td class="p-2 text-center font-bold ${isFail ? 'text-rose-700 font-black' : 'text-slate-800'}">${hasScore ? Number(sc10).toFixed(1) : '-'}</td>
+        <td class="p-2 text-center font-bold ${isFail ? 'text-rose-700 font-black' : 'text-slate-800'}">${hasScore ? Number(sc10).toFixed(2) : '-'}</td>
         <td class="p-2 text-center font-black ${isFail ? 'text-rose-700' : 'text-army-800'}">${letter}</td>
         <td class="p-2 text-center font-bold text-blue-800">${sc4}</td>
         <td class="p-2 text-center">

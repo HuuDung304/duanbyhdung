@@ -735,11 +735,13 @@ body {
             <label class="block text-[11px] font-semibold text-slate-500 mb-1">Xếp loại Tích lũy (Hệ 10):</label>
             <select id="cumulFilterRank" class="w-full bg-slate-50 border border-slate-300 text-slate-800 text-xs rounded-lg px-2.5 py-1.5">
               <option value="all">-- Tất cả xếp loại --</option>
-              <option value="Xuất sắc">Xuất sắc (&ge; 8.50)</option>
-              <option value="Giỏi">Giỏi (8.00 - 8.49)</option>
+              <option value="Xuất sắc">Xuất sắc (9.00 - 10.00)</option>
+              <option value="Giỏi">Giỏi (8.00 - 8.99)</option>
               <option value="Khá">Khá (7.00 - 7.99)</option>
-              <option value="Trung bình">Trung bình (5.00 - 6.99)</option>
-              <option value="Yếu">Yếu (&lt; 5.00)</option>
+              <option value="Trung bình khá">Trung bình khá (6.50 - 6.99)</option>
+              <option value="Trung bình">Trung bình (5.50 - 6.49)</option>
+              <option value="Yếu">Yếu (5.00 - 5.49)</option>
+              <option value="Kém">Kém (&lt; 5.00)</option>
             </select>
           </div>
 
@@ -848,11 +850,13 @@ body {
             <label class="block text-[11px] font-semibold text-slate-500 mb-1">Xếp loại Học lực:</label>
             <select id="masterFilterRank" class="w-full bg-slate-50 border border-slate-300 text-slate-800 text-xs rounded-lg px-2.5 py-1.5">
               <option value="all">-- Tất cả xếp loại --</option>
-              <option value="Xuất sắc">Xuất sắc (&ge; 8.50)</option>
-              <option value="Giỏi">Giỏi (8.00 - 8.49)</option>
+              <option value="Xuất sắc">Xuất sắc (9.00 - 10.00)</option>
+              <option value="Giỏi">Giỏi (8.00 - 8.99)</option>
               <option value="Khá">Khá (7.00 - 7.99)</option>
-              <option value="Trung bình">Trung bình (5.00 - 6.99)</option>
-              <option value="Yếu">Yếu (&lt; 5.00)</option>
+              <option value="Trung bình khá">Trung bình khá (6.50 - 6.99)</option>
+              <option value="Trung bình">Trung bình (5.50 - 6.49)</option>
+              <option value="Yếu">Yếu (5.00 - 5.49)</option>
+              <option value="Kém">Kém (&lt; 5.00)</option>
             </select>
           </div>
 
@@ -994,7 +998,7 @@ body {
             <span class="w-2.5 h-2.5 rounded-full bg-army-700"></span>
             <div>
               <h4 class="font-bold text-xs sm:text-sm text-army-900 uppercase">Bảng 1: Tỷ Lệ Tích Lũy (Từ Đầu Khóa Đến Nay)</h4>
-              <p class="text-[11px] text-slate-500">Thống kê tỷ lệ xếp loại học lực tích lũy (Xuất sắc, Giỏi, Khá, Trung bình, Yếu) và tỷ lệ đạt/rớt từ đầu khóa đến nay</p>
+              <p class="text-[11px] text-slate-500">Thống kê tỷ lệ xếp loại học lực tích lũy (Xuất sắc, Giỏi, Khá, Trung bình khá, Trung bình, Yếu, Kém) và tỷ lệ đạt/rớt từ đầu khóa đến nay</p>
             </div>
           </div>
           <span class="text-[11px] text-army-800 font-bold bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-lg">Toàn khóa (Tích lũy từ đầu khóa đến nay)</span>

@@ -41,14 +41,20 @@ const assert=require('node:assert/strict');
  const file=(code,subject,score)=>{const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['Mã HV','Họ và Tên','Lớp',subject],[code,'Học viên kiểm thử','OTQS1',score]]),'Diem');return {name:'Diem_OTQS1_Nam_1.xlsx',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',buffer:XLSX.write(wb,{type:'buffer',bookType:'xlsx'})};};
  await Promise.all(pages.map(async(p,i)=>{
   await p.locator('#btnImportExcel').dispatchEvent('click');
-  await p.locator('#excelFileInput').setInputFiles(file('HVTEST',i?'Vật lý':'Toán',i?'8,5':'7,5'));
+  await p.locator('#excelFileInput').setInputFiles(file('HVTEST',i?'Vật lý':'Toán',i?'4,00':'3,99'));
   await p.waitForFunction(()=>!document.getElementById('btnConfirmImport').disabled);
   await p.locator('#btnConfirmImport').dispatchEvent('click');
   await p.waitForFunction(()=>document.getElementById('modalImportExcel').getAttribute('aria-hidden')==='true' && !document.getElementById('btnConfirmImport').disabled);
   assert.match(await p.locator('#classSpreadsheetWrapper').innerText(),/HVTEST/);
  }));
  assert.equal(tables.students.length,1);assert.equal(tables.grades.length,2);assert.equal(tables.languages.length,1);
- assert.deepEqual(tables.grades.map(g=>g.score).sort(),[7.5,8.5]);assert.deepEqual(errors,[]);
+ assert.deepEqual(tables.grades.map(g=>g.score).sort(),[3.99,4]);assert.deepEqual(errors,[]);
+ for(const page of pages){
+  await page.evaluate(()=>window.switchTab('tab-dashboard'));
+  assert.match(await page.locator('#reportCompanyTableBody').innerText(),/Trung bình khá/);
+  assert.match(await page.locator('#reportCompanyTableBody').innerText(),/Kém/);
+  assert.equal(await page.locator('#masterFilterRank option').count(),8);
+ }
  console.log(JSON.stringify({result:'PASS',workflow:'Two browser sessions concurrently upload actual XLSX files through the UI against an in-memory REST fixture',students:tables.students.length,subjects:tables.subjects.length,grades:tables.grades.length,browserErrors:errors,writes},null,2));
  await browser.close();
 })().catch(e=>{console.error(e);process.exit(1)});
