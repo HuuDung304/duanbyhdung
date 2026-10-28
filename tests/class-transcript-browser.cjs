@@ -27,9 +27,10 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
     const file=await pending; assert.equal(file.suggestedFilename(),'Bảng điểm OTQS1.xlsx');
     const bytes=fs.readFileSync(await file.path()),book=XLSX.read(bytes,{type:'buffer'});
     const rows=XLSX.utils.sheet_to_json(book.Sheets[book.SheetNames[0]],{header:1});
-    assert.deepEqual(rows[0],['MÃ HỌC VIÊN','HỌ VÀ TÊN','LỚP','NĂM SINH','ĐIỂM CÁC MÔN KỲ 1','ĐIỂM TB KỲ 1']);
-    assert.equal(rows.length,3);assert.equal(rows[1][0],'HV001');assert.equal(rows[1][3],2003);
-    assert.match(rows[1][4],/Toán cao cấp \(3 TC\): 9.00/);
+    assert.deepEqual(rows[0].slice(0,5),['MÃ HỌC VIÊN','HỌ VÀ TÊN','LỚP','NĂM SINH','HỌC KỲ 1']);
+    assert.equal(rows[1][4],'Toán cao cấp'); assert.equal(rows[2][4],3);
+    assert.equal(rows.length,5);assert.equal(rows[3][0],'HV001');assert.equal(rows[3][3],2003);
+    assert.equal(rows[3][4],9); assert.ok(book.Sheets[book.SheetNames[0]]['!merges'].length>0);
     assert.ok(!rows.flat().includes('HV003'));
     const archive=XLSX.CFB.read(bytes,{type:'buffer'});
     const styles=new TextDecoder().decode(archive.FileIndex.find(file=>file.name==='styles.xml').content);

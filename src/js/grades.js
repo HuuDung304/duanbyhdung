@@ -1268,7 +1268,7 @@ export function renderSpreadsheet() {
   if (btnExport) {
     btnExport.innerHTML = `
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-      <span>Xuất Excel Lớp</span>
+      <span>Tải bảng điểm lớp (.xlsx)</span>
     `;
   }
   if (studentVerticalWrapper) studentVerticalWrapper.classList.add('hidden');
@@ -3471,18 +3471,18 @@ export function exportClassExcel() {
   const students = getScopedStudents().filter(student => student.class === cls);
   if (!students.length) { showToast('Lớp chưa có học viên để xuất bảng điểm.', 'error'); return; }
   const semesters = Array.from({ length: 10 }, (_, index) => ({ semester: index + 1, subjects: getSubjectsForClass(cls, index + 1) }));
-  const { headers, rows, completed } = buildClassTranscript(students, semesters, AppState.grades,
+  const { headers, headerRows, merges, rows, completed } = buildClassTranscript(students, semesters, AppState.grades,
     calculateSemesterGPA, calculateAcademicYearGPA, getFullSubjectName, studentBirthYear);
   if (!completed.length) { showToast('Lớp chưa có kỳ nào đầy đủ điểm toàn bộ học viên.', 'error'); return; }
-  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-  ws['!reportHeaderRows'] = [1];
-  ws['!cols'] = headers.map((header, index) => ({ wch: index === 1 ? 28 : header.startsWith('ĐIỂM CÁC MÔN') ? 60 : 18 }));
-  for (let row = 1; row <= rows.length; row++) {
+  const ws = XLSX.utils.aoa_to_sheet([...headerRows, ...rows]);
+  ws['!reportHeaderRows'] = [1, 2, 3];
+  ws['!merges'] = merges;
+  ws['!rows'] = [{ hpt: 28 }, { hpt: 100 }, { hpt: 22 }];
+  ws['!cols'] = headers.map((header, index) => ({ wch: index === 1 ? 28 : index < 4 ? 18 : header.startsWith('ĐIỂM TB') ? 16 : 12 }));
+  for (let row = headerRows.length; row < rows.length + headerRows.length; row++) {
     for (let column = 4; column < headers.length; column++) {
-      if (headers[column].startsWith('ĐIỂM TB')) {
-        const cell = ws[XLSX.utils.encode_cell({ r: row, c: column })];
-        if (cell) cell.z = '0.00';
-      }
+      const cell = ws[XLSX.utils.encode_cell({ r: row, c: column })];
+      if (cell) cell.z = '0.00';
     }
   }
   const wb = XLSX.utils.book_new();

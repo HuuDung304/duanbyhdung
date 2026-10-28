@@ -6,18 +6,31 @@ export function buildClassTranscript(students, semesters, grades, semesterGpa, y
     && students.every(student => subjects.every(subject => validScore(grades[student.id]?.[subject.id]))));
   const completedNumbers = new Set(completed.map(item => item.semester));
   const headers = ['MÃ HỌC VIÊN', 'HỌ VÀ TÊN', 'LỚP', 'NĂM SINH'];
-  for (const { semester } of completed) {
-    headers.push(`ĐIỂM CÁC MÔN KỲ ${semester}`, `ĐIỂM TB KỲ ${semester}`);
-    if (semester % 2 === 0 && completedNumbers.has(semester - 1)) headers.push(`ĐIỂM TB NĂM ${semester / 2}`);
+  const groups = [...headers], credits = ['', '', '', ''];
+  const merges = headers.map((_, c) => ({ s: { r: 0, c }, e: { r: 2, c } }));
+  for (const { semester, subjects } of completed) {
+    const start = headers.length;
+    for (const subject of subjects) {
+      headers.push(fullName(subject)); groups.push(''); credits.push(Number(subject.credits) || 0);
+    }
+    headers.push(`ĐIỂM TB KỲ ${semester}`); groups.push(''); credits.push('');
+    groups[start] = `HỌC KỲ ${semester}`;
+    merges.push({ s: { r: 0, c: start }, e: { r: 0, c: headers.length - 1 } });
+    merges.push({ s: { r: 1, c: headers.length - 1 }, e: { r: 2, c: headers.length - 1 } });
+    if (semester % 2 === 0 && completedNumbers.has(semester - 1)) {
+      const c = headers.length;
+      headers.push(`ĐIỂM TB NĂM ${semester / 2}`); groups.push(`ĐIỂM TB NĂM ${semester / 2}`); credits.push('');
+      merges.push({ s: { r: 0, c }, e: { r: 2, c } });
+    }
   }
+  const headerRows = [groups, headers.map((value, index) => index < 4 || value.startsWith('ĐIỂM TB NĂM') ? '' : value), credits];
   const rows = students.map(student => {
     const row = [String(student.code || ''), student.name, student.class, birthYear(student.dob)];
     for (const { semester, subjects } of completed) {
-      row.push(subjects.map(subject => `${fullName(subject)} (${Number(subject.credits) || 0} TC): ${Number(grades[student.id][subject.id]).toFixed(2)}`).join('\n'),
-        Number(semesterGpa(student.id, semester).toFixed(2)));
+      row.push(...subjects.map(subject => Number(grades[student.id][subject.id])), Number(semesterGpa(student.id, semester).toFixed(2)));
       if (semester % 2 === 0 && completedNumbers.has(semester - 1)) row.push(Number(yearGpa(student.id, semester / 2).toFixed(2)));
     }
     return row;
   });
-  return { headers, rows, completed };
+  return { headers, headerRows, merges, rows, completed };
 }
