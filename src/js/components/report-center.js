@@ -5,24 +5,15 @@ export function syncReportExportScope() {
   if (AppState.activeTab !== 'tab-reports') return;
   const scope = getCurrentUserClassScope();
   const selected = scope || (AppState.role === 'student' ? getLoggedInStudent()?.class : $('reportsClassSelect')?.value) || 'all';
-  const year = Number($('reportsYearSelect')?.value) || 1;
-  AppState.currentSheetClass = selected; AppState.currentSheetSemester = String(year); AppState.cumulativeSelectedYear = String(year);
-  AppState.dashboardFilters ||= {}; AppState.dashboardFilters.class = selected;
-  AppState.masterFilters ||= {}; AppState.masterFilters.class = selected; AppState.masterFilters.year = year;
-  if ($('masterFilterSemester')) $('masterFilterSemester').value = String(year);
-  for (const id of ['sheetClassSelect','profileFilterClass','cumulFilterClass','dashboardClassFilter']) if ($(id)) $(id).value = selected;
-  if ($('cumulFilterRank')) $('cumulFilterRank').value = 'all';
-  if ($('profileFilterPolitical')) $('profileFilterPolitical').value = 'all';
-  if ($('profileFilterPosition')) $('profileFilterPosition').value = 'all';
-  if ($('cumulFilterYear')) $('cumulFilterYear').value = String(year);
+  AppState.currentSheetClass = selected;
 }
 function renderReportCenter() {
   const select = $('reportsClassSelect'); if (!select) return;
   const student = AppState.role === 'student';
   const scope = getCurrentUserClassScope() || (student ? getLoggedInStudent()?.class : null);
   const old = select.value;
-  select.replaceChildren(...(scope ? [scope] : ['all', ...DEFAULT_CLASSES]).map(value => new Option(value === 'all' ? 'Toàn Đại đội 460' : `Lớp ${value}`, value)));
-  select.value = scope || (['all',...DEFAULT_CLASSES].includes(old) ? old : 'all'); select.disabled = Boolean(scope) || student;
+  select.replaceChildren(...(scope ? [scope] : ['', ...DEFAULT_CLASSES]).map(value => new Option(value ? `Lớp ${value}` : 'Chọn lớp để tải', value)));
+  select.value = scope || (DEFAULT_CLASSES.includes(old) ? old : ''); select.disabled = Boolean(scope) || student;
   document.querySelectorAll('#tab-reports .export-unit-only').forEach(element => { element.hidden = student || AppState.role === 'guest'; });
   const button = $('btnExportClassExcel'); if (button && student) button.querySelector('span')?.replaceChildren(document.createTextNode('Xuất bảng điểm cá nhân & tích lũy (.xlsx)'));
 }
