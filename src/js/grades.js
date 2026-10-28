@@ -4265,7 +4265,7 @@ export function renderCumulativeTable() {
     const canEditMeta = AppState.role === 'admin' ||
       (AppState.role && AppState.role.startsWith('class_leader_') && AppState.role.replace('class_leader_', '') === s.class);
 
-    const langOptionsHtml = LANGUAGE_LEVEL_OPTIONS.map(opt =>
+    const langOptionsHtml = LANGUAGE_LEVEL_OPTIONS.filter(level => level !== 'Chưa đạt').map(opt =>
       `<option value="${opt}" ${opt === curLang ? 'selected' : ''}>${opt}</option>`
     ).join('');
 
@@ -4311,6 +4311,10 @@ export function renderCumulativeTable() {
     rowsHtml = `<tr><td colspan="11" class="p-8 text-center text-slate-400">Không tìm thấy quân nhân nào phù hợp với bộ lọc.</td></tr>`;
   }
   tbody.innerHTML = rowsHtml;
+  // Leave missing proficiency unselected; never imply that an unrecorded level is A1.
+  tbody.querySelectorAll('.select-cumul-lang').forEach(select => {
+    if (!select.querySelector('option[selected]')) select.selectedIndex = -1;
+  });
 
   if (footer) {
     footer.innerHTML = `

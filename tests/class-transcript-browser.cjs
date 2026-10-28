@@ -24,7 +24,7 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
      await selector.selectOption('OTQS1');
     }
     await page.evaluate(()=>window.switchTab('tab-cumulative'));
-    assert.deepEqual(await page.locator('#cumulativeTableBody .select-cumul-lang').first().locator('option').evaluateAll(items=>items.map(item=>item.value)),['Chưa đạt','A1','A21','A2','B11','B1']);
+    assert.deepEqual(await page.locator('#cumulativeTableBody .select-cumul-lang').first().locator('option').evaluateAll(items=>items.map(item=>item.value)),['A1','A21','A2','B11','B1']);
     assert.deepEqual(await page.locator('#tab-cumulative .required-lang-standard-select').first().locator('option').evaluateAll(items=>items.map(item=>item.value)),['A1','A21','A2','B11','B1']);
     await page.evaluate(()=>window.switchTab('tab-reports'));
     const russianPending=page.waitForEvent('download');await page.locator('#btnExportLangExcel').click();
