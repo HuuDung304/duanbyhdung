@@ -1911,17 +1911,12 @@ export function renderMasterTable() {
             `<span class="text-emerald-700 font-bold text-[11px]">✅ Đạt chuẩn</span>`
           }
         </td>
-        <td class="py-2.5 px-3 text-center">
-          <button type="button" class="btn-view-cadet-detail text-xs text-army-700 hover:text-army-900 font-semibold underline" data-id="${student.id}">
-            Xem chi tiết
-          </button>
-        </td>
       </tr>
     `;
   });
 
   if (filtered.length === 0) {
-    html = `<tr><td colspan="12" class="py-8 text-center text-slate-400">Không tìm thấy học viên nào phù hợp với bộ lọc hiện tại.</td></tr>`;
+    html = `<tr><td colspan="11" class="py-8 text-center text-slate-400">Không tìm thấy học viên nào phù hợp với bộ lọc hiện tại.</td></tr>`;
   }
   tbody.innerHTML = html;
 
