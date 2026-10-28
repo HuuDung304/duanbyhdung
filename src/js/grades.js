@@ -1122,7 +1122,7 @@ export const RANK_LEVELS_5 = ['Xuất sắc', 'Giỏi', 'Khá', 'Trung bình', '
 
 export function getClassification(gpa) {
   const val = Number(gpa) || 0;
-  if (val >= 8.5) return 'Xuất sắc';
+  if (val >= 9.0) return 'Xuất sắc';
   if (val >= 8.0) return 'Giỏi';
   if (val >= 7.0) return 'Khá';
   if (val >= 5.0) return 'Trung bình';
@@ -1945,8 +1945,8 @@ export function renderMasterTable() {
 // --- 6. BÁO CÁO GIAO BAN (3 BẢNG CHUẨN): BẢNG 1 (TỶ LỆ TÍCH LŨY) • BẢNG 2 (TỶ LỆ TỪNG NĂM & TỪNG HỌC KỲ) • BẢNG 3 (DANH SÁCH HỌC VIÊN RỚT MÔN CẦN BỒI DƯỠNG) ---
 
 export const RANK_META_5 = [
-  { name: 'Xuất sắc', standard: 'ĐTB ≥ 8.50', desc: 'Đạt danh hiệu Học viên Xuất sắc / Chiến sĩ thi đua', badge: 'bg-purple-100 text-purple-900 border-purple-300' },
-  { name: 'Giỏi', standard: '8.00 ≤ ĐTB < 8.50', desc: 'Đạt danh hiệu Học viên Giỏi tiêu biểu', badge: 'bg-emerald-100 text-emerald-900 border-emerald-300' },
+  { name: 'Xuất sắc', standard: 'ĐTB ≥ 9.0', desc: 'Đạt danh hiệu Học viên Xuất sắc / Chiến sĩ thi đua', badge: 'bg-purple-100 text-purple-900 border-purple-300' },
+  { name: 'Giỏi', standard: '8.00 ≤ ĐTB < 9.0', desc: 'Đạt danh hiệu Học viên Giỏi tiêu biểu', badge: 'bg-emerald-100 text-emerald-900 border-emerald-300' },
   { name: 'Khá', standard: '7.00 ≤ ĐTB < 8.00', desc: 'Học lực vững chắc, hoàn thành tốt nhiệm vụ', badge: 'bg-blue-100 text-blue-900 border-blue-300' },
   { name: 'Trung bình', standard: '5.00 ≤ ĐTB < 7.00', desc: 'Đạt yêu cầu, cần tăng cường tự học nâng cao điểm số', badge: 'bg-amber-100 text-amber-900 border-amber-300' },
   { name: 'Yếu', standard: 'ĐTB < 5.00', desc: 'Cần phân công cán sự kèm cặp phụ đạo và ôn thi lại', badge: 'bg-rose-100 text-rose-900 border-rose-300' }
@@ -4229,7 +4229,7 @@ export function getGradeLetterAndScale4(score10) {
     return { letter: '-', scale4: 0, status: 'Chưa thi' };
   }
   const s = Number(score10);
-  if (s >= 8.5) return { letter: 'A', scale4: 4.0, status: 'Đạt (Giỏi)' };
+  if (s >= 9.0) return { letter: 'A', scale4: 4.0, status: 'Đạt (Giỏi)' };
   if (s >= 8.0) return { letter: 'B+', scale4: 3.5, status: 'Đạt (Khá Giỏi)' };
   if (s >= 7.0) return { letter: 'B', scale4: 3.0, status: 'Đạt (Khá)' };
   if (s >= 6.5) return { letter: 'C+', scale4: 2.5, status: 'Đạt (TB Khá)' };
