@@ -11,7 +11,7 @@ async function listAssets(directory) {
   const nested = await Promise.all(entries.map(entry => entry.isDirectory()
     ? listAssets(`${directory}${entry.name}/`)
     : [`./${directory}${entry.name}`]));
-  return nested.flat().filter(path => /\.(js|css)$/.test(path)).sort();
+  return nested.flat().filter(path => /\.(js|css|svg|ico|png)$/.test(path)).sort();
 }
 const assets = await listAssets('src/');
 const versions = new Map(await Promise.all(assets.map(async path => {
@@ -27,7 +27,7 @@ let html = await readFile(indexUrl, 'utf8');
 html = html.replace(/<meta name="app-release" content="[^"]*">\s*/g, '');
 html = html.replace('<meta charset="UTF-8">', `<meta charset="UTF-8">\n  <meta name="app-release" content="${release}">`);
 html = html.replace(/\s*<script type="importmap" id="app-asset-versions">[\s\S]*?<\/script>/g, '');
-html = html.replace(/(<link\b[^>]*href=")(\.\/src\/[^"?]+\.css)(?:\?[^" ]*)?(")/g,
+html = html.replace(/(<link\b[^>]*href=")(\.\/src\/[^"?]+\.(?:css|svg|ico|png))(?:\?[^" ]*)?(")/g,
   (_, before, path, after) => `${before}${versions.get(path) || path}${after}`);
 html = html.replace(/(<script\b[^>]*type="module"[^>]*src=")(\.\/src\/[^"?]+\.js)(?:\?[^" ]*)?(")/g,
   (_, before, path, after) => `${before}${versions.get(path) || path}${after}`);
