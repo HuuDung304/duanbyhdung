@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="app-release" content="7adfbb7a9fe7">
+  <meta name="app-release" content="18b7f5a43c00">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Hệ thống Quản lý Điểm & Báo cáo Học tập Đại đội 460</title>
   <!-- Tailwind CSS CDN & Digital Academy palette (legacy color aliases preserved) -->
@@ -924,15 +924,15 @@ body {
         </div>
 
         <div class="bg-white p-4 rounded-xl border border-emerald-200 bg-emerald-50/20 shadow-sm">
-          <div class="text-[11px] font-bold text-emerald-800 uppercase">Tỷ Lệ Đạt / Rớt Học Phần Tích Lũy</div>
+          <div class="text-[11px] font-bold text-emerald-800 uppercase">Tỷ Lệ Đạt Chuẩn Tiếng Nga</div>
           <div class="flex items-baseline gap-2 mt-1">
-            <span id="statCoursePassRate" class="text-2xl font-extrabold text-emerald-700">100.0%</span>
+            <span id="statLanguagePassRate" class="text-2xl font-extrabold text-emerald-700">0.0%</span>
             <span class="text-xs text-emerald-700 font-bold">Đạt</span>
             <span class="text-xs text-slate-300">|</span>
-            <span id="statCourseFailRate" class="text-lg font-black text-rose-600">0.0%</span>
-            <span class="text-xs text-rose-600 font-bold">Rớt</span>
+            <span id="statLanguageNotPassedRate" class="text-lg font-black text-rose-600">0.0%</span>
+            <span class="text-xs text-rose-600 font-bold">Chưa đạt</span>
           </div>
-          <div id="statCoursePassFailDetail" class="text-[10px] text-slate-600 font-medium mt-1">0 lượt Đạt (100.0%) • 0 lượt Rớt (0.0%)</div>
+          <div id="statLanguageDetail" class="text-[10px] text-slate-600 font-medium mt-1">Đang tổng hợp theo chuẩn Tiếng Nga hiện tại</div>
         </div>
 
         <div class="bg-white p-4 rounded-xl border border-rose-200 bg-rose-50/30 shadow-sm">
@@ -2217,8 +2217,8 @@ body {
     "./src/js/components/notched-field.js": "./src/js/components/notched-field.js?v=553608c192ae",
     "./src/js/components/report-center.js": "./src/js/components/report-center.js?v=2b5475a88875",
     "./src/js/dashboard-statistics.js": "./src/js/dashboard-statistics.js?v=2c12c43c6749",
-    "./src/js/grades.js": "./src/js/grades.js?v=16b20366a08d",
-    "./src/js/main.js": "./src/js/main.js?v=7adfbb7a9fe7",
+    "./src/js/grades.js": "./src/js/grades.js?v=e52f16185268",
+    "./src/js/main.js": "./src/js/main.js?v=18b7f5a43c00",
     "./src/js/profile-rules.js": "./src/js/profile-rules.js?v=3a3bbf350b00",
     "./src/js/report-workbook.js": "./src/js/report-workbook.js?v=905d0e767b16",
     "./src/js/students.js": "./src/js/students.js?v=8e2d4c1a6d39",
@@ -2226,7 +2226,7 @@ body {
   }
 }
   </script>
-  <script type="module" src="./src/js/main.js?v=7adfbb7a9fe7"></script>
+  <script type="module" src="./src/js/main.js?v=18b7f5a43c00"></script>
   <script type="module" src="./src/js/components/expanding-rail.js?v=30e2d9c62544"></script>
   <script type="module" src="./src/js/components/notched-field.js?v=553608c192ae"></script>
   <script type="module" src="./src/js/components/bento-dashboard.js?v=cdf91e6ac1ee"></script>

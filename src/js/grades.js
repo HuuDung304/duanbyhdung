@@ -2260,13 +2260,19 @@ export function renderDashboard() {
     elGoodCount.textContent = `XS & Giỏi: ${overviewStats.goodCount}/${overviewStats.totalCadets} đ/c • Khá trở lên: ${overviewStats.khaGioiXsCount} đ/c (${overviewStats.khaGioiXsRate}%)`;
   }
 
-  const elPassRate = document.getElementById('statCoursePassRate');
-  if (elPassRate) elPassRate.textContent = `${overviewStats.coursePassRate}%`;
-  const elFailRate = document.getElementById('statCourseFailRate');
-  if (elFailRate) elFailRate.textContent = `${overviewStats.courseFailRate}%`;
-  const elPassFailDetail = document.getElementById('statCoursePassFailDetail');
+  const standard = evaluateLangLevelStatus('Chưa đạt', AppState.requiredLangStandard).requiredStandard;
+  const { roster } = collectLanguageStatistics(overviewStudents, AppState.languages || {}, standard, evaluateLangLevelStatus, classScope ? [classScope] : DEFAULT_CLASSES);
+  const total = roster.length, passed = roster.filter(item => item.passed).length;
+  const notPassed = total - passed;
+  const languagePassRate = total ? (passed * 100 / total).toFixed(1) : '0.0';
+  const languageNotPassedRate = total ? (notPassed * 100 / total).toFixed(1) : '0.0';
+  const elPassRate = document.getElementById('statLanguagePassRate');
+  if (elPassRate) elPassRate.textContent = `${languagePassRate}%`;
+  const elFailRate = document.getElementById('statLanguageNotPassedRate');
+  if (elFailRate) elFailRate.textContent = `${languageNotPassedRate}%`;
+  const elPassFailDetail = document.getElementById('statLanguageDetail');
   if (elPassFailDetail) {
-    elPassFailDetail.textContent = `${overviewStats.passedCourseInstances} lượt Đạt (${overviewStats.coursePassRate}%) • ${overviewStats.failedCourseInstances} lượt Rớt (${overviewStats.courseFailRate}%)`;
+    elPassFailDetail.textContent = `Chuẩn ${standard} • ${classScope ? 'Lớp ' + classScope : 'Toàn đơn vị'}: ${passed}/${total} học viên đạt • ${notPassed}/${total} chưa đạt`;
   }
 
   const elDebtCount = document.getElementById('statDebtCount');

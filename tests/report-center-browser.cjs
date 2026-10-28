@@ -50,6 +50,9 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
     assert.equal(await page.locator(`#${id} option`).count(),6);
    }
    assert.equal(await page.locator('#statTotalCadets').innerText(),'3');
+   assert.equal(await page.locator('#statLanguagePassRate').innerText(),'66.7%');
+   assert.equal(await page.locator('#statLanguageNotPassedRate').innerText(),'33.3%');
+   assert.match(await page.locator('#statLanguageDetail').innerText(),/Chuẩn A2.*2\/3 học viên đạt/);
    assert.equal(await page.locator('#reportYearSemesterMatrixBody tr').count(),7);
    assert.doesNotMatch(await page.locator('#reportCompanyTableBody').innerText(),/Tỷ lệ Đạt tích lũy|Tỷ lệ Rớt tích lũy/);
    await page.evaluate(()=>window.switchTab('tab-cumulative'));
