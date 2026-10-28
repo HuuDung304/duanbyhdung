@@ -23,13 +23,17 @@ export function buildClassTranscript(students, semesters, grades, semesterGpa, y
       merges.push({ s: { r: 0, c }, e: { r: 2, c } });
     }
   }
-  const headerRows = [groups, headers.map((value, index) => index < 5 || value.startsWith('ĐIỂM TB NĂM') ? '' : value), credits];
+  const notesColumn = headers.length;
+  headers.push('GHI CHÚ'); groups.push('GHI CHÚ'); credits.push('');
+  merges.push({ s: { r: 0, c: notesColumn }, e: { r: 2, c: notesColumn } });
+  const headerRows = [groups, headers.map((value, index) => index < 5 || value === 'GHI CHÚ' || value.startsWith('ĐIỂM TB NĂM') ? '' : value), credits];
   const rows = students.map((student, index) => {
     const row = [index + 1, String(student.code || ''), student.name, student.class, birthDate(student.dob)];
     for (const { semester, subjects } of completed) {
       row.push(...subjects.map(subject => Number(grades[student.id][subject.id])), Number(semesterGpa(student.id, semester).toFixed(2)));
       if (semester % 2 === 0 && completedNumbers.has(semester - 1)) row.push(Number(yearGpa(student.id, semester / 2).toFixed(2)));
     }
+    row.push('');
     return row;
   });
   return { headers, headerRows, merges, rows, completed };

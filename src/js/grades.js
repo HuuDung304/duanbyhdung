@@ -3478,9 +3478,9 @@ export function exportClassExcel() {
   ws['!reportHeaderRows'] = [1, 2, 3];
   ws['!merges'] = merges;
   ws['!rows'] = [{ hpt: 28 }, { hpt: 100 }, { hpt: 22 }];
-  ws['!cols'] = headers.map((header, index) => ({ wch: index === 0 ? 7 : index === 2 ? 28 : index < 5 ? 18 : header.startsWith('ĐIỂM TB') ? 16 : 12 }));
+  ws['!cols'] = headers.map((header, index) => ({ wch: header === 'GHI CHÚ' ? 30 : index === 0 ? 7 : index === 2 ? 28 : index < 5 ? 18 : header.startsWith('ĐIỂM TB') ? 16 : 12 }));
   for (let row = headerRows.length; row < rows.length + headerRows.length; row++) {
-    for (let column = 5; column < headers.length; column++) {
+    for (let column = 5; column < headers.length - 1; column++) {
       const cell = ws[XLSX.utils.encode_cell({ r: row, c: column })];
       if (cell) cell.z = '0.00';
     }
