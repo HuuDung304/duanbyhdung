@@ -122,3 +122,10 @@ body.bento-app{--digital-primary:#2563eb;--digital-indigo:#4f46e5;--digital-acce
 #tab-reports #btnExportClassExcel{display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;min-height:44px;box-shadow:0 3px 10px #4f46e526;transition:box-shadow .2s,transform .2s}#tab-reports #btnExportClassExcel svg{width:18px;height:18px;flex:none}#tab-reports #btnExportClassExcel:hover{box-shadow:0 5px 16px #4f46e540}#tab-reports #btnExportClassExcel:active{transform:scale(.98)}#tab-reports #btnExportClassExcel:focus-visible{outline:2px solid #2563eb;outline-offset:3px}@media(prefers-reduced-motion:reduce){#tab-reports #btnExportClassExcel{transition:none}#tab-reports #btnExportClassExcel:active{transform:none}}
 
 #tab-reports .report-export-heading>h3{margin-top:18px}
+
+/* Align the class, year and search fields without including the result count in their height. */
+#tab-sheet .sheet-filter-controls{align-items:flex-start;row-gap:28px;padding-bottom:22px}
+#tab-sheet :is(#sheetClassSelect,#sheetSemesterSelect,#sheetSearchInput){height:44px;box-sizing:border-box}
+#tab-sheet #sheetSearchBox{position:relative}
+#tab-sheet #sheetSearchStatus{position:absolute;top:100%;left:0;margin-top:4px;line-height:18px;white-space:nowrap}
+@media(max-width:640px){#tab-sheet #sheetSearchBox,#tab-sheet #sheetSearchInput{width:100%}}
