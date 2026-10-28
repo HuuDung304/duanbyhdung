@@ -36,12 +36,12 @@ const fs = require('node:fs');
     await page.waitForFunction(()=>window.AppState?.students.length===5);
     assert.equal(await page.locator('.u040-top,.u040-logo,#btnOpenLoginModal,#btnCornerSwitchRole,#btnQuickImportExcel,#btnAddCadetModalBtn,#btnAddSubjectFromSheetBtn,#btnAddLangCertBtn,#btnResetDefaultCurriculum,#btnAddSubjectBtn').count(),0);
     const report=await page.locator('#reportCompanyTableBody').innerText();
-    assert.doesNotMatch(report,/Trung bình khá|Kém/);assert.match(report,/8.50/);
+    assert.match(report,/Trung bình khá/);assert.match(report,/Kém/);assert.match(report,/9.00/);
     assert.match(await page.locator('#reportDebtCadetsTableBody').innerText(),/Vật lý|Toán cao cấp/);
     assert.match(await page.locator('#reportDebtCadetsTableBody').innerText(),/3.99/);
     assert.equal(await page.locator('#statTotalCadets').innerText(),'5');
     assert.equal(await page.locator('#statDebtTotalFails').innerText(),'1');
-    assert.equal(await page.locator('#reportCompanyTableBody tr').count(),7); // five ranks + pass/fail
+    assert.equal(await page.locator('#reportCompanyTableBody tr').count(),9); // seven ranks + pass/fail
     for (const className of classes) {
       await page.locator('#dashboardClassFilter').selectOption(className);
       assert.equal(await page.locator('#statTotalCadets').innerText(),'5');
@@ -57,7 +57,7 @@ const fs = require('node:fs');
     const allRows=book.SheetNames.map(name=>XLSX.utils.sheet_to_json(book.Sheets[name],{header:1}));
     const summary=allRows[0].flat().join(' ');for(const n of [1,2,3])assert.match(summary,new RegExp(`BẢNG ${n}:`));
     for(const className of classes)assert.match(summary,new RegExp(`Lớp ${className}`));
-    assert.equal(allRows[1][4].length,13);assert.ok(allRows[2].flat().includes('Toán cao cấp'));
+    assert.equal(allRows[1][4].length,15);assert.ok(allRows[2].flat().includes('Toán cao cấp'));
     assert.ok(allRows[2].flat().some(cell=>String(cell).includes('3.99')));
     const zip=XLSX.CFB.read(bytes,{type:'buffer'});
     for(const file of zip.FileIndex.filter(file=>/^sheet\d+\.xml$/.test(file.name))){const xml=new TextDecoder().decode(file.content);assert.match(xml,/<pageSetup[^>]*paperSize="9"[^>]*orientation="landscape"[^>]*fitToWidth="1"/);assert.match(xml,/pageSetUpPr fitToPage="1"/);}
@@ -106,6 +106,6 @@ const fs = require('node:fs');
     await page.locator('.danger-confirm [data-confirm]').click();
     await page.waitForFunction(()=>window.AppState.students.length===0);
     assert.ok(requests.includes('students'));assert.deepEqual(errors,[]);
-    console.log('PASS: consolidated controls, typed cancellation/confirmation, class totals, five-rank scoped report, 3 real XLSX sheets with A4 landscape XML, all roles. Fixture writes only.');
+    console.log('PASS: consolidated controls, typed cancellation/confirmation, class totals, seven-rank scoped report, 3 real XLSX sheets with A4 landscape XML, all roles. Fixture writes only.');
   } finally { await browser.close(); }
 })().catch(error=>{console.error(error);process.exit(1)});

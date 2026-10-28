@@ -58,7 +58,7 @@ test('keeps all seven ranks in overall, class and semester/year statistics; only
   assert.equal(context.getDebtSubjects('hv7').length, 0);
 });
 
-test('Excel report exports five military rank columns with aligned data and correct fail count', () => {
+test('Excel report exports seven rank columns with aligned data and correct fail count', () => {
   const { context } = fixture();
   let workbook;
   context.XLSX = {
@@ -71,12 +71,12 @@ test('Excel report exports five military rank columns with aligned data and corr
   context.writeReportWorkbook = book => { workbook = book; };
   context.exportReportExcel();
   const sheet = workbook.sheets.Bang_2_Ty_Le_Nam_Hoc_Ky;
-  assert.equal(sheet.rows[4].length, 13);
-  assert.ok(!sheet.rows[4].includes('Trung bình khá (SL / %)'));
-  assert.ok(!sheet.rows[4].includes('Kém (SL / %)'));
-  assert.equal(sheet.rows[5].length, 13);
-  assert.equal(sheet.rows[5][7], '2 (25.0%)');
-  assert.equal(sheet['!cols'].length, 13);
+  assert.equal(sheet.rows[4].length, 15);
+  assert.ok(sheet.rows[4].includes('Trung bình khá (SL / %)'));
+  assert.ok(sheet.rows[4].includes('Kém (SL / %)'));
+  assert.equal(sheet.rows[5].length, 15);
+  assert.equal(sheet.rows[5][9], '2 (25.0%)');
+  assert.equal(sheet['!cols'].length, 15);
 });
 
 
@@ -104,16 +104,16 @@ test('preserves the latest GitHub change to the A grade threshold at 9.0', () =>
 });
 
 
-test('report policy has five exact boundaries and keeps per-class/year totals and the 4.0 failure boundary', () => {
+test('report policy shares all seven exact boundaries and keeps per-class/year totals and the 4.0 failure boundary', () => {
   const { context, students } = fixture();
-  for (const [score, rank] of [[8.5,'Xuất sắc'],[8.499,'Giỏi'],[8,'Giỏi'],[7.999,'Khá'],[7,'Khá'],[6.99,'Trung bình'],[5,'Trung bình'],[4.99,'Yếu'],[3.99,'Yếu']]) assert.equal(context.getReportClassification(score),rank);
+  for (const [score, rank] of [[9,'Xuất sắc'],[8.99,'Giỏi'],[8.5,'Giỏi'],[8,'Giỏi'],[7.99,'Khá'],[7,'Khá'],[6.99,'Trung bình khá'],[6.5,'Trung bình khá'],[6.49,'Trung bình'],[5.5,'Trung bình'],[5.49,'Yếu'],[5,'Yếu'],[4.99,'Kém'],[4,'Kém'],[3.99,'Kém']]) assert.equal(context.getReportClassification(score),rank);
   const report = context.computeReportAcademicStats(students);
-  assert.equal(Object.keys(report.rankCounts).length,5);
-  assert.equal(report.rankCounts['Trung bình'],3);
-  assert.equal(report.rankCounts['Yếu'],2);
+  assert.equal(Object.keys(report.rankCounts).length,7);
+  assert.equal(report.rankCounts['Trung bình'],1);
+  assert.equal(report.rankCounts['Yếu'],1);
   assert.equal(report.failedCourseInstances,1);
   assert.equal(report.passedCourseInstances,7);
   const years = context.buildReportYearsBreakdownStats(students);
   assert.equal(years.length,5);
-  for(const year of years) for(const stats of [year.hk1,year.hk2,year.fullYear]) assert.equal(Object.keys(stats.rankCounts).length,5);
+  for(const year of years) for(const stats of [year.hk1,year.hk2,year.fullYear]) assert.equal(Object.keys(stats.rankCounts).length,7);
 });

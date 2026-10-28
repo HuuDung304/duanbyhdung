@@ -1954,17 +1954,11 @@ export const RANK_META = [
   { name: 'Kém', standard: 'ĐTB < 5.00', desc: 'Cần bồi dưỡng; chỉ môn dưới 4.00 mới tính là rớt', badge: 'bg-rose-100 text-rose-900 border-rose-300' }
 ];
 
-export const REPORT_RANK_META = [
-  { name: 'Xuất sắc', standard: '8.50 ≤ ĐTB ≤ 10.00', desc: 'Kết quả học tập xuất sắc, tiếp tục phát huy', badge: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
-  { name: 'Giỏi', standard: '8.00 ≤ ĐTB < 8.50', desc: 'Kết quả học tập tốt, duy trì chất lượng', badge: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
-  { name: 'Khá', standard: '7.00 ≤ ĐTB < 8.00', desc: 'Học lực vững, tiếp tục củng cố kiến thức', badge: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-  { name: 'Trung bình', standard: '5.00 ≤ ĐTB < 7.00', desc: 'Cần tăng cường tự học và ôn tập', badge: 'bg-amber-100 text-amber-900 border-amber-300' },
-  { name: 'Yếu', standard: 'ĐTB < 5.00', desc: 'Ưu tiên bồi dưỡng; chỉ học phần dưới 4.00 mới tính là rớt', badge: 'bg-rose-100 text-rose-900 border-rose-300' }
-];
+// All screens and exports share the same seven-level classification policy.
+export const REPORT_RANK_META = RANK_META;
 export const REPORT_RANK_LEVELS = REPORT_RANK_META.map(item => item.name);
 export function getReportClassification(score) {
-  const value = Number(score) || 0;
-  return value >= 8.5 ? 'Xuất sắc' : value >= 8 ? 'Giỏi' : value >= 7 ? 'Khá' : value >= 5 ? 'Trung bình' : 'Yếu';
+  return getClassification(score);
 }
 
 /**
@@ -2307,7 +2301,7 @@ export function renderDashboard() {
   const visibleClasses = courseScope && courseScope !== 'all' ? [courseScope] : DEFAULT_CLASSES;
 
   // =========================================================================
-  // BẢNG 1: TỶ LỆ TÍCH LŨY (XẾP LOẠI HỌC LỰC 5 MỨC & TỶ LỆ ĐẠT/RỚT TỪ ĐẦU KHÓA ĐẾN NAY)
+  // BẢNG 1: TỶ LỆ TÍCH LŨY (XẾP LOẠI HỌC LỰC 7 MỨC & TỶ LỆ ĐẠT/RỚT TỪ ĐẦU KHÓA ĐẾN NAY)
   // =========================================================================
   const companyTbody = document.getElementById('reportCompanyTableBody');
   const companyTfoot = document.getElementById('reportCompanyTableFooter');
@@ -2700,7 +2694,7 @@ export function renderDebtCadetsSection(debtCadetsList = null, failedCourseDetai
  * Xuất file Báo cáo Tình hình Học tập (exportReportExcel):
  * - Chuẩn hóa hiển thị đầy đủ Tên môn học (tuyệt đối không dùng tên viết tắt hay mã môn).
  * - Bao gồm đầy đủ 3 bảng và các chỉ số:
- *   1. Bảng 1: Tỷ lệ Tích lũy (5 mức Xuất sắc, Giỏi, Khá, Trung bình, Yếu + tỷ lệ đạt/rớt từ đầu khóa đến nay)
+ *   1. Bảng 1: Tỷ lệ Tích lũy (7 mức Xuất sắc, Giỏi, Khá, Trung bình khá, Trung bình, Yếu, Kém + tỷ lệ đạt/rớt từ đầu khóa đến nay)
  *   2. Bảng 2: Tỷ lệ theo Từng Năm & Từng Học kỳ: Năm 1 (HK1, HK2, Cả năm, Số học viên rớt môn, Số lượt rớt) -> Năm 2 -> Năm 3 -> Năm 4 -> Năm 5
  *   3. Bảng 3: Danh sách Học viên Rớt môn (Thi lại / Nợ học phần) Cần Bồi dưỡng & Chi tiết cụ thể từng học viên bị rớt môn nào (Tên môn đầy đủ, học kỳ, số tín chỉ, điểm số).
  */
