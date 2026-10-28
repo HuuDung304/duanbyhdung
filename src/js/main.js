@@ -1392,6 +1392,11 @@ function registerGlobalEventDelegation() {
       return;
     }
 
+    if (['reportCourseFilterClass', 'reportYearsFilterClass'].includes(id)) {
+      renderDashboard();
+      return;
+    }
+
     if (id === 'reportDebtFilterClass') {
       renderDebtCadetsSection();
       return;
@@ -1422,9 +1427,9 @@ function registerGlobalEventDelegation() {
       if (!AppState.dashboardFilters) AppState.dashboardFilters = { mode: 'course', semester: 1, year: 1, class: 'all' };
       const classScope = getCurrentUserClassScope();
       AppState.dashboardFilters.class = classScope || target.value || 'all';
-      const debtSelect = document.getElementById('reportDebtFilterClass');
-      if (debtSelect && !classScope) {
-        debtSelect.value = AppState.dashboardFilters.class;
+      for (const filterId of ['reportCourseFilterClass', 'reportYearsFilterClass', 'reportDebtFilterClass']) {
+        const select = document.getElementById(filterId);
+        if (select) select.value = AppState.dashboardFilters.class;
       }
       renderDashboard();
       return;

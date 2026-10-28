@@ -33,6 +33,30 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
    await page.evaluate(()=>window.AuthState.setUser({type:'class_account',class:'OTQS1',displayName:'OTQS1'}));await page.evaluate(()=>window.switchTab('tab-reports'));
    assert.equal(await page.locator('#reportsClassSelect').isDisabled(),true);
    const classBook=await download('#btnExportLanguageSummary');assert.equal(XLSX.utils.sheet_to_json(classBook.Sheets.Danh_Sach_Hoc_Vien,{header:1}).length,7);
+   // Switching from a class account must restore the officer's whole-unit scope.
+   await page.evaluate(()=>window.AuthState.setUser({type:'company_officer',displayName:'Cán bộ'}));
+   await page.evaluate(()=>window.switchTab('tab-dashboard'));
+   for(const id of ['dashboardClassFilter','reportCourseFilterClass','reportYearsFilterClass','reportDebtFilterClass']) {
+    assert.equal(await page.locator(`#${id}`).isDisabled(),false);
+    assert.equal(await page.locator(`#${id}`).inputValue(),'all');
+    assert.equal(await page.locator(`#${id} option`).count(),6);
+   }
+   assert.equal(await page.locator('#statTotalCadets').innerText(),'3');
+   assert.match(await page.locator('#reportDebtCadetsTableBody').innerText(),/HV001/);
+   await page.locator('#reportCourseFilterClass').selectOption('TTG1');
+   await page.locator('#reportYearsFilterClass').selectOption('TTG1');
+   assert.match(await page.locator('#reportDebtCadetsTableBody').innerText(),/HV001/);
+   await page.locator('#reportDebtFilterClass').selectOption('TTG1');
+   assert.doesNotMatch(await page.locator('#reportDebtCadetsTableBody').innerText(),/HV001/);
+   await page.locator('#reportDebtFilterClass').selectOption('all');
+   assert.match(await page.locator('#reportDebtCadetsTableBody').innerText(),/HV001/);
+   await page.evaluate(()=>window.switchTab('tab-reports'));
+   assert.equal(await page.locator('#reportsClassSelect').isDisabled(),false);
+   assert.equal(await page.locator('#reportsClassSelect').inputValue(),'all');
+   for(const id of ['#btnExportProfileExcel','#btnExportClassExcel','#btnExportFailedStudents','#btnExportAchievements','#btnExportReportExcel','#btnExportCumulativeExcel','#btnExportMasterExcel','#btnExportLanguageSummary']) {
+    const book=await download(id); assert.ok(book.SheetNames.length>0);
+    if(id==='#btnExportFailedStudents') assert.ok(XLSX.utils.sheet_to_json(book.Sheets[book.SheetNames[0]],{header:1}).flat().includes('HV001'));
+   }
    await page.evaluate(()=>window.AuthState.setUser({type:'student',studentId:'s1',code:'HV001',class:'OTQS1',displayName:'Nguyễn Minh Anh'}));
    assert.equal(await page.locator('.nav-tab[data-tab="tab-cumulative"]').isVisible(),false);
    await page.evaluate(()=>window.switchTab('tab-cumulative'));assert.equal(await page.evaluate(()=>window.AppState.activeTab),'tab-sheet');

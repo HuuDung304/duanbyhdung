@@ -120,6 +120,9 @@ export function enforceClassIsolationOnSelectors() {
     { id: 'cumulFilterClass', includeAll: true, allLabel: '-- Toàn bộ Đại đội (5 Lớp) --' },
     { id: 'langFilterClass', includeAll: true, allLabel: '-- Toàn bộ Đại đội (5 Lớp) --' },
     { id: 'masterFilterClass', includeAll: true, allLabel: '-- Tất cả các lớp (Toàn Đại đội) --' },
+    { id: 'dashboardClassFilter', includeAll: true, allLabel: '-- Toàn bộ Đại đội --' },
+    { id: 'reportCourseFilterClass', includeAll: true, allLabel: '-- Toàn bộ Đại đội --' },
+    { id: 'reportYearsFilterClass', includeAll: true, allLabel: '-- Toàn bộ Đại đội --' },
     { id: 'reportDebtFilterClass', includeAll: true, allLabel: '-- Toàn bộ Đại đội --' },
     { id: 'newCadetClass', includeAll: false },
     { id: 'profFormClass', includeAll: false }
@@ -151,9 +154,19 @@ export function enforceClassIsolationOnSelectors() {
   });
 }
 
+let lastAppliedRole = null;
 export function handleRoleChange(newRole) {
   if (!newRole) newRole = 'guest';
+  const previousRole = lastAppliedRole;
+  lastAppliedRole = newRole;
   AppState.role = newRole;
+  if (previousRole !== newRole && ['admin', 'company_officer'].includes(newRole)) {
+    AppState.dashboardFilters.class = 'all';
+    for (const id of ['dashboardClassFilter', 'reportCourseFilterClass', 'reportYearsFilterClass', 'reportDebtFilterClass', 'reportsClassSelect']) {
+      const select = document.getElementById(id);
+      if (select) select.value = 'all';
+    }
+  }
   document.body.toggleAttribute('data-unit-readonly', newRole === 'company_officer');
   if (newRole === 'company_officer') {
     AppState.studentProfileEditMode = false;

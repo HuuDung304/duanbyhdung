@@ -2245,20 +2245,21 @@ export function renderDashboard() {
   AppState.dashboardFilters.class = selectedClass;
   if (typeof ExternalHooks.renderBentoDashboard === 'function') ExternalHooks.renderBentoDashboard();
 
-  let scopedStudents = getScopedStudents();
-  if (selectedClass && selectedClass !== 'all') {
-    scopedStudents = scopedStudents.filter(s => s.class === selectedClass);
-  }
-
   // 1. Tính toán Tỷ lệ Tích lũy từ đầu khóa đến nay (Bảng 1)
-  const courseStats = computeReportAcademicStats(scopedStudents, 'course', 1, 1);
+  const tableStudents = id => {
+    const select = document.getElementById(id);
+    const scope = classScope || select?.value || selectedClass || 'all';
+    if (select) { select.value = scope; select.disabled = Boolean(classScope); }
+    return getScopedStudents().filter(student => scope === 'all' || student.class === scope);
+  };
+  const courseStats = computeReportAcademicStats(tableStudents('reportCourseFilterClass'), 'course', 1, 1);
 
   // 2. Tính toán Tỷ lệ theo Từng Năm & Từng Học kỳ: Năm 1 -> Năm 5 (Bảng 2)
-  const yearsBreakdown = buildReportYearsBreakdownStats(scopedStudents);
+  const yearsBreakdown = buildReportYearsBreakdownStats(tableStudents('reportYearsFilterClass'));
 
   const overviewStudents = getScopedStudents();
-  const overviewStats = selectedClass === (classScope || 'all') ? courseStats : computeReportAcademicStats(overviewStudents);
-  const overviewYears = selectedClass === (classScope || 'all') ? yearsBreakdown : buildReportYearsBreakdownStats(overviewStudents);
+  const overviewStats = computeReportAcademicStats(overviewStudents);
+  const overviewYears = buildReportYearsBreakdownStats(overviewStudents);
   renderDashboardLanguageSummary();
 
   // Cập nhật 4 thẻ KPI tổng quan trên đầu Báo cáo giao ban
@@ -2302,9 +2303,8 @@ export function renderDashboard() {
     elActiveModeBadge.textContent = `Phạm vi: ${selectedClass === 'all' ? 'Toàn Đại đội 460 (5 Lớp)' : 'Lớp ' + selectedClass}`;
   }
 
-  const visibleClasses = classScope
-    ? [classScope]
-    : (selectedClass && selectedClass !== 'all' ? [selectedClass] : DEFAULT_CLASSES);
+  const courseScope = classScope || document.getElementById('reportCourseFilterClass')?.value || selectedClass;
+  const visibleClasses = courseScope && courseScope !== 'all' ? [courseScope] : DEFAULT_CLASSES;
 
   // =========================================================================
   // BẢNG 1: TỶ LỆ TÍCH LŨY (XẾP LOẠI HỌC LỰC 5 MỨC & TỶ LỆ ĐẠT/RỚT TỪ ĐẦU KHÓA ĐẾN NAY)
@@ -2592,7 +2592,7 @@ export function renderDashboard() {
   // =========================================================================
   // BẢNG 3: DANH SÁCH HỌC VIÊN RỚT MÔN (THI LẠI / NỢ HỌC PHẦN) CẦN BỒI DƯỠNG
   // =========================================================================
-  renderDebtCadetsSection(courseStats.debtCadetsList, courseStats.failedCourseDetailsList);
+  renderDebtCadetsSection();
 }
 
 export function renderDebtCadetsSection(debtCadetsList = null, failedCourseDetailsList = null) {
@@ -2612,9 +2612,8 @@ export function renderDebtCadetsSection(debtCadetsList = null, failedCourseDetai
       filterSelect.disabled = false;
     }
   }
-  const reportScope = classScope || AppState.dashboardFilters?.class || 'all';
-  const filterClass = reportScope !== 'all' ? reportScope : (filterSelect?.value || 'all');
-  if (filterSelect) { filterSelect.value = filterClass; filterSelect.disabled = Boolean(classScope) || reportScope !== 'all'; }
+  const filterClass = classScope || filterSelect?.value || 'all';
+  if (filterSelect) { filterSelect.value = filterClass; filterSelect.disabled = Boolean(classScope); }
 
   let computedStats = null;
   if (!debtCadetsList || !failedCourseDetailsList) {
