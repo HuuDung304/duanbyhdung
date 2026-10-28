@@ -62,8 +62,8 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
    assert.equal(await page.locator('#languageClassSummary > div').count(),1);
    await page.locator('#cumulFilterClass').selectOption('all');
    const cumulativeTable = page.locator('#cumulativeTableBody').locator('..');
-   assert.equal(await cumulativeTable.locator('thead th').count(),12);
-   assert.equal(await cumulativeTable.locator('tbody tr').first().locator('td').count(),12);
+   assert.equal(await cumulativeTable.locator('thead th').count(),11);
+   assert.equal(await cumulativeTable.locator('tbody tr').first().locator('td').count(),11);
    assert.doesNotMatch(await cumulativeTable.locator('thead').innerText(),/HK1|HKII/);
    await page.evaluate(()=>window.switchTab('tab-dashboard'));
    const officerReport = await page.locator('#reportCompanyTableBody').innerText();

@@ -1905,18 +1905,12 @@ export function renderMasterTable() {
         <td class="py-2.5 px-3 text-center font-semibold text-slate-700 bg-slate-50">${gpa2.toFixed(2)}</td>
         <td class="py-2.5 px-3 text-center font-black text-army-800 bg-gold-50">${targetGpa.toFixed(2)}</td>
         <td class="py-2.5 px-3 text-center">${getClassificationBadge(rank)}</td>
-        <td class="py-2.5 px-3 text-center">
-          ${debts.length > 0 ?
-            `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-700" title="${debts.map(d => formatFailedSubjectItem(d.subject)).join(', ')}">⚠️ Rớt: ${debts.map(d => formatFailedSubjectItem(d.subject)).join(', ')}</span>` :
-            `<span class="text-emerald-700 font-bold text-[11px]">✅ Đạt chuẩn</span>`
-          }
-        </td>
       </tr>
     `;
   });
 
   if (filtered.length === 0) {
-    html = `<tr><td colspan="11" class="py-8 text-center text-slate-400">Không tìm thấy học viên nào phù hợp với bộ lọc hiện tại.</td></tr>`;
+    html = `<tr><td colspan="10" class="py-8 text-center text-slate-400">Không tìm thấy học viên nào phù hợp với bộ lọc hiện tại.</td></tr>`;
   }
   tbody.innerHTML = html;
 
@@ -4351,12 +4345,6 @@ export function renderCumulativeTable() {
         </td>
 
         <td class="py-2.5 px-3 text-center">
-          ${debts.length > 0 ?
-            `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-700" title="${debts.map(d => formatFailedSubjectItem(d.subject)).join(', ')}">⚠️ Rớt ${debts.length} môn</span>` :
-            `<span class="text-emerald-700 font-bold text-[11px]">✅ Đạt 100%</span>`
-          }
-        </td>
-        <td class="py-2.5 px-3 text-center">
           <button type="button" class="btn-open-transcript px-2.5 py-1 rounded bg-army-700 hover:bg-army-800 text-white font-semibold text-[11px] shadow-sm transition" data-id="${s.id}">
             Phiếu Điểm
           </button>
@@ -4366,7 +4354,7 @@ export function renderCumulativeTable() {
   });
 
   if (filtered.length === 0) {
-    rowsHtml = `<tr><td colspan="12" class="p-8 text-center text-slate-400">Không tìm thấy quân nhân nào phù hợp với bộ lọc.</td></tr>`;
+    rowsHtml = `<tr><td colspan="11" class="p-8 text-center text-slate-400">Không tìm thấy quân nhân nào phù hợp với bộ lọc.</td></tr>`;
   }
   tbody.innerHTML = rowsHtml;
 
