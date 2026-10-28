@@ -1365,7 +1365,7 @@ function registerGlobalEventDelegation() {
     }
 
     if (id === 'masterFilterSemester') {
-      AppState.masterFilters.semester = target.value;
+      AppState.masterFilters.year = Number(target.value) || 1;
       renderMasterTable();
       return;
     }

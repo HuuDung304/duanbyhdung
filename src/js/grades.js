@@ -799,7 +799,7 @@ export const AppState = {
   requiredLangStandard: 'A2',
   masterFilters: {
     class: 'all',
-    semester: 'all',
+    year: 1,
     rank: 'all',
     debt: 'all',
     search: ''
@@ -1847,13 +1847,11 @@ export function renderMasterTable() {
     }
   }
 
-  const semFilter = document.getElementById('masterFilterSemester')?.value || filters.semester || 'all';
-  filters.semester = semFilter;
-
+  const year = Math.min(5, Math.max(1, Number(document.getElementById('masterFilterSemester')?.value || filters.year) || 1));
+  filters.year = year;
+  const sem1 = year * 2 - 1, sem2 = year * 2;
   const thSemCol = document.getElementById('masterThScoreLabel');
-  if (thSemCol) {
-    thSemCol.textContent = semFilter === 'all' ? 'ĐTB Cả Năm' : `ĐTB Học Kỳ ${semFilter}`;
-  }
+  if (thSemCol) thSemCol.textContent = 'ĐTB Cả Năm';
 
   let filtered = getScopedStudents();
 
@@ -1861,21 +1859,16 @@ export function renderMasterTable() {
     filtered = filtered.filter(s => s.class === filters.class);
   }
 
-  const getStudentTargetGpa = (sid) => {
-    if (semFilter !== 'all') {
-      return calculateSemesterGPA(sid, Number(semFilter));
-    }
-    return calculateYearGPA(sid);
-  };
+  const getStudentTargetGpa = sid => calculateAcademicYearGPA(sid, year);
 
   if (filters.rank && filters.rank !== 'all') {
     filtered = filtered.filter(s => getClassification(getStudentTargetGpa(s.id)) === filters.rank);
   }
 
   if (filters.debt === 'debt_only') {
-    filtered = filtered.filter(s => getDebtSubjects(s.id, semFilter).length > 0);
+    filtered = filtered.filter(s => getDebtSubjects(s.id, null, year).length > 0);
   } else if (filters.debt === 'no_debt') {
-    filtered = filtered.filter(s => getDebtSubjects(s.id, semFilter).length === 0);
+    filtered = filtered.filter(s => getDebtSubjects(s.id, null, year).length === 0);
   }
 
   if (filters.search) {
@@ -1890,11 +1883,11 @@ export function renderMasterTable() {
 
   let html = '';
   filtered.forEach((student, idx) => {
-    const gpa1 = calculateSemesterGPA(student.id, 1);
-    const gpa2 = calculateSemesterGPA(student.id, 2);
+    const gpa1 = calculateSemesterGPA(student.id, sem1);
+    const gpa2 = calculateSemesterGPA(student.id, sem2);
     const targetGpa = getStudentTargetGpa(student.id);
     const rank = getClassification(targetGpa);
-    const debts = getDebtSubjects(student.id, semFilter);
+    const debts = getDebtSubjects(student.id, null, year);
 
     html += `
       <tr class="hover:bg-slate-50 transition">
@@ -1934,9 +1927,9 @@ export function renderMasterTable() {
 
   if (footer) {
     const scopeTotal = getScopedStudents().length;
-    const semLabel = semFilter === 'all' ? 'Toàn khóa (10 Học kỳ)' : `Học kỳ ${semFilter}`;
+    const semLabel = `Năm ${year} (Học kỳ ${sem1} & ${sem2})`;
     footer.innerHTML = `
-      <span>Hiển thị <strong>${filtered.length}</strong> / ${scopeTotal} học viên • Bộ lọc kỳ: <strong>${semLabel}</strong></span>
+      <span>Hiển thị <strong>${filtered.length}</strong> / ${scopeTotal} học viên • Năm học: <strong>${semLabel}</strong></span>
       <span class="text-[11px] text-slate-500">Đại đội 460 • Tiểu đoàn 4</span>
     `;
   }
@@ -3595,25 +3588,26 @@ export function exportClassExcel() {
 }
 
 export function exportMasterExcel() {
-  const semFilter = AppState.masterFilters.semester || 'all';
+  const year = Math.min(5, Math.max(1, Number(AppState.masterFilters.year) || 1));
+  const sem1 = year * 2 - 1, sem2 = year * 2;
   const headers = [
     'STT', 'Mã HV', 'Họ và Tên', 'Cấp bậc', 'Lớp', 'Ngày sinh',
-    'ĐTB HK1', 'ĐTB HK2', semFilter === 'all' ? 'ĐTB Cả Năm' : `ĐTB Học kỳ ${semFilter}`,
+    'ĐTB HK1', 'ĐTB HK2', 'ĐTB Cả Năm',
     'Xếp loại Học lực', 'Học phần rớt (< 4.0)'
   ];
 
   const rows = [
     ['HỌC VIỆN KỸ THUẬT QUÂN SỰ - TIỂU ĐOÀN 4 - ĐẠI ĐỘI 460'],
-    ['BẢNG TỔNG HỢP KẾT QUẢ HỌC TẬP TOÀN ĐẠI ĐỘI 460'],
+    [`BẢNG TỔNG HỢP KẾT QUẢ HỌC TẬP TOÀN ĐẠI ĐỘI 460 - NĂM ${year}`],
     [],
     headers
   ];
 
   getScopedStudents().forEach((student, idx) => {
-    const g1 = calculateSemesterGPA(student.id, 1);
-    const g2 = calculateSemesterGPA(student.id, 2);
-    const gy = semFilter === 'all' ? calculateYearGPA(student.id) : calculateSemesterGPA(student.id, Number(semFilter));
-    const debts = getDebtSubjects(student.id, semFilter);
+    const g1 = calculateSemesterGPA(student.id, sem1);
+    const g2 = calculateSemesterGPA(student.id, sem2);
+    const gy = calculateAcademicYearGPA(student.id, year);
+    const debts = getDebtSubjects(student.id, null, year);
 
     rows.push([
       idx + 1,
@@ -3636,7 +3630,7 @@ export function exportMasterExcel() {
 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Tong_Hop_Dai_Doi');
-  writeReportWorkbook(wb, 'Tong_Hop_Diem_Dai_Doi_460.xlsx');
+  writeReportWorkbook(wb, `Tong_Hop_Diem_Dai_Doi_460_Nam_${year}.xlsx`);
 }
 
 export function exportLanguageExcel() {

@@ -117,3 +117,29 @@ test('report policy shares all seven exact boundaries and keeps per-class/year t
   assert.equal(years.length,5);
   for(const year of years) for(const stats of [year.hk1,year.hk2,year.fullYear]) assert.equal(Object.keys(stats.rankCounts).length,7);
 });
+
+test('unit annual export uses the selected year semesters and annual GPA, including year 5', () => {
+  const { context } = fixture();
+  let workbook;
+  const debtYears = [];
+  Object.assign(context, {
+    getScopedStudents: () => [{ id: 's1', code: 'HV001', name: 'Test', class: 'OTQS1' }],
+    calculateSemesterGPA: (id, semester) => semester / 2,
+    calculateAcademicYearGPA: (id, year) => year + 4,
+    getDebtSubjects: (id, semester, year) => { assert.equal(semester, null); debtYears.push(year); return []; },
+    formatVN: () => '',
+    writeReportWorkbook: book => { workbook = book; },
+    XLSX: { utils: { aoa_to_sheet: rows => ({ rows }), book_new: () => ({ sheets: {} }), book_append_sheet: (book, sheet, name) => { book.sheets[name] = sheet; } } },
+  });
+  vm.runInContext(declaration('exportMasterExcel'), context);
+  for (const year of [1, 2, 5]) {
+    context.AppState.masterFilters = { year };
+    context.exportMasterExcel();
+    const rows = workbook.sheets.Tong_Hop_Dai_Doi.rows;
+    assert.equal(rows[3][8], 'ĐTB Cả Năm');
+    assert.equal(rows[4][6], ((year * 2 - 1) / 2).toFixed(2));
+    assert.equal(rows[4][7], year.toFixed(2));
+    assert.equal(rows[4][8], (year + 4).toFixed(2));
+    assert.equal(debtYears.at(-1), year);
+  }
+});

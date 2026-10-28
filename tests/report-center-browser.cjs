@@ -35,6 +35,14 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
    const classBook=await download('#btnExportLanguageSummary');assert.equal(XLSX.utils.sheet_to_json(classBook.Sheets.Danh_Sach_Hoc_Vien,{header:1}).length,7);
    // Switching from a class account must restore the officer's whole-unit scope.
    await page.evaluate(()=>window.AuthState.setUser({type:'company_officer',displayName:'Cán bộ'}));
+   await page.evaluate(()=>window.switchTab('tab-master'));
+   assert.equal(await page.locator('#masterFilterSemester option').count(),5);
+   await page.locator('#masterFilterSemester').selectOption('2');
+   assert.equal(await page.locator('#masterTableBody tr').first().locator('td').nth(6).innerText(),'0.00');
+   assert.equal(await page.locator('#masterTableBody tr').first().locator('td').nth(7).innerText(),'0.00');
+   assert.equal(await page.locator('#masterTableBody tr').first().locator('td').nth(8).innerText(),'0.00');
+   await page.locator('#masterFilterSemester').selectOption('1');
+   assert.equal(await page.locator('#masterThScoreLabel').innerText(),'ĐTB Cả Năm');
    await page.evaluate(()=>window.switchTab('tab-dashboard'));
    for(const id of ['dashboardClassFilter','reportCourseFilterClass','reportYearsFilterClass','reportDebtFilterClass']) {
     assert.equal(await page.locator(`#${id}`).isDisabled(),false);

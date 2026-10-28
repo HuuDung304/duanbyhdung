@@ -8,7 +8,8 @@ export function syncReportExportScope() {
   const year = Number($('reportsYearSelect')?.value) || 1;
   AppState.currentSheetClass = selected; AppState.currentSheetSemester = String(year); AppState.cumulativeSelectedYear = String(year);
   AppState.dashboardFilters ||= {}; AppState.dashboardFilters.class = selected;
-  AppState.masterFilters ||= {}; AppState.masterFilters.class = selected;
+  AppState.masterFilters ||= {}; AppState.masterFilters.class = selected; AppState.masterFilters.year = year;
+  if ($('masterFilterSemester')) $('masterFilterSemester').value = String(year);
   for (const id of ['sheetClassSelect','profileFilterClass','cumulFilterClass','dashboardClassFilter']) if ($(id)) $(id).value = selected;
   if ($('cumulFilterRank')) $('cumulFilterRank').value = 'all';
   if ($('profileFilterPolitical')) $('profileFilterPolitical').value = 'all';
