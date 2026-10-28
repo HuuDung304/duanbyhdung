@@ -55,12 +55,13 @@ const assert = require('node:assert/strict');
       assert.ok(overflow.page<=overflow.width, `no horizontal page overflow in ${tab}: ${JSON.stringify(overflow)}`);
     }
     await page.evaluate(()=>window.switchTab('tab-sheet'));
-    await page.locator('#btnAddCadetModalBtn').click();
-    await page.locator('#newCadetName').fill('Nội dung đang nhập');
+    await page.evaluate(()=>window.switchTab('tab-profiles'));
+    await page.locator('#btnAddNewProfile').click();
+    await page.locator('#profFormName').fill('Nội dung đang nhập');
     await page.evaluate(async()=>{const {updateAllViews,AppState}=await import(new URL('./src/js/grades.js',document.baseURI).href);if(AppState!==window.AppState)throw new Error('Duplicate module state');updateAllViews();});
-    assert.equal(await page.locator('#newCadetName').inputValue(),'Nội dung đang nhập');
+    assert.equal(await page.locator('#profFormName').inputValue(),'Nội dung đang nhập');
     await page.evaluate(()=>window.AuthState.setUser({type:'company_officer',displayName:'Cán bộ kiểm thử'}));
-    assert.equal(await page.locator('#btnAddCadetModalBtn').isVisible(),false);
+    assert.equal(await page.locator('#btnAddCadetModalBtn').count(),0);
     await page.evaluate(()=>window.AuthState.setUser({type:'class_account',class:'OTQS1',displayName:'Lớp OTQS1'}));
     assert.equal(await page.locator('#bentoCount').innerText(),'2');
     await page.locator('#bentoSearch').fill('HV003');

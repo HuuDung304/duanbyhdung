@@ -51,8 +51,8 @@ const assert=require('node:assert/strict');
  assert.deepEqual(tables.grades.map(g=>g.score).sort(),[3.99,4]);assert.deepEqual(errors,[]);
  for(const page of pages){
   await page.evaluate(()=>window.switchTab('tab-dashboard'));
-  assert.match(await page.locator('#reportCompanyTableBody').innerText(),/Trung bình khá/);
-  assert.match(await page.locator('#reportCompanyTableBody').innerText(),/Kém/);
+  assert.doesNotMatch(await page.locator('#reportCompanyTableBody').innerText(),/Trung bình khá/);
+  assert.match(await page.locator('#reportCompanyTableBody').innerText(),/Yếu/);
   assert.equal(await page.locator('#masterFilterRank option').count(),8);
  }
  // Two real XLSX profile uploads: identical names, distinct codes, then update only one code.
@@ -61,7 +61,7 @@ const assert=require('node:assert/strict');
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['Mã HV','Họ và Tên','Lớp','SĐT'],...rows]),'HoSo');
   await profilePage.evaluate(()=>window.switchTab('tab-profiles'));
-  await profilePage.locator('#btnQuickImportExcel').dispatchEvent('click');
+  await profilePage.locator('#btnImportProfileExcel').dispatchEvent('click');
   await profilePage.locator('#quickImportFileInput').setInputFiles({name:'HoSo.xlsx',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',buffer:XLSX.write(wb,{type:'buffer',bookType:'xlsx'})});
   await profilePage.waitForFunction(()=>!document.getElementById('btnExecuteQuickImport').disabled);
   await profilePage.locator('#btnExecuteQuickImport').dispatchEvent('click');

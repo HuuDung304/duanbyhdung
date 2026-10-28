@@ -93,11 +93,11 @@ const assert = require('node:assert/strict');
   assert.equal(await page.locator('#languageTableBody .select-lang-tab-level').count(), 0);
   assert.match(await page.locator('#languageTableBody').innerText(), /Chỉ xem/);
   await page.evaluate(() => window.switchTab('tab-profiles'));
-  assert.equal(await page.locator('#btnQuickImportExcel').isVisible(), false);
+  assert.equal(await page.locator('#btnImportProfileExcel').isVisible(), false);
   assert.equal(await page.locator('.btn-open-profile').first().isVisible(), false);
   assert.equal(await page.locator('#btnExportProfileExcel').isVisible(), true);
   const before = writes.length;
-  await page.locator('#btnQuickImportExcel').dispatchEvent('click');
+  await page.locator('#btnImportProfileExcel').dispatchEvent('click');
   assert.equal(await page.locator('#modalQuickImportExcel').isVisible(), false);
   const blocked = await page.evaluate(async () => {
     const db = await import('/src/js/supabase.js');

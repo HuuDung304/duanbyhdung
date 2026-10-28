@@ -34,7 +34,7 @@ const assert = require('node:assert/strict');
         // Bento starts expanded on desktop and uses a compact rail on mobile.
         if (await toggle.getAttribute('aria-expanded') === 'true') await toggle.click();
         await page.waitForFunction(expected => Math.abs(document.querySelector('.u040-rail').getBoundingClientRect().width - expected) < .1, collapsedWidth);
-        await page.waitForFunction(() => document.querySelector('.u040-page-heading h2').textContent === 'Dashboard / Tổng quan');
+        await page.waitForFunction(() => document.querySelector('.u040-page-heading h2').textContent === 'Báo cáo giao ban');
         const collapsedLeft = await page.locator('.u040-main').evaluate(element => element.getBoundingClientRect().left);
         await toggle.focus();
         await page.keyboard.press('Enter');

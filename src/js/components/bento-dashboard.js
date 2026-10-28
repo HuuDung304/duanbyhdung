@@ -1,7 +1,7 @@
 /** Bento dashboard: presentation only. All academic rules and persistence stay in grades.js. */
 import './expanding-rail.js';
 import {
-  AppState, registerExternalHooks, computeTimeframeAcademicStats, calculateSemesterGPA,
+  AppState, registerExternalHooks, computeReportAcademicStats, calculateSemesterGPA,
   calculateCourseGPA10, calculateCumulativeGPA4, getSubjectsForClass, getFullSubjectName,
   getGradeLetterAndScale4, getCurrentUserClassScope, isAnyEditFormActive
 } from '../grades.js';
@@ -52,10 +52,7 @@ if (root) {
   const nav = root.querySelector('.u040-nav');
   const overview = nav?.querySelector('[data-tab="tab-dashboard"]');
   if (overview) nav.insertBefore(overview.parentElement, nav.querySelector('.u040-it')?.parentElement);
-  const logo = root.querySelector('.u040-logo');
-  if (logo) logo.textContent = '★';
-  const brand = root.querySelector('.u040-name');
-  if (brand) brand.textContent = 'Đại đội 460';
+  root.querySelector('.u040-top')?.remove();
   const footer = node('details', 'bento-help');
   const help = node('summary', '', 'ⓘ Thông tin hệ thống');
   footer.append(help, node('p', '', 'Quản lý điểm & hồ sơ quân nhân. Dữ liệu được đồng bộ qua Supabase. Phiên bản 2.1.0.'));
@@ -115,7 +112,7 @@ function quickMenu() {
     menu.append(button);
   }
   if (AppState.role === 'admin' || AppState.role?.startsWith('class_leader_')) {
-    for (const [label, target] of [['Thêm học viên', 'btnAddCadetModalBtn'], ['Nhập Excel bảng điểm', 'btnImportExcel']]) {
+    for (const [label, target] of [['Nhập Excel hồ sơ', 'btnImportProfileExcel'], ['Nhập Excel bảng điểm', 'btnImportExcel']]) {
       const button = node('button', '', label); button.type = 'button';
       button.addEventListener('click', () => { $(target)?.click(); menu.closest('details').open = false; });
       menu.append(button);
@@ -134,7 +131,7 @@ export function renderBentoDashboard() {
   }
   const students = scopedStudents();
   const frame = timeframe();
-  const stats = computeTimeframeAcademicStats(students, frame.mode, frame.semester, frame.year);
+  const stats = computeReportAcademicStats(students, frame.mode, frame.semester, frame.year);
   const hasGrades = stats.totalGradedCourseInstances > 0;
   text('bentoCount', students.length.toLocaleString('vi-VN'));
   text('bentoAverage', hasGrades ? number(stats.avgGpa) : '—');

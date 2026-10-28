@@ -113,7 +113,7 @@ body {
 }
 
   </style>
-  <link rel="stylesheet" href="./src/css/bento-dashboard.css?v=886f9e731ef5">
+  <link rel="stylesheet" href="./src/css/bento-dashboard.css?v=b5942e0fb795">
 </head>
 <body class="bento-app bg-slate-100 text-slate-800 min-h-screen flex flex-col">
 
@@ -130,10 +130,7 @@ body {
           <span id="cornerRoleTag" class="px-1.5 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-100 text-emerald-800 border border-emerald-300">ADMIN</span>
           <span id="cornerRoleDesc" class="text-slate-400 hidden md:inline text-[10px]">(Toàn quyền Quản trị)</span>
           <span class="text-slate-600">|</span>
-          <button type="button" id="btnCornerSwitchRole" class="inline-flex items-center gap-1 text-[11px] font-semibold text-gold-400 hover:text-gold-300 hover:underline transition cursor-pointer" title="Đổi tài khoản">
-            <svg class="w-3.5 h-3.5 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
-            <span>Đổi tài khoản</span>
-          </button>
+
           <span class="text-slate-600">|</span>
           <button type="button" id="btnCornerLogout" class="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-400 hover:text-rose-300 hover:underline transition cursor-pointer" title="Đăng xuất khỏi hệ thống">
             <svg class="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
@@ -191,10 +188,7 @@ body {
         <!-- Đã xóa hoàn toàn chế độ cấp quyền lớp trưởng theo yêu cầu RBAC -->
 
         <!-- Login / Switch Account Button -->
-        <button type="button" id="btnOpenLoginModal" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-army-700 hover:bg-army-600 text-gold-300 border border-gold-500/40 transition shadow-sm">
-          <svg class="w-3.5 h-3.5 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
-          <span id="btnLoginText">Đổi Tài Khoản</span>
-        </button>
+
 
         <!-- Logout Button (Đăng Xuất Khỏi Hệ Thống) -->
         <button type="button" id="btnLogout" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-rose-900/70 hover:bg-rose-800 text-rose-200 border border-rose-500/40 transition shadow-sm" title="Đăng xuất phiên làm việc hiện tại">
@@ -244,14 +238,14 @@ body {
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path></svg>
         Chứng Chỉ Ngoại Ngữ
       </button>
-      
+
       <button data-tab="tab-audit" class="nav-tab flex items-center gap-2 py-3 px-4 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-slate-300 hover:text-white whitespace-nowrap transition">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
         Lịch Sử Sửa Điểm (Audit Log)
       </button>
       <button data-tab="tab-settings" class="nav-tab flex items-center gap-2 py-3 px-4 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-slate-300 hover:text-white whitespace-nowrap transition">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-        Môn Học & Tín Chỉ
+        Cài Đặt
       </button>
     </div>
   </nav>
@@ -416,14 +410,8 @@ body {
 
         <!-- Action buttons: Excel Import/Export, Add Cadet -->
         <div class="flex flex-wrap items-center gap-2 pt-2 lg:pt-0">
-          <button id="btnAddCadetModalBtn" class="leader-allowed inline-flex items-center gap-1.5 text-xs font-bold bg-army-700 hover:bg-army-800 text-white px-3.5 py-2 rounded-lg shadow-sm transition">
-            <svg class="w-4 h-4 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-            + Thêm Học Viên Thủ Công
-          </button>
-          <button id="btnAddSubjectFromSheetBtn" class="leader-allowed inline-flex items-center gap-1.5 text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 px-3 py-2 rounded-lg transition">
-            <svg class="w-4 h-4 text-army-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-            + Thêm Môn Học
-          </button>
+
+
           <button id="btnImportExcel" class="inline-flex items-center gap-1.5 text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 px-3 py-2 rounded-lg transition">
             <svg class="w-4 h-4 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
             Nhập từ Excel
@@ -432,9 +420,7 @@ body {
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
             Xuất Excel Lớp
           </button>
-          <button type="button" id="btnClearAllStudentsSheet" class="btn-clear-all-students admin-only inline-flex items-center gap-1.5 text-xs font-bold bg-rose-700 hover:bg-rose-800 text-white px-3 py-2 rounded-lg shadow-sm transition" title="Xóa trắng toàn bộ học viên & điểm số trên Firebase (nhánh daidoi460)">
-            🗑️ Xóa Tất Cả HV
-          </button>
+
         </div>
       </div>
 
@@ -466,7 +452,7 @@ body {
     </section>
 
     <!-- ========================================== -->
-    
+
     <!-- ========================================== -->
     <!-- TAB: HỒ SƠ TRÍCH NGANG QUÂN NHÂN           -->
     <!-- ========================================== -->
@@ -530,21 +516,16 @@ body {
               <svg class="w-4 h-4 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
               + Thêm Quân Nhân Mới (Thủ Công)
             </button>
-            <button id="btnQuickImportExcel" class="leader-allowed inline-flex items-center gap-1.5 text-xs font-bold bg-blue-700 hover:bg-blue-800 text-white px-3.5 py-2 rounded-lg shadow-sm transition">
-              <svg class="w-4 h-4 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-              Nhập nhanh từ Excel
-            </button>
+
             <button id="btnImportProfileExcel" class="inline-flex items-center gap-1.5 text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 px-3 py-2 rounded-lg transition">
               <svg class="w-4 h-4 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-              Nhập Excel Trích Ngang
+              Nhập Excel Hồ Sơ
             </button>
             <button id="btnExportProfileExcel" class="inline-flex items-center gap-1.5 text-xs font-semibold bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-2 rounded-lg shadow-sm transition">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
               Xuất Excel (A4 Ngang)
             </button>
-            <button type="button" id="btnClearAllStudentsProfiles" class="btn-clear-all-students admin-only inline-flex items-center gap-1.5 text-xs font-bold bg-rose-700 hover:bg-rose-800 text-white px-3 py-2 rounded-lg shadow-sm transition" title="Xóa trắng toàn bộ học viên & điểm số trên Firebase (nhánh daidoi460)">
-              🗑️ Xóa Tất Cả HV
-            </button>
+
           </div>
         </div>
 
@@ -631,7 +612,7 @@ body {
       </div>
     </section>
 
-    
+
     <!-- ========================================== -->
     <!-- TAB: ĐIỂM TÍCH LŨY TOÀN KHÓA               -->
     <!-- ========================================== -->
@@ -671,9 +652,7 @@ body {
             <button id="btnExportCumulativeExcel" class="inline-flex items-center gap-1.5 text-xs font-semibold bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-2 rounded-lg shadow-sm transition">
               Xuất Bảng Điểm Tích Lũy (.xlsx)
             </button>
-            <button type="button" id="btnClearAllStudentsCumul" class="btn-clear-all-students admin-only inline-flex items-center gap-1.5 text-xs font-bold bg-rose-700 hover:bg-rose-800 text-white px-3 py-2 rounded-lg shadow-sm transition" title="Xóa trắng toàn bộ học viên & điểm số trên Firebase (nhánh daidoi460)">
-              🗑️ Xóa Tất Cả HV
-            </button>
+
           </div>
         </div>
 
@@ -804,9 +783,7 @@ body {
             <button id="btnExportMasterExcel" class="inline-flex items-center gap-1.5 text-xs font-semibold bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-2 rounded-lg shadow-sm transition">
               Xuất Bảng Tổng Hợp (.xlsx)
             </button>
-            <button type="button" id="btnClearAllStudentsMaster" class="btn-clear-all-students admin-only inline-flex items-center gap-1.5 text-xs font-bold bg-rose-700 hover:bg-rose-800 text-white px-3 py-2 rounded-lg shadow-sm transition" title="Xóa trắng toàn bộ học viên & điểm số trên Firebase (nhánh daidoi460)">
-              🗑️ Xóa Tất Cả HV
-            </button>
+
           </div>
         </div>
 
@@ -1008,7 +985,7 @@ body {
             <span class="w-2.5 h-2.5 rounded-full bg-army-700"></span>
             <div>
               <h4 class="font-bold text-xs sm:text-sm text-army-900 uppercase">Bảng 1: Tỷ Lệ Tích Lũy (Từ Đầu Khóa Đến Nay)</h4>
-              <p class="text-[11px] text-slate-500">Thống kê tỷ lệ xếp loại học lực tích lũy (Xuất sắc, Giỏi, Khá, Trung bình khá, Trung bình, Yếu, Kém) và tỷ lệ đạt/rớt từ đầu khóa đến nay</p>
+              <p class="text-[11px] text-slate-500">Thống kê tỷ lệ xếp loại học lực tích lũy (Xuất sắc, Giỏi, Khá, Trung bình, Yếu) và tỷ lệ đạt/rớt từ đầu khóa đến nay</p>
             </div>
           </div>
           <span class="text-[11px] text-army-800 font-bold bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-lg">Toàn khóa (Tích lũy từ đầu khóa đến nay)</span>
@@ -1151,10 +1128,7 @@ body {
             <option value="TTG2">Lớp TTG2</option>
             <option value="XMCB">Lớp XMCB</option>
           </select>
-          <button id="btnAddLangCertBtn" class="leader-allowed inline-flex items-center gap-1.5 text-xs font-bold bg-army-700 hover:bg-army-800 text-white px-3.5 py-2 rounded-lg shadow-sm transition">
-            <svg class="w-4 h-4 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-            + Cập Nhật Chứng Chỉ Thủ Công
-          </button>
+
           <button id="btnExportLangExcel" class="inline-flex items-center gap-1.5 text-xs font-semibold bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-2 rounded-lg shadow-sm transition">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
             Xuất Bảng Ngoại Ngữ
@@ -1206,9 +1180,7 @@ body {
           <h3 class="text-base font-bold text-slate-900 uppercase">Nhật Ký Lịch Sử Chỉnh Sửa Điểm (Audit Trail)</h3>
           <p class="text-xs text-slate-500">Ghi nhận minh bạch mọi thao tác can thiệp dữ liệu điểm số, người thực hiện và thời gian</p>
         </div>
-        <button id="btnClearLog" class="admin-only text-xs text-rose-600 hover:text-rose-800 font-semibold border border-rose-300 px-3 py-1.5 rounded-lg bg-rose-50 transition">
-          Xóa Lịch Sử Cũ
-        </button>
+
       </div>
 
       <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
@@ -1238,47 +1210,8 @@ body {
     <!-- TAB 7: CÀI ĐẶT MÔN HỌC & TÍN CHỈ (5 NĂM - 10 HỌC KỲ) -->
     <!-- ========================================== -->
     <section id="tab-settings" class="tab-content hidden space-y-4">
-      <!-- Header Banner & Action Buttons -->
-      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div>
-          <div class="text-[11px] font-bold text-gold-600 uppercase tracking-wider">Chương Trình Đào Tạo Kỹ Sư Quân Sự (5 Năm - 10 Học Kỳ)</div>
-          <h3 class="text-base font-extrabold text-slate-900 uppercase">Danh Mục Môn Học & Cấu Trúc Tín Chỉ Niên Khóa</h3>
-          <p class="text-xs text-slate-500">Phân bổ khối lượng học tập theo từng năm học (2 kỳ/năm) • Tùy chỉnh môn học và số tín chỉ linh hoạt</p>
-        </div>
-        <div class="flex flex-wrap items-center gap-2">
-          <button type="button" id="btnResetDefaultCurriculum" class="btn-clear-all-subjects admin-only inline-flex items-center gap-1.5 text-xs font-bold bg-rose-700 hover:bg-rose-800 text-white px-3.5 py-2 rounded-lg shadow-sm transition cursor-pointer" title="Xóa trắng toàn bộ các môn học trong cả 10 học kỳ trên Firebase">
-            🗑️ Xóa Tất Cả Môn Toàn Khóa
-          </button>
-          <button type="button" id="btnAddSubjectBtn" class="admin-only inline-flex items-center gap-1.5 text-xs font-bold bg-army-700 hover:bg-army-800 text-white px-3.5 py-2 rounded-lg shadow-sm transition">
-            <svg class="w-4 h-4 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-            + Thêm Môn Học Mới
-          </button>
-        </div>
-      </div>
-
-      <!-- Quick Metrics Strip -->
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
-          <div class="text-[11px] font-semibold text-slate-500 uppercase">Tổng Tín Chỉ Toàn Khóa (10 Kỳ)</div>
-          <div id="statSettingsTotalCredits" class="text-2xl font-black text-army-800 mt-1">0 môn chung</div>
-          <div class="text-[10px] text-slate-400 mt-0.5">Khung Kỹ sư Quân sự 5 năm</div>
-        </div>
-        <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
-          <div class="text-[11px] font-semibold text-slate-500 uppercase">Tổng Số Môn Đã Cấu Hình</div>
-          <div id="statSettingsTotalSubjects" class="text-2xl font-black text-gold-600 mt-1">0 môn chuyên ngành</div>
-          <div class="text-[10px] text-slate-400 mt-0.5">Phân bổ trong 10 học kỳ</div>
-        </div>
-        <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
-          <div class="text-[11px] font-semibold text-slate-500 uppercase">Năm Đang Xem</div>
-          <div id="statSettingsSelectedYearTitle" class="text-xl font-extrabold text-slate-900 mt-1">Năm Thứ 1</div>
-          <div id="statSettingsSelectedYearSub" class="text-[10px] text-emerald-600 font-semibold mt-0.5">Học kỳ 1 & Học kỳ 2</div>
-        </div>
-        <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
-          <div class="text-[11px] font-semibold text-slate-500 uppercase">Tín Chỉ Năm Đang Chọn</div>
-          <div id="statSettingsSelectedYearCredits" class="text-2xl font-black text-blue-700 mt-1">0 môn</div>
-          <div id="statSettingsSelectedYearBreakdown" class="text-[10px] text-slate-500 mt-0.5">Kỳ 1: 0 môn (0 TC) &bull; Kỳ 2: 0 môn (0 TC)</div>
-        </div>
-      </div>
+      <div class="settings-intro"><h3>Môn học &amp; tín chỉ theo lớp</h3><p>Số môn và tổng tín chỉ trong danh mục hiện có của từng lớp.</p></div>
+      <div id="settingsClassSummaries" class="settings-class-summaries"></div>
 
       <!-- Year Filter Tabs (Năm 1 -> Năm 5) -->
       <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
@@ -1298,12 +1231,21 @@ body {
       <div id="settingsSemestersContainer" class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- Populated by JS: Card Semester A and Card Semester B -->
       </div>
+      <details id="settingsDangerZone" class="admin-only settings-danger-zone">
+        <summary>Quản trị dữ liệu · Thao tác xóa toàn bộ</summary>
+        <p>Chỉ Admin được thực hiện. Mỗi thao tác yêu cầu xác nhận riêng và nhập đúng cụm từ xác nhận.</p>
+        <div class="settings-danger-actions">
+          <button type="button" id="btnClearAllStudentsSettings" class="btn-clear-all-students admin-only">Xóa tất cả học viên</button>
+          <button type="button" id="btnClearAllSubjectsBtn" class="btn-clear-all-subjects admin-only">Xóa tất cả môn học</button>
+          <button type="button" id="btnClearLog" class="admin-only">Xóa toàn bộ nhật ký</button>
+        </div>
+      </details>
     </section>
 
   </main>
 
   <!-- ========================================== -->
-  
+
 
   <!-- ========================================== -->
   <!-- MODALS                                     -->
@@ -1810,7 +1752,7 @@ body {
   </div>
 
   <!-- 5. Modal: Hồ sơ trích ngang quân nhân chi tiết (3 Nhóm & Học tập) -->
-  
+
   <!-- ========================================================================= -->
   <!-- MODAL: NHẬP NHANH QUÂN SỐ TỪ EXCEL (6 CỘT CHUẨN UPSERT)                   -->
   <!-- ========================================================================= -->
@@ -2211,7 +2153,7 @@ body {
     </div>
   </div>
 
-  
+
   <!-- 6. Modal: Phiếu Điểm Tích Lũy & Bảng Điểm Cá Nhân Chi Tiết -->
   <div id="modalTranscriptDetail" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-3 sm:p-4">
     <div class="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[92vh] flex flex-col overflow-hidden border border-slate-200">
@@ -2337,21 +2279,23 @@ body {
 {
   "imports": {
     "./src/js/access-controls.js": "./src/js/access-controls.js?v=0c31f2921589",
-    "./src/js/auth.js": "./src/js/auth.js?v=b996bd8cdd93",
-    "./src/js/components/bento-dashboard.js": "./src/js/components/bento-dashboard.js?v=92983be2f215",
+    "./src/js/auth.js": "./src/js/auth.js?v=64b72b6e8c0a",
+    "./src/js/components/bento-dashboard.js": "./src/js/components/bento-dashboard.js?v=34169ba4a9ac",
+    "./src/js/components/destructive-confirm.js": "./src/js/components/destructive-confirm.js?v=d3493f707a09",
     "./src/js/components/expanding-rail.js": "./src/js/components/expanding-rail.js?v=30e2d9c62544",
     "./src/js/components/notched-field.js": "./src/js/components/notched-field.js?v=553608c192ae",
-    "./src/js/grades.js": "./src/js/grades.js?v=a55e2bc8f537",
-    "./src/js/main.js": "./src/js/main.js?v=20907df6ba59",
+    "./src/js/grades.js": "./src/js/grades.js?v=fe92d90d2534",
+    "./src/js/main.js": "./src/js/main.js?v=9c09c07dce73",
     "./src/js/profile-rules.js": "./src/js/profile-rules.js?v=3a3bbf350b00",
-    "./src/js/students.js": "./src/js/students.js?v=95baa4f8d4bd",
+    "./src/js/report-workbook.js": "./src/js/report-workbook.js?v=6439de73c06f",
+    "./src/js/students.js": "./src/js/students.js?v=c1dd5810dd56",
     "./src/js/supabase.js": "./src/js/supabase.js?v=95281f6a8b31"
   }
 }
   </script>
-  <script type="module" src="./src/js/main.js?v=20907df6ba59"></script>
+  <script type="module" src="./src/js/main.js?v=9c09c07dce73"></script>
   <script type="module" src="./src/js/components/expanding-rail.js?v=30e2d9c62544"></script>
   <script type="module" src="./src/js/components/notched-field.js?v=553608c192ae"></script>
-  <script type="module" src="./src/js/components/bento-dashboard.js?v=92983be2f215"></script>
+  <script type="module" src="./src/js/components/bento-dashboard.js?v=34169ba4a9ac"></script>
 </body>
 </html>

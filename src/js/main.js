@@ -1,3 +1,4 @@
+import { requestDestructiveConfirmation } from './components/destructive-confirm.js';
 import { installOfficerReadOnlyGuard } from './access-controls.js';
 import { calendarDate, politicalDates } from './profile-rules.js';
 
@@ -1205,9 +1206,12 @@ function registerGlobalEventDelegation() {
     const clearLogBtn = target.closest('#btnClearLog');
     if (clearLogBtn) {
       e.preventDefault();
+      if (AppState.role !== 'admin') return;
+      if (!(await requestDestructiveConfirmation({ title: 'Xóa toàn bộ nhật ký?', message: 'Các hoạt động đã ghi nhận sẽ bị xóa khỏi nhật ký hệ thống.', phrase: 'XÓA NHẬT KÝ' })) || AppState.role !== 'admin') return;
       await withButtonLock(clearLogBtn, '⏳ Đang xử lý...', async () => {
+        const previousLogs = AppState.auditLogs;
         AppState.auditLogs = [];
-        await persistData(true);
+        try { await persistData(true); } catch (error) { AppState.auditLogs = previousLogs; throw error; }
         renderAuditLog();
       });
       return;

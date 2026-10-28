@@ -14,6 +14,16 @@ Chạy trực tiếp `index.html` qua **Live Server** hoặc GitHub Pages, khôn
 
 Kiểm tra giao diện bằng `tests/bento-browser.cjs` và `tests/rail-browser.cjs` với Playwright/Chromium; đặt `TEST_BASE_URL` tới máy chủ tĩnh. Dữ liệu Supabase trong các kiểm thử này được giả lập, không ghi lên hệ thống thật. Có thể đặt `BENTO_TEST_CSS_PATH` tới CSS Tailwind biên dịch cục bộ và `BENTO_CHART_JS_PATH` tới bản Chart.js 4.4.1 để kiểm tra khi CDN không truy cập được từ trình duyệt.
 
+## Quản trị tập trung và Báo cáo giao ban
+
+Các thao tác xóa toàn bộ học viên, môn học và nhật ký chỉ nằm tại **Cài đặt → Quản trị dữ liệu**, chỉ Admin được dùng. Hộp thoại yêu cầu nhập đúng `XÓA HỌC VIÊN`, `XÓA MÔN HỌC` hoặc `XÓA NHẬT KÝ`; nút xác nhận bị khóa nếu nhập sai. Hủy/nhấn Escape không gửi yêu cầu xóa. Với học viên và môn học, màn hình chỉ xóa dữ liệu sau khi database xác nhận thành công.
+
+Hồ sơ chỉ có một nút **Nhập Excel Hồ Sơ**, vẫn đối chiếu theo mã học viên. Các nút thêm học viên/môn học ở bảng điểm, xóa cả học kỳ, cập nhật chứng chỉ thủ công ở thanh công cụ, logo và đổi tài khoản đã được bỏ. Đăng xuất vẫn hoạt động. Cài đặt hiển thị tổng số môn và tín chỉ hiện có của từng lớp, bao gồm đúng các môn chung/chuyên ngành áp dụng cho lớp đó; tài khoản lớp chỉ xem thẻ lớp mình.
+
+**Riêng Báo cáo giao ban** sử dụng 5 mức: Xuất sắc ≥ 8,50; Giỏi từ 8,00 đến dưới 8,50; Khá từ 7,00 đến dưới 8,00; Trung bình từ 5,00 đến dưới 7,00; Yếu dưới 5,00. Quy tắc 7 mức ở bảng điểm/tích lũy được giữ nguyên. Môn dưới 4,00 mới tính rớt, điểm trống không tính rớt. Báo cáo có KPI toàn khóa, ma trận 5 năm/10 học kỳ, danh sách nợ môn đầy đủ tên môn và nút phiếu điểm cá nhân. Tài khoản lớp bị khóa phạm vi; học viên không được xuất báo cáo.
+
+File Excel gồm 3 sheet: tổng hợp đủ ba bảng, chi tiết từng năm/học kỳ, danh sách học viên rớt kèm phụ lục từng môn. `src/js/report-workbook.js` bổ sung thiết lập OOXML A4 ngang, lề in, vùng in và vừa một trang ngang vì SheetJS CE không tự ghi `pageSetup`. Có thể kiểm tra toàn bộ luồng với `tests/admin-report-browser.cjs`, dùng database giả lập.
+
 ## 1. Hệ thống Tài khoản & Phân quyền (RBAC)
 
 Giao diện đăng nhập được chia thành 4 nhóm tài khoản cố định (đã xóa bỏ hoàn toàn chức năng cấp quyền):

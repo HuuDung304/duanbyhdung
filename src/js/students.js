@@ -1,3 +1,4 @@
+import { requestDestructiveConfirmation } from './components/destructive-confirm.js';
 import { calendarDate, parentBirthYear, displayParentYear, politicalDates } from './profile-rules.js';
 
 /**
@@ -792,12 +793,14 @@ export async function executeClearAllStudents(triggerBtn = null) {
     return;
   }
 
+  if (!(await requestDestructiveConfirmation({ title: 'Xóa tất cả học viên?', message: 'Toàn bộ hồ sơ học viên, điểm số và dữ liệu ngoại ngữ sẽ bị xóa. Thao tác này không thể hoàn tác.', phrase: 'XÓA HỌC VIÊN' })) || AppState.role !== 'admin') return;
+
   await withButtonLock(triggerBtn, '⏳ Đang xử lý...', async () => {
+    await deleteAllStudentsFromSupabase();
+
     AppState.students = [];
     AppState.grades = {};
     AppState.languages = {};
-
-    await deleteAllStudentsFromSupabase();
 
     logAuditTrail('', '', 'Xóa toàn bộ', '0 học viên', 'Làm trống vĩnh viễn toàn bộ danh sách học viên & điểm số trên Supabase');
     populateStudentPicker();

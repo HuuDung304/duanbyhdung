@@ -106,7 +106,7 @@ export function syncNavigationTabLabels(role) {
   if (tabDashboard) {
     const labelSpan = tabDashboard.querySelector('.tab-dashboard-label');
     if (labelSpan) {
-      labelSpan.textContent = isClassAccount ? 'Dashboard Lớp' : 'Dashboard / Tổng quan';
+      labelSpan.textContent = isClassAccount ? 'Báo cáo giao ban lớp' : 'Báo cáo giao ban';
     }
   }
 }
