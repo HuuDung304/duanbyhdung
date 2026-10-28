@@ -970,6 +970,10 @@ export function detectExcelColumnMapping(headerRow = []) {
 
 export function handleQuickImportFileUpload(file) {
   quickImportParsedRows = [];
+  document.getElementById('quickImportPreviewHeader')?.classList.add('hidden');
+  document.getElementById('quickImportPreviewContainer')?.classList.add('hidden');
+  const previousPreview = document.getElementById('quickImportPreviewTbody');
+  if (previousPreview) previousPreview.innerHTML = '';
   const confirmButton = document.getElementById('btnExecuteQuickImport');
   if (confirmButton) confirmButton.disabled = true;
   if (!file) return;
@@ -1010,6 +1014,8 @@ export function handleQuickImportFileUpload(file) {
       }
 
       const colMap = detectExcelColumnMapping(jsonRows[headerIdx] || []);
+      if (colMap.code < 0) throw new Error('File Excel phải có cột Mã HV (Mã học viên).');
+      const studentsByCode = new Map(AppState.students.map(student => [String(student.code).trim().toUpperCase(), student]));
       const getVal = (row, colIndex) => {
         if (colIndex === undefined || colIndex === null || colIndex < 0) return '';
         return row[colIndex] !== undefined && row[colIndex] !== null ? row[colIndex] : '';
@@ -1032,31 +1038,21 @@ export function handleQuickImportFileUpload(file) {
         if (rawCode === 'STT' || rawCode === 'MÃ HV' || rawCode.includes('MÃ HỌC VIÊN') || rawName.toLowerCase().includes('họ và tên')) {
           return;
         }
-        if (!rawCode && !rawName) return;
 
-        // Nếu cột Mã HV bị bỏ trống hoặc người dùng để số thứ tự (1, 2, 3...) nhưng có Họ và tên:
-        if ((!rawCode || /^\d{1,3}$/.test(rawCode)) && rawName) {
-          const matchedByName = AppState.students.find(s => s.name.toLowerCase() === rawName.toLowerCase());
-          if (matchedByName) {
-            rawCode = matchedByName.code.toUpperCase();
-          } else {
-            const seqNum = /^\d{1,3}$/.test(rawCode) ? rawCode.padStart(3, '0') : String(rowIdx + 1).padStart(3, '0');
-            const defaultCls = (classScope || String(getVal(r, colMap.class) || AppState.currentSheetClass || 'OTQS1').trim().toUpperCase());
-            rawCode = `HV${defaultCls}-${seqNum}`;
-          }
-        }
-
-        if (!rawCode) return;
+        if (!rawCode) throw new Error(`Dòng ${headerIdx + rowIdx + 2}: thiếu Mã HV. Không đối chiếu theo họ tên.`);
         const code = rawCode;
-        const name = rawName || ('Quân nhân ' + code);
+        if (seenCodesInFile.has(code)) {
+          throw new Error(`Dòng ${headerIdx + rowIdx + 2}: Mã HV ${code} bị lặp trong file. Mỗi mã chỉ được có một dòng hồ sơ.`);
+        }
+        seenCodesInFile.add(code);
+        const existing = studentsByCode.get(code);
+        const name = rawName || existing?.name || ('Quân nhân ' + code);
 
         let cls = String(getVal(r, colMap.class) || '').trim().toUpperCase().replace(/^LỚP\s+/i, '');
         if (classScope) cls = classScope;
-        else if (!DEFAULT_CLASSES.includes(cls)) cls = AppState.currentSheetClass || 'OTQS1';
+        else if (!DEFAULT_CLASSES.includes(cls)) cls = existing?.class || AppState.currentSheetClass || 'OTQS1';
 
-        const existing = AppState.students.find(s => s.code.toUpperCase() === code);
-        const isUpdate = !!existing || seenCodesInFile.has(code);
-        seenCodesInFile.add(code);
+        const isUpdate = !!existing;
         if (isUpdate) updateCount++; else newCount++;
 
         const rawPartyJoined = getVal(r, colMap.party_joined_date);
@@ -1129,6 +1125,7 @@ export function handleQuickImportFileUpload(file) {
         btnExec.textContent = 'Xác nhận Nhập Dữ liệu';
       }
     } catch (err) {
+      quickImportParsedRows = [];
       showToast('Lỗi khi đọc file Excel: ' + err.message, 'error');
     }
   };

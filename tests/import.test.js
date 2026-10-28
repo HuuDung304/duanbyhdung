@@ -353,3 +353,104 @@ test('Excel import retains 3.99 as a failing score, without rounding to 4.0', as
   await context.executeExcelImport();
   assert.equal(writes.at(-1)[0].score, 3.99);
 });
+
+test('grade Excel import never matches a missing student code to a same-name cadet', async () => {
+  const { context, writes, messages } = importContext();
+  context.AppState.students = [{ id: 'hv_old', code: 'HVOLD', name: 'Một', class: 'OTQS1' }];
+  context.parsedImportData.rows[0][0] = '';
+  await context.executeExcelImport();
+  assert.equal(writes.length, 0);
+  assert.match(messages.at(-1).message, /thiếu Mã HV/);
+});
+
+test('grade import requires an explicit code column and keeps same-name students separate', async () => {
+  const { context, writes } = importContext();
+  context.AppState.students = [
+    { id: 'hv_a', code: 'HV01', name: 'Trùng tên', class: 'OTQS1' },
+    { id: 'hv_b', code: 'HV02', name: 'Trùng tên', class: 'OTQS1' },
+  ];
+  context.parsedImportData.rows = [[' hv02 ', 'Trùng tên', 'OTQS1', 8]];
+  await context.executeExcelImport();
+  assert.equal(writes[0][0].studentId, 'hv_b');
+  assert.equal(context.AppState.grades.hv_a, undefined);
+  const invalid = importContext();
+  invalid.context.parsedImportData.headers = ['Họ và Tên', 'Lớp', 'Toán'];
+  await invalid.context.executeExcelImport();
+  assert.equal(invalid.writes.length, 0);
+  assert.match(invalid.messages.at(-1).message, /phải có cột Mã HV/);
+});
+
+function profileContext(rows) {
+  const source = readFileSync('src/js/students.js', 'utf8');
+  const elements = new Map();
+  const messages = [];
+  const writes = [];
+  const state = { role: 'admin', currentSheetClass: 'OTQS1', subjects: [], grades: {}, languages: {}, students: [
+    { id: 'hv_a', code: 'HV01', name: 'Trùng tên', class: 'OTQS1', phone: 'old1' },
+    { id: 'hv_b', code: 'HV02', name: 'Trùng tên', class: 'OTQS2', phone: 'old2' },
+  ] };
+  const context = vm.createContext({
+    structuredClone, console, AppState: state, DEFAULT_CLASSES: ['OTQS1', 'OTQS2'], POLITICAL_BADGES: {},
+    document: { getElementById(id) {
+      if (!elements.has(id)) elements.set(id, { disabled: false, classList: { add() {}, remove() {} } });
+      return elements.get(id);
+    } },
+    FileReader: class { readAsArrayBuffer() { this.onload({ target: { result: new ArrayBuffer(0) } }); } },
+    XLSX: { read: () => ({ SheetNames: ['data'], Sheets: { data: {} } }), utils: { sheet_to_json: () => rows } },
+    getCurrentUserClassScope: () => null, normalizeDateVN: value => value, parseExcelDate: value => value,
+    normalizePoliticalStatus: value => value || 'DOAN_VIEN', normalizeAchievements: value => value || [], formatVN: value => value,
+    showToast: (message, type) => messages.push({ message, type }),
+    upsertStudentsBulkToSupabase: async students => { writes.push(students); return { error: null }; },
+    logAuditTrail() {}, persistData: async () => {}, populateStudentPicker() {}, updateAllViews() {}, hideModal() {},
+    buildDeterministicStudentId: code => `hv_${code.toLowerCase()}`,
+  });
+  const from = source.indexOf('export function detectExcelColumnMapping');
+  const to = source.indexOf('export function setProfileFormReadOnly', from);
+  vm.runInContext('let quickImportParsedRows = [];\n' + source.slice(from, to).replace(/^export /gm, '')
+    + '\nglobalThis.parsedRows = () => quickImportParsedRows;', context);
+  context.handleQuickImportFileUpload({});
+  return { context, messages, writes, state, elements };
+}
+
+test('profile Excel updates only the matching code despite identical names and preserves class', async () => {
+  const { context, writes, state } = profileContext([['Mã HV', 'Họ và Tên', 'SĐT'], [' hv02 ', 'Trùng tên', 'new2']]);
+  assert.equal(context.parsedRows()[0].code, 'HV02');
+  await context.executeQuickImport();
+  assert.equal(state.students[0].phone, 'old1');
+  assert.equal(state.students[1].phone, 'new2');
+  assert.equal(state.students[1].class, 'OTQS2');
+  assert.equal(writes[0].length, 1);
+  assert.equal(writes[0][0].code, 'HV02');
+});
+
+for (const [label, rows, message] of [
+  ['missing code', [['Mã HV','Họ và Tên'], ['','Trùng tên']], /thiếu Mã HV/],
+  ['missing code column', [['Họ và Tên','SĐT'], ['Trùng tên','123']], /phải có cột Mã HV/],
+  ['duplicate code', [['Mã HV','Họ và Tên'], ['HV01','Tên A'], [' hv01 ','Tên B']], /bị lặp/],
+]) {
+  test(`profile Excel rejects ${label} without allowing partial writes`, async () => {
+    const { context, writes, messages, elements } = profileContext(rows);
+    assert.equal(context.parsedRows().length, 0);
+    assert.match(messages.at(-1).message, message);
+    assert.equal(elements.get('btnExecuteQuickImport').disabled, true);
+    await context.executeQuickImport();
+    assert.equal(writes.length, 0);
+  });
+}
+
+test('a short numeric code is treated as an explicit ID, not a row number or name match', async () => {
+  const { context, writes } = importContext();
+  context.AppState.students = [{ id: 'existing', code: 'HVOLD', name: 'Một', class: 'OTQS1' }];
+  context.parsedImportData.rows[0][0] = '12';
+  await context.executeExcelImport();
+  assert.equal(writes[0][0].code, '12');
+  assert.equal(context.AppState.students.find(student => student.code === 'HVOLD').id, 'existing');
+});
+
+test('code-only profile updates preserve the current name when the name column is absent', async () => {
+  const { context, state } = profileContext([['Mã HV','SĐT'], ['HV02','new2']]);
+  await context.executeQuickImport();
+  assert.equal(state.students[1].name, 'Trùng tên');
+  assert.equal(state.students[1].phone, 'new2');
+  assert.equal(state.students[0].phone, 'old1');
+});

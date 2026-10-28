@@ -55,6 +55,24 @@ const assert=require('node:assert/strict');
   assert.match(await page.locator('#reportCompanyTableBody').innerText(),/Kém/);
   assert.equal(await page.locator('#masterFilterRank option').count(),8);
  }
+ // Two real XLSX profile uploads: identical names, distinct codes, then update only one code.
+ const profilePage=pages[0];
+ const uploadProfiles=async rows=>{
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['Mã HV','Họ và Tên','Lớp','SĐT'],...rows]),'HoSo');
+  await profilePage.evaluate(()=>window.switchTab('tab-profiles'));
+  await profilePage.locator('#btnQuickImportExcel').dispatchEvent('click');
+  await profilePage.locator('#quickImportFileInput').setInputFiles({name:'HoSo.xlsx',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',buffer:XLSX.write(wb,{type:'buffer',bookType:'xlsx'})});
+  await profilePage.waitForFunction(()=>!document.getElementById('btnExecuteQuickImport').disabled);
+  await profilePage.locator('#btnExecuteQuickImport').dispatchEvent('click');
+  await profilePage.waitForFunction(()=>document.getElementById('modalQuickImportExcel').getAttribute('aria-hidden')==='true');
+ };
+ await uploadProfiles([['HVPROFILE1','Nguyễn Văn A','OTQS1','0900000001'],['HVPROFILE2','Nguyễn Văn A','OTQS2','0900000002']]);
+ await uploadProfiles([[' hvprofile2 ','Nguyễn Văn A','OTQS2','0900000099']]);
+ assert.equal(tables.students.filter(student=>student.name==='Nguyễn Văn A').length,2);
+ assert.equal(tables.students.find(student=>student.code==='HVPROFILE1').phone,'0900000001');
+ assert.equal(tables.students.find(student=>student.code==='HVPROFILE2').phone,'0900000099');
+ assert.deepEqual(errors,[]);
  console.log(JSON.stringify({result:'PASS',workflow:'Two browser sessions concurrently upload actual XLSX files through the UI against an in-memory REST fixture',students:tables.students.length,subjects:tables.subjects.length,grades:tables.grades.length,browserErrors:errors,writes},null,2));
  await browser.close();
 })().catch(e=>{console.error(e);process.exit(1)});

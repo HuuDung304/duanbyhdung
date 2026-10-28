@@ -3928,14 +3928,8 @@ export async function executeExcelImport() {
     const createdStudents = [];
     const newSubjectsMap = new Map();
     const studentsByCode = new Map();
-    const studentsByName = new Map();
-    const studentsByNameAndClass = new Map();
     const indexStudent = student => {
-      studentsByCode.set(String(student.code).toUpperCase(), student);
-      const name = String(student.name).toLowerCase();
-      if (!studentsByName.has(name)) studentsByName.set(name, student);
-      const scopedName = `${student.class}\0${name}`;
-      if (!studentsByNameAndClass.has(scopedName)) studentsByNameAndClass.set(scopedName, student);
+      studentsByCode.set(String(student.code).trim().toUpperCase(), student);
     };
     AppState.students.forEach(indexStudent);
 
@@ -3945,13 +3939,12 @@ export async function executeExcelImport() {
 
     const normHeaders = headers.map(h => String(h || '').normalize('NFC').replace(/\s+/g, ' ').trim().toLowerCase());
     const firstColIsStt = normHeaders[0] === 'stt' || normHeaders[0] === 'tt';
-    const offset = firstColIsStt ? 1 : 0;
 
     let codeCol = normHeaders.findIndex(h => h.includes('mã hv') || h.includes('mã học viên') || h.includes('mã qn') || h === 'mã');
-    if (codeCol === -1) codeCol = offset;
+    if (codeCol === -1) throw new Error('File Excel phải có cột Mã HV (Mã học viên).');
 
     let nameCol = normHeaders.findIndex(h => (h.includes('họ và tên') || h.includes('họ tên') || h === 'tên') && !h.includes('bố') && !h.includes('mẹ'));
-    if (nameCol === -1) nameCol = codeCol + 1;
+
 
     let rankCol = normHeaders.findIndex(h => h.includes('cấp bậc') || h.includes('quân hàm'));
     let classCol = normHeaders.findIndex(h => h === 'lớp' || h.startsWith('lớp '));
@@ -4017,6 +4010,7 @@ export async function executeExcelImport() {
     });
 
     rows.forEach((row, rIdx) => {
+      if (!row.some(value => String(value ?? '').trim() !== '')) return;
       let studentCode = row[codeCol] !== undefined && row[codeCol] !== null ? String(row[codeCol]).trim().toUpperCase() : '';
       const studentName = row[nameCol] !== undefined && row[nameCol] !== null ? String(row[nameCol]).trim() : '';
 
@@ -4024,8 +4018,7 @@ export async function executeExcelImport() {
         studentCode === 'STT' ||
         studentCode === 'MÃ HV' ||
         studentCode.startsWith('ĐIỂM TRUNG BÌNH') ||
-        studentCode.startsWith('TỔNG') ||
-        (!studentCode && !studentName)
+        studentCode.startsWith('TỔNG')
       ) {
         return;
       }
@@ -4039,16 +4032,9 @@ export async function executeExcelImport() {
         rowCls = fileClassHint || (AppState.currentSheetClass !== 'all' ? AppState.currentSheetClass : '') || 'OTQS1';
       }
 
-      if ((!studentCode || /^\d{1,3}$/.test(studentCode)) && studentName) {
-        const byName = studentsByNameAndClass.get(`${rowCls}\0${studentName.toLowerCase()}`)
-          || studentsByName.get(studentName.toLowerCase());
-        if (byName) {
-          studentCode = byName.code.toUpperCase();
-        } else {
-          studentCode = `HV${rowCls}-${String(rIdx + 1).padStart(3, '0')}`;
-        }
+      if (!studentCode) {
+        throw new Error(`Dòng dữ liệu ${rIdx + 1}: thiếu Mã HV. Không đối chiếu theo họ tên.`);
       }
-      if (!studentCode) return;
 
       let student = studentsByCode.get(studentCode);
 

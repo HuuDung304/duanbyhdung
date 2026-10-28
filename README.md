@@ -70,3 +70,7 @@ Nhập điểm dùng bảng tra cứu học viên và cache môn học theo cộ
 Xuất sắc: từ 9,00; Giỏi: từ 8,00 đến dưới 9,00; Khá: từ 7,00 đến dưới 8,00; Trung bình khá: từ 6,50 đến dưới 7,00; Trung bình: từ 5,50 đến dưới 6,50; Yếu: từ 5,00 đến dưới 5,50; Kém: dưới 5,00 (bao gồm khoảng 4,00–4,99 và ĐTB thấp hơn 4,00). Xếp loại dùng ĐTB thực tế trước khi định dạng hiển thị.
 
 Trạng thái rớt xét riêng từng môn: điểm môn **dưới 4,00** mới tính rớt; 3,99 rớt, 4,00 không rớt. Điểm trống không được tính là rớt. Nhập tay, nhập Excel và hiển thị/xuất điểm môn giữ hai chữ số thập phân để không biến 3,99 thành 4,0. Quy đổi điểm chữ/hệ 4 giữ quy tắc hiện tại; không dùng nó để xếp loại hệ 10. Thay đổi này không cần sửa schema Supabase (cột điểm hiện là NUMERIC(4,2)).
+
+## Đối chiếu học viên khi nhập Excel
+
+Cả nhập hồ sơ và nhập điểm bắt buộc có cột **Mã HV / Mã học viên**, mỗi dòng dữ liệu phải có mã. Chỉ mã được dùng để đối chiếu (bỏ khoảng trắng đầu/cuối và chuẩn hóa chữ hoa); không tìm theo họ tên và không tự sinh mã khi thiếu. Hai người trùng tên nhưng khác mã là hai học viên khác nhau. File hồ sơ lặp mã sẽ bị từ chối để tránh ghi đè hai dòng không rõ thứ tự. File thiếu mã phải sửa trước khi nhập, không lưu một phần các dòng hợp lệ. Định dạng cột mã trong Excel là Text nếu mã có số 0 đầu.
