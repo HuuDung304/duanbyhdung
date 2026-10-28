@@ -18,8 +18,14 @@ const versions = new Map(await Promise.all(assets.map(async path => {
   const bytes = await readFile(new URL(path, root));
   return [path, `${path}?v=${createHash('sha256').update(bytes).digest('hex').slice(0, 12)}`];
 })));
+// Version the entry module against the complete asset graph, so a dependency
+// change also invalidates the entry URL. Keep its import-map URL identical.
+const release = createHash('sha256').update(JSON.stringify([...versions])).digest('hex').slice(0, 12);
+versions.set('./src/js/main.js', `./src/js/main.js?v=${release}`);
 const indexUrl = new URL('index.html', root);
 let html = await readFile(indexUrl, 'utf8');
+html = html.replace(/<meta name="app-release" content="[^"]*">\s*/g, '');
+html = html.replace('<meta charset="UTF-8">', `<meta charset="UTF-8">\n  <meta name="app-release" content="${release}">`);
 html = html.replace(/\s*<script type="importmap" id="app-asset-versions">[\s\S]*?<\/script>/g, '');
 html = html.replace(/(<link\b[^>]*href=")(\.\/src\/[^"?]+\.css)(?:\?[^" ]*)?(")/g,
   (_, before, path, after) => `${before}${versions.get(path) || path}${after}`);

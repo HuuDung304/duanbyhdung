@@ -56,6 +56,7 @@ if (root) {
   const footer = node('details', 'bento-help');
   const help = node('summary', '', 'ⓘ Thông tin hệ thống');
   footer.append(help, node('p', '', 'Quản lý điểm & hồ sơ quân nhân. Dữ liệu được đồng bộ qua Supabase. Phiên bản 2.1.0.'));
+  footer.append(node('p', '', `Mã bản: ${document.querySelector('meta[name="app-release"]')?.content || 'local'} • Xếp loại 7 mức, Xuất sắc từ 9,00.`));
   root.querySelector('nav')?.append(footer);
   const heading = root.querySelector('.u040-page-heading');
   const toolbar = node('div', 'bento-toolbar');

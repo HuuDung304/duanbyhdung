@@ -42,6 +42,12 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
     assert.equal(await page.locator(`#${id} option`).count(),6);
    }
    assert.equal(await page.locator('#statTotalCadets').innerText(),'3');
+   const officerReport = await page.locator('#reportCompanyTableBody').innerText();
+   assert.match(officerReport,/Trung bình khá/); assert.match(officerReport,/Kém/);
+   assert.equal(await page.locator('#reportCompanyTableBody tr').count(),9);
+   assert.match(await page.locator('#reportYearSemesterMatrixBody').innerText(),/9.00/);
+   assert.doesNotMatch(await page.locator('#reportYearSemesterMatrixBody').innerText(),/8.50/);
+   assert.ok(await page.locator('meta[name="app-release"]').getAttribute('content'));
    assert.match(await page.locator('#reportDebtCadetsTableBody').innerText(),/HV001/);
    await page.locator('#reportCourseFilterClass').selectOption('TTG1');
    await page.locator('#reportYearsFilterClass').selectOption('TTG1');
