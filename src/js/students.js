@@ -478,7 +478,7 @@ export function renderStudentInlineProfile(options = {}) {
               <input type="text" id="inlineProfPhone" value="${student.phone || ''}" placeholder="0987..." ${disAttr} class="w-full border rounded-lg p-2.5 font-mono ${inputBg}">
             </div>
             <div class="sm:col-span-2">
-              <label class="block font-bold text-slate-600 mb-1">Quê quán (2 cấp: Huyện/Quận, Tỉnh/TP):</label>
+              <label class="block font-bold text-slate-600 mb-1">Quê quán (2 cấp):</label>
               <input type="text" id="inlineProfHometown" value="${student.hometown || ''}" placeholder="VD: Quảng Xương, Thanh Hóa" autocomplete="off" ${disAttr} class="w-full border rounded-lg p-2.5 ${inputBg}">
             </div>
             <div class="sm:col-span-2">
@@ -486,7 +486,7 @@ export function renderStudentInlineProfile(options = {}) {
               <input type="text" id="inlineProfPermAddr" value="${student.permanentAddress || ''}" placeholder="VD: Quảng Xương, Thanh Hóa" autocomplete="off" ${disAttr} class="w-full border rounded-lg p-2.5 ${inputBg}">
             </div>
             <div class="sm:col-span-2">
-              <label class="block font-bold text-slate-600 mb-1">Nơi ở hiện nay (2 cấp: Huyện/Quận, Tỉnh/TP):</label>
+              <label class="block font-bold text-slate-600 mb-1">Nơi ở hiện nay (2 cấp):</label>
               <input type="text" id="inlineProfCurrAddr" value="${student.currentAddress || ''}" placeholder="VD: Quảng Xương, Thanh Hóa" autocomplete="off" ${disAttr} class="w-full border rounded-lg p-2.5 ${inputBg}">
             </div>
             <div>
