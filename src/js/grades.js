@@ -1229,7 +1229,6 @@ export function renderSpreadsheet() {
   const btnImport = document.getElementById('btnImportExcel');
   const btnAddCadet = document.getElementById('btnAddCadetModalBtn');
   const btnAddSubj = document.getElementById('btnAddSubjectFromSheetBtn');
-  const btnExport = document.getElementById('btnExportClassExcel');
   document.getElementById('sheetSearchBox')?.classList.toggle('hidden', isStudent);
   const sheetClassBox = document.getElementById('sheetClassSelectBox');
   const sheetYearBox = document.getElementById('sheetYearSelectBox');
@@ -1243,12 +1242,6 @@ export function renderSpreadsheet() {
     if (sheetYearBox) sheetYearBox.classList.add('hidden');
     if (sheetLockBox) sheetLockBox.classList.add('hidden');
     if (instructionBanner) instructionBanner.classList.add('hidden');
-    if (btnExport) {
-      btnExport.innerHTML = `
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-        <span>Xuất Bảng Điểm Cá Nhân (.xlsx)</span>
-      `;
-    }
     if (classWrapper) classWrapper.classList.add('hidden');
     if (studentVerticalWrapper) {
       studentVerticalWrapper.classList.remove('hidden');
@@ -1264,12 +1257,6 @@ export function renderSpreadsheet() {
   if (sheetYearBox) sheetYearBox.classList.remove('hidden');
   if (sheetLockBox) sheetLockBox.classList.remove('hidden');
   if (instructionBanner) instructionBanner.classList.remove('hidden');
-  if (btnExport) {
-    btnExport.innerHTML = `
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-      <span>Tải bảng điểm lớp (.xlsx)</span>
-    `;
-  }
   if (studentVerticalWrapper) studentVerticalWrapper.classList.add('hidden');
   if (classWrapper) classWrapper.classList.remove('hidden');
 

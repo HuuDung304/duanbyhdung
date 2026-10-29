@@ -1,4 +1,4 @@
-import { syncReportExportScope } from './components/report-center.js';
+import { syncReportExportScope, requestReportOptions } from './components/report-center.js';
 import { requestDestructiveConfirmation } from './components/destructive-confirm.js';
 import { installOfficerReadOnlyGuard } from './access-controls.js';
 import { calendarDate, politicalDates } from './profile-rules.js';
@@ -1119,13 +1119,14 @@ function registerGlobalEventDelegation() {
     }
 
     // --- H. XUẤT / NHẬP EXCEL ---
-    if (target.closest('#tab-reports button')) syncReportExportScope();
-    if (target.closest('#btnExportRanking')) { e.preventDefault(); exportAcademicRanking(); return; }
+    if (target.closest('#btnExportRanking')) { e.preventDefault(); if (await requestReportOptions('year')) exportAcademicRanking(); return; }
     if (target.closest('#btnExportCadetRoster')) { e.preventDefault(); exportCadetRoster(); return; }
     if (target.closest('#btnExportAchievements')) { e.preventDefault(); exportAcademicAchievementsExcel(); return; }
 
     if (target.closest('#btnExportClassExcel')) {
       e.preventDefault();
+      if (!await requestReportOptions('class')) return;
+      syncReportExportScope();
       exportClassExcel();
       return;
     }

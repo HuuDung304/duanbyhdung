@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="app-release" content="99ae8c4e4e85">
+  <meta name="app-release" content="f074328212d1">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Quản lý đơn vị</title>
   <link rel="icon" type="image/svg+xml" href="./src/assets/favicon.svg?v=43c991ef71f6">
@@ -117,7 +117,7 @@ body {
 }
 
   </style>
-  <link rel="stylesheet" href="./src/css/bento-dashboard.css?v=2d3e73363c74">
+  <link rel="stylesheet" href="./src/css/bento-dashboard.css?v=9a8963f8e223">
 </head>
 <body class="bento-app bg-slate-100 text-slate-800 min-h-screen flex flex-col">
 
@@ -1159,13 +1159,21 @@ body {
     </section>
 
     <section id="tab-reports" class="tab-content hidden space-y-4">
-      <article class="report-export-heading report-export-card export-unit-only">
-        <h2>Xuất báo cáo</h2>
-        <h3>Bảng điểm lớp</h3>
-        <p>STT, mã học viên, họ tên, lớp, ngày tháng năm sinh; mỗi môn một cột, tín chỉ dưới tên môn; ĐTB từng kỳ và ĐTB năm khi đủ hai kỳ. Excel dùng Times New Roman, kẻ bảng và căn giữa.</p>
-        <div class="report-export-controls"><label for="reportsClassSelect">Lớp tải bảng điểm</label><select id="reportsClassSelect" aria-label="Chọn lớp tải bảng điểm"></select><button type="button" id="btnExportClassExcel"><span>Tải bảng điểm lớp (.xlsx)</span></button></div>
-      </article>
-      <div class="report-export-grid"><article class="report-export-card export-unit-only"><h3>Danh sách tiếng Nga</h3><p>STT, mã học viên, họ tên, ngày tháng năm sinh, trình độ thực tế và ghi chú. Admin và cán bộ tải toàn đơn vị; tài khoản lớp tải lớp mình, không phụ thuộc ô chọn lớp bảng điểm.</p><div><button type="button" id="btnExportLangExcel">Tải danh sách tiếng Nga (.xlsx)</button></div></article><article class="report-export-card export-unit-only"><h3>Danh sách trích ngang</h3><p>Thông tin quân nhân, liên hệ, thân nhân bố và mẹ, cùng cột ghi chú. Admin và cán bộ tải toàn đơn vị; tài khoản lớp tải lớp mình.</p><div><button type="button" id="btnExportCadetRoster">Tải danh sách trích ngang (.xlsx)</button></div></article><article class="report-export-card export-unit-only"><h3>Xếp hạng điểm</h3><p>Xếp từ điểm cao xuống thấp theo năm học. Đạt chuẩn Tiếng Nga và điểm &gt;8: xanh nhạt tối đa 10%; tiếp theo điểm &gt;7: vàng nhạt tối đa 25%. Chỉ tiêu làm tròn xuống, không bù người thiếu điều kiện. Admin/cán bộ có hai sheet toàn đơn vị và từng lớp; tài khoản lớp chỉ có lớp mình.</p><div class="report-export-controls"><label for="rankingYearSelect">Năm học</label><select id="rankingYearSelect"><option value="1">Năm 1</option><option value="2">Năm 2</option><option value="3">Năm 3</option><option value="4">Năm 4</option><option value="5">Năm 5</option></select><button type="button" id="btnExportRanking">Tải xếp hạng điểm (.xlsx)</button></div></article></div>
+      <header class="report-gallery-header"><h2>Xuất báo cáo</h2><p>Chọn báo cáo để tải file Excel.</p></header>
+      <div class="report-export-grid report-gallery">
+        <article class="report-export-card export-unit-only"><h3>Bảng điểm lớp</h3><p>Điểm từng môn, tín chỉ, ĐTB học kỳ và cả năm. Chỉ gồm các kỳ đã đủ điểm toàn lớp.</p><div class="report-card-actions"><button type="button" id="btnExportClassExcel" class="report-download" aria-label="Tải bảng điểm lớp" title="Tải bảng điểm lớp"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m-5-5 5 5 5-5M5 16v4h14v-4"/></svg></button><span class="report-file-type" aria-hidden="true">.xlsx</span></div></article>
+        <article class="report-export-card export-unit-only"><h3>Danh sách tiếng Nga</h3><p>Trình độ thực tế, chuẩn yêu cầu và thống kê đạt/chưa đạt. Toàn đơn vị hoặc lớp phụ trách.</p><div class="report-card-actions"><button type="button" id="btnExportLangExcel" class="report-download" aria-label="Tải danh sách tiếng Nga" title="Tải danh sách tiếng Nga"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m-5-5 5 5 5-5M5 16v4h14v-4"/></svg></button><span class="report-file-type" aria-hidden="true">.xlsx</span></div></article>
+        <article class="report-export-card export-unit-only"><h3>Danh sách trích ngang</h3><p>Thông tin quân nhân, liên hệ và thân nhân bố, mẹ; kèm cột ghi chú.</p><div class="report-card-actions"><button type="button" id="btnExportCadetRoster" class="report-download" aria-label="Tải danh sách trích ngang" title="Tải danh sách trích ngang"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m-5-5 5 5 5-5M5 16v4h14v-4"/></svg></button><span class="report-file-type" aria-hidden="true">.xlsx</span></div></article>
+        <article class="report-export-card export-unit-only"><h3>Xếp hạng điểm</h3><p>Xếp hạng theo năm học, đối chiếu Tiếng Nga; tô xanh tối đa 10% và vàng tiếp theo tối đa 25%.</p><div class="report-card-actions"><button type="button" id="btnExportRanking" class="report-download" aria-label="Tải xếp hạng điểm" title="Tải xếp hạng điểm"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m-5-5 5 5 5-5M5 16v4h14v-4"/></svg></button><span class="report-file-type" aria-hidden="true">.xlsx</span></div></article>
+      </div>
+      <dialog id="reportExportDialog" class="report-export-dialog" aria-labelledby="reportExportDialogTitle">
+        <form method="dialog" id="reportExportForm">
+          <h3 id="reportExportDialogTitle">Tải báo cáo</h3><p id="reportExportDialogDescription"></p>
+          <div id="reportClassOption"><label for="reportsClassSelect">Lớp tải bảng điểm</label><select id="reportsClassSelect" aria-label="Chọn lớp tải bảng điểm"></select></div>
+          <div id="reportYearOption"><label for="rankingYearSelect">Năm học</label><select id="rankingYearSelect"><option value="">Chọn năm học</option><option value="1">Năm 1</option><option value="2">Năm 2</option><option value="3">Năm 3</option><option value="4">Năm 4</option><option value="5">Năm 5</option></select></div>
+          <div class="report-dialog-actions"><button type="button" id="reportExportCancel">Hủy</button><button type="submit" id="reportExportConfirm">Tải file</button></div>
+        </form>
+      </dialog>
     </section>
   </main>
 
@@ -2211,10 +2219,10 @@ body {
     "./src/js/components/destructive-confirm.js": "./src/js/components/destructive-confirm.js?v=d3493f707a09",
     "./src/js/components/expanding-rail.js": "./src/js/components/expanding-rail.js?v=30e2d9c62544",
     "./src/js/components/notched-field.js": "./src/js/components/notched-field.js?v=553608c192ae",
-    "./src/js/components/report-center.js": "./src/js/components/report-center.js?v=5413244c0643",
+    "./src/js/components/report-center.js": "./src/js/components/report-center.js?v=6c26e21009dd",
     "./src/js/dashboard-statistics.js": "./src/js/dashboard-statistics.js?v=6e42e8415b31",
-    "./src/js/grades.js": "./src/js/grades.js?v=b489cbda7b18",
-    "./src/js/main.js": "./src/js/main.js?v=99ae8c4e4e85",
+    "./src/js/grades.js": "./src/js/grades.js?v=bbca640535f8",
+    "./src/js/main.js": "./src/js/main.js?v=f074328212d1",
     "./src/js/profile-rules.js": "./src/js/profile-rules.js?v=3a3bbf350b00",
     "./src/js/report-workbook.js": "./src/js/report-workbook.js?v=1cd3836da746",
     "./src/js/students.js": "./src/js/students.js?v=0099d83f79db",
@@ -2222,7 +2230,7 @@ body {
   }
 }
   </script>
-  <script type="module" src="./src/js/main.js?v=99ae8c4e4e85"></script>
+  <script type="module" src="./src/js/main.js?v=f074328212d1"></script>
   <script type="module" src="./src/js/components/expanding-rail.js?v=30e2d9c62544"></script>
   <script type="module" src="./src/js/components/notched-field.js?v=553608c192ae"></script>
   <script type="module" src="./src/js/components/bento-dashboard.js?v=86c9eec93026"></script>

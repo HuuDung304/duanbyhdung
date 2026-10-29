@@ -34,7 +34,7 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
     } else {
      assert.equal(await selector.isDisabled(),false);
      assert.deepEqual(await selector.locator('option').evaluateAll(items=>items.map(item=>item.value)),['','OTQS1','OTQS2','TTG1','TTG2','XMCB']);
-     await selector.selectOption('OTQS1');
+
     }
     await page.evaluate(()=>window.switchTab('tab-cumulative'));
     assert.deepEqual(await page.locator('#cumulativeTableBody .select-cumul-lang').first().locator('option').evaluateAll(items=>items.map(item=>item.value)),['A1','A21','A2','B11','B1']);
@@ -68,6 +68,7 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
     assert.equal(russianRows.some(row=>row[1]==='HV003'),type!=='class_account');
     assert.deepEqual(rosterRows.map(row=>row[0]),Array.from({length:rosterRows.length},(_,i)=>i+1));
     const pending=page.waitForEvent('download'); await page.locator('#btnExportClassExcel').click();
+    if(type!=='class_account') {await selector.selectOption('OTQS1');await page.locator('#reportExportConfirm').click();}
     const file=await pending; assert.equal(file.suggestedFilename(),'Bảng điểm OTQS1.xlsx');
     const bytes=fs.readFileSync(await file.path()),book=XLSX.read(bytes,{type:'buffer'});
     const rows=XLSX.utils.sheet_to_json(book.Sheets[book.SheetNames[0]],{header:1});

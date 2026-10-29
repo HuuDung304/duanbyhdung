@@ -17,7 +17,7 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
     window.AppState.subjects=[{id:'y1a',name:'Toán',credits:3,semester:1,category:'common'},{id:'y1b',name:'Lý',credits:3,semester:2,category:'common'},{id:'y2a',name:'Tin',credits:3,semester:3,category:'common'}];
     window.AppState.grades=Object.fromEntries(window.AppState.students.map((s,i)=>[s.id,{y1a:9.9-i*.03,y1b:9.9-i*.03,y2a:6}]));window.AppState.languages={};
    });
-   const download=async()=>{const pending=page.waitForEvent('download');await page.locator('#btnExportRanking').click();const file=await pending;assert.equal(file.suggestedFilename(),'Xếp hạng điểm.xlsx');const bytes=fs.readFileSync(await file.path());return {book:XLSX.read(bytes,{type:'buffer'}),archive:XLSX.CFB.read(bytes,{type:'buffer'})};};
+   const download=async(year)=>{const pending=page.waitForEvent('download');await page.locator('#btnExportRanking').click();await page.locator('#rankingYearSelect').selectOption(String(year));await page.locator('#reportExportConfirm').click();const file=await pending;assert.equal(file.suggestedFilename(),'Xếp hạng điểm.xlsx');const bytes=fs.readFileSync(await file.path());return {book:XLSX.read(bytes,{type:'buffer'}),archive:XLSX.CFB.read(bytes,{type:'buffer'})};};
    const colors=(archive,name,column='A')=>{
     const decode=file=>new TextDecoder().decode(file.content);
     const styles=decode(archive.FileIndex.find(f=>f.name==='styles.xml'));
@@ -28,7 +28,7 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
    };
    for(const type of ['admin','company_officer','class_account']) {
     await page.evaluate(type=>window.AuthState.setUser({type,class:'OTQS1'}),type);await page.evaluate(()=>window.switchTab('tab-reports'));
-    await page.locator('#rankingYearSelect').selectOption('1');const {book,archive}=await download();
+    const {book,archive}=await download(1);
     assert.equal(book.SheetNames.length,type==='class_account'?1:2);
     const sheet=book.Sheets[book.SheetNames[0]],rows=XLSX.utils.sheet_to_json(sheet,{header:1,defval:''});
     assert.equal(rows.length,type==='class_account'?7:23);assert.equal(rows[3][1],'HV000');assert.equal(rows[3][8],'Đạt');
@@ -37,7 +37,7 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
      const classes=book.Sheets.Tung_lop;for(const start of [0,12,24,36,48]) assert.match(classes[XLSX.utils.encode_cell({r:0,c:start})].v,/LỚP/);
      assert.equal(colors(archive,'sheet2.xml','M').filter(f=>f.includes('FFFEF9C3')).length,1);
     } else {assert.ok(rows.slice(3).every(row=>row[4]==='OTQS1'));}
-    await page.locator('#rankingYearSelect').selectOption('2');const second=await download();const secondRows=XLSX.utils.sheet_to_json(second.book.Sheets[second.book.SheetNames[0]],{header:1,defval:''});assert.equal(secondRows[3][5],6);assert.equal(secondRows[3][6],'');assert.equal(secondRows[3][7],6);assert.equal(colors(second.archive,'sheet1.xml').filter(f=>/FFDCFCE7|FFFEF9C3/.test(f)).length,0);
+    const second=await download(2);const secondRows=XLSX.utils.sheet_to_json(second.book.Sheets[second.book.SheetNames[0]],{header:1,defval:''});assert.equal(secondRows[3][5],6);assert.equal(secondRows[3][6],'');assert.equal(secondRows[3][7],6);assert.equal(colors(second.archive,'sheet1.xml').filter(f=>/FFDCFCE7|FFFEF9C3/.test(f)).length,0);
    }
    assert.deepEqual(errors,[]);console.log(`PASS: ${width}px ranking scopes, years, two-column class gaps, exact quotas and genuine Excel row fills`);await context.close();
   }
