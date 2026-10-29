@@ -1,3 +1,4 @@
+import { reviewImport } from './components/import-review.js';
 import { sanitizeHTML, escapeHTML } from './safe-html.js';
 import { RANKING_HEADERS, rankingTableRows } from './academic-ranking.js';
 import { buildClassTranscript } from './class-transcript.js';
@@ -36,6 +37,7 @@ import {
   loadAllDataFromSupabase,
   upsertStudentToSupabase,
   upsertStudentsBulkToSupabase,
+  importExcelTransaction,
   upsertSubjectToSupabase,
   upsertSubjectsBulkToSupabase,
   deleteSubjectFromSupabase,
@@ -3875,6 +3877,10 @@ export async function executeExcelImport() {
     btnConfirm.textContent = 'Đang xử lý...';
   }
 
+  let databaseCommitted = false;
+  let transactionStarted = false;
+  let legacyStarted = false;
+  let importRowCount = 0;
   try {
     let updatedCount = 0;
     let createdStudentsCount = 0;
@@ -3962,6 +3968,8 @@ export async function executeExcelImport() {
       }
     });
 
+    const seenImportCodes = new Set();
+    const reviewRows = [];
     rows.forEach((row, rIdx) => {
       if (!row.some(value => String(value ?? '').trim() !== '')) return;
       let studentCode = row[codeCol] !== undefined && row[codeCol] !== null ? String(row[codeCol]).trim().toUpperCase() : '';
@@ -3989,6 +3997,10 @@ export async function executeExcelImport() {
         throw new Error(`Dòng dữ liệu ${rIdx + 1}: thiếu Mã HV. Không đối chiếu theo họ tên.`);
       }
 
+      if (seenImportCodes.has(studentCode)) throw new Error(`Mã HV ${studentCode} bị lặp trong file.`);
+      seenImportCodes.add(studentCode);
+      const beforePoints = updatedCount;
+      const rowScores = [];
       let student = studentsByCode.get(studentCode);
 
       // Nếu học viên trong file Excel chưa có trong danh sách, tự động tạo mới học viên đó
@@ -4038,7 +4050,7 @@ export async function executeExcelImport() {
         createdStudents.push(student);
       }
 
-      if (classScope && student.class !== classScope) return;
+      if (classScope && student.class !== classScope) throw new Error(`Mã HV ${studentCode} thuộc lớp khác.`);
 
       if (!AppState.grades[student.id]) {
         AppState.grades[student.id] = {};
@@ -4078,47 +4090,71 @@ export async function executeExcelImport() {
             subjectId: targetSubject.id,
             score: rounded
           });
+          rowScores.push(`${targetSubject.name || desc.rawHeader}: ${rounded}`);
           updatedCount++;
         }
       });
+      if (updatedCount > beforePoints) {
+        importRowCount++;
+        reviewRows.push(`${rIdx + 1}. ${studentCode} — ${student.name} — ${student.class}: ${updatedCount - beforePoints} ô điểm\n   ${rowScores.join('; ')}`);
+      }
     });
 
     if (bulkGradeEntries.length === 0) {
       throw new Error('Không tìm thấy ô điểm hợp lệ. Kiểm tra tiêu đề cột và dữ liệu Excel.');
     }
 
-    // 1. Lưu học viên trước để đảm bảo khóa ngoại student_id trên bảng grades
-    if (createdStudents.length > 0) {
-      const originalIds = createdStudents.map(student => student.id);
-      const result = await upsertStudentsBulkToSupabase(createdStudents, AppState.languages, { createOnly: true });
-      if (result?.error) throw new Error(result.error.message || 'Không thể lưu học viên');
-      // A concurrent import may have created the same code with an existing ID.
-      const remappedIds = new Map();
-      createdStudents.forEach((student, index) => {
-        const oldId = originalIds[index];
-        if (oldId !== student.id) {
-          remappedIds.set(oldId, student.id);
-          AppState.grades[student.id] = AppState.grades[oldId] || {};
-          delete AppState.grades[oldId];
-        }
-      });
-      bulkGradeEntries.forEach(entry => {
-        entry.studentId = remappedIds.get(entry.studentId) || entry.studentId;
-      });
-    }
+    const stagedState = structuredClone({ students: AppState.students, subjects: AppState.subjects, grades: AppState.grades, languages: AppState.languages });
+    Object.assign(AppState, structuredClone(previousState));
+    const accepted = await reviewImport({ title: 'Xem trước nhập bảng điểm', confirm: true,
+      details: `${importRowCount}/${rows.length} dòng có điểm; ${updatedCount} ô điểm; ${createdStudentsCount} học viên mới; ${newSubjectsMap.size} môn mới. Dòng không có điểm được bỏ qua. Nếu chưa cài SQL giao dịch, hệ thống sẽ hỏi trước khi dùng cách lưu cũ.`, rows: reviewRows });
+    if (!accepted) return;
+    if (JSON.stringify({ students: AppState.students, subjects: AppState.subjects, grades: AppState.grades, languages: AppState.languages }) !== JSON.stringify(previousState)) throw new Error('Dữ liệu đã thay đổi trong lúc xem trước. Hãy đọc lại file.');
+    Object.assign(AppState, stagedState);
+    transactionStarted = true;
+    const atomicResult = await importExcelTransaction({ students: createdStudents, subjects: Array.from(newSubjectsMap.values()), grades: bulkGradeEntries, createOnly: true });
+    transactionStarted = !atomicResult.unavailable;
+    if (atomicResult.unavailable) {
+      Object.assign(AppState, structuredClone(previousState));
+      const useLegacy = await reviewImport({ title: 'Chưa cài giao dịch Supabase', confirm: true,
+        details: 'Cách lưu hiện tại gửi nhiều yêu cầu và có thể lưu một phần nếu lỗi. Chọn Hủy nhập để cài SQL trước hoặc xác nhận để tiếp tục theo cách cũ.' });
+      if (!useLegacy) return;
+      Object.assign(AppState, stagedState);
+      legacyStarted = true;
+      // 1. Lưu học viên trước để đảm bảo khóa ngoại student_id trên bảng grades
+      if (createdStudents.length > 0) {
+        const originalIds = createdStudents.map(student => student.id);
+        const result = await upsertStudentsBulkToSupabase(createdStudents, AppState.languages, { createOnly: true });
+        if (result?.error) throw new Error(result.error.message || 'Không thể lưu học viên');
+        // A concurrent import may have created the same code with an existing ID.
+        const remappedIds = new Map();
+        createdStudents.forEach((student, index) => {
+          const oldId = originalIds[index];
+          if (oldId !== student.id) {
+            remappedIds.set(oldId, student.id);
+            AppState.grades[student.id] = AppState.grades[oldId] || {};
+            delete AppState.grades[oldId];
+          }
+        });
+        bulkGradeEntries.forEach(entry => {
+          entry.studentId = remappedIds.get(entry.studentId) || entry.studentId;
+        });
+      }
 
-    // 2. Lưu các môn học mới được nhận diện tự động theo khóa kết hợp (course_name + class_code + semester)
-    if (newSubjectsMap.size > 0) {
-      const result = await upsertSubjectsBulkToSupabase(Array.from(newSubjectsMap.values()));
-      if (result?.error) throw new Error(result.error.message || 'Không thể lưu môn học');
-    }
+      // 2. Lưu các môn học mới được nhận diện tự động theo khóa kết hợp (course_name + class_code + semester)
+      if (newSubjectsMap.size > 0) {
+        const result = await upsertSubjectsBulkToSupabase(Array.from(newSubjectsMap.values()));
+        if (result?.error) throw new Error(result.error.message || 'Không thể lưu môn học');
+      }
 
-    // 3. Lưu toàn bộ điểm số lên bảng grades của Supabase
-    if (bulkGradeEntries.length > 0) {
-      const result = await upsertGradesBulkToSupabase(bulkGradeEntries);
-      if (result?.error) throw new Error(result.error.message || 'Không thể lưu điểm');
-    }
+      // 3. Lưu toàn bộ điểm số lên bảng grades của Supabase
+      if (bulkGradeEntries.length > 0) {
+        const result = await upsertGradesBulkToSupabase(bulkGradeEntries);
+        if (result?.error) throw new Error(result.error.message || 'Không thể lưu điểm');
+      }
 
+    }
+    databaseCommitted = true;
     logAuditTrail(
       '',
       '',
@@ -4130,12 +4166,12 @@ export async function executeExcelImport() {
     hideModal('modalImportExcel');
     updateAllViews();
     parsedImportData = null;
-    showToast(`Đã lưu thành công ${updatedCount} điểm số lên Supabase!`, 'success');
+    await reviewImport({ title: 'Kết quả nhập điểm', details: `${importRowCount} dòng thành công; 0 thất bại; ${rows.length - importRowCount} dòng bỏ qua. ${transactionStarted ? 'Đã lưu bằng giao dịch.' : 'Đã lưu theo từng đợt.'}` });
   } catch (err) {
-    Object.assign(AppState, previousState);
+    if (!databaseCommitted) Object.assign(AppState, previousState);
     AppState.hasPendingCloudRefresh = true;
     console.error('Lỗi khi nhập Excel điểm lên Supabase:', err);
-    showToast('Có lỗi khi lưu điểm từ Excel lên Supabase: ' + (err.message || err), 'error');
+    await reviewImport({ title: 'Nhập điểm chưa hoàn tất', details: databaseCommitted ? `${importRowCount} dòng đã lưu; lỗi ở bước cập nhật giao diện/nhật ký. Không nhập lại file.` : err.confirmedRollback ? `0 dòng thành công; ${importRowCount} dòng thất bại, toàn bộ giao dịch đã hoàn tác.` : !transactionStarted && !legacyStarted ? '0 dòng thành công; bản nhập đã bị chặn trước khi ghi database. Sửa lỗi bên dưới rồi thử lại.' : legacyStarted ? 'Chưa xác định số dòng đã lưu do lỗi giữa các đợt. Một phần có thể đã lên database; cần tải lại trước khi thử lại.' : 'Chưa xác nhận thành công. Lỗi SQL sẽ hoàn tác giao dịch; nếu mất kết nối, cần tải lại dữ liệu để kiểm tra kết quả.', rows: [String(err.message || err)] });
   } finally {
     if (btnConfirm) {
       btnConfirm.disabled = false;

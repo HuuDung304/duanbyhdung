@@ -114,6 +114,8 @@ function importContext(file = 'src/js/grades.js', overrides = {}) {
     resolveSubjectByCompositeKey: () => ({ id: 'toan' }),
     buildDeterministicStudentId: code => `hv_${code.toLowerCase()}`,
     normalizeDateVN: () => '', logAuditTrail() {}, persistData: async () => {}, updateAllViews() {}, hideModal() {},
+    reviewImport: async options => { if (!options.confirm) messages.push({ message: [options.details, ...(options.rows || [])].join('\n'), type: options.title.includes('Kết quả') ? 'success' : 'error' }); return true; },
+    importExcelTransaction: async () => ({ unavailable: true }),
     showToast: (message, type) => messages.push({ message, type }),
     upsertStudentsBulkToSupabase: async rows => { writes.push(rows); return { error: null }; },
     upsertSubjectsBulkToSupabase: async () => ({ error: null }),
@@ -404,6 +406,8 @@ function profileContext(rows, setupState) {
     XLSX: { read: () => ({ SheetNames: ['data'], Sheets: { data: {} } }), utils: { sheet_to_json: () => rows } },
     getCurrentUserClassScope: () => null, normalizeDateVN: value => value, parseExcelDate: value => value,
     normalizePoliticalStatus: value => value || 'DOAN_VIEN', normalizeAchievements: value => value || [], formatVN: value => value,
+    reviewImport: async options => { if (!options.confirm) messages.push({ message: [options.details, ...(options.rows || [])].join('\n'), type: options.title.includes('Kết quả') ? 'success' : 'error' }); return true; },
+    importExcelTransaction: async () => ({ unavailable: true }),
     showToast: (message, type) => messages.push({ message, type }),
     upsertStudentsBulkToSupabase: async students => { writes.push(students); return { error: null }; },
     logAuditTrail() {}, persistData: async () => {}, populateStudentPicker() {}, updateAllViews() {}, hideModal() {},
@@ -508,4 +512,24 @@ test('Excel loading exposes busy state and restores the button after a failed sa
   assert.equal(button.disabled,false);
   assert.equal(button.attributes['aria-busy'],undefined);
   assert.equal(button.textContent,'Nhập');
+});
+
+test('grade preview cancellation sends no writes and restores staged state', async () => {
+  const { context, writes } = importContext('src/js/grades.js', { reviewImport: async () => false });
+  await context.executeExcelImport();
+  assert.equal(writes.length, 0);
+  assert.equal(context.AppState.students.length, 0);
+  assert.ok(context.parsedImportData);
+});
+
+test('atomic grade import uses one transaction and never falls back after transaction errors', async () => {
+  let calls = 0;
+  const { context, writes, messages } = importContext('src/js/grades.js', {
+    importExcelTransaction: async payload => { calls++; assert.equal(payload.grades[0].score, 7.5); throw Object.assign(new Error('SQL rejected'), {confirmedRollback:true}); },
+  });
+  await context.executeExcelImport();
+  assert.equal(calls, 1);
+  assert.equal(writes.length, 0);
+  assert.equal(context.AppState.students.length, 0);
+  assert.match(messages.at(-1).message, /0 dòng thành công; 1 dòng thất bại/);
 });

@@ -1,3 +1,4 @@
+import { reviewImport } from './components/import-review.js';
 import { sanitizeHTML, escapeHTML } from './safe-html.js';
 import { writeReportWorkbook } from './report-workbook.js';
 import { requestDestructiveConfirmation } from './components/destructive-confirm.js';
@@ -58,6 +59,7 @@ import {
   loadAllDataFromSupabase,
   upsertStudentToSupabase,
   upsertStudentsBulkToSupabase,
+  importExcelTransaction,
   deleteStudentFromSupabase,
   deleteAllStudentsFromSupabase
 } from './supabase.js';
@@ -1094,6 +1096,9 @@ export async function executeQuickImport() {
     btnExec.textContent = 'Đang xử lý...';
   }
 
+  let databaseCommitted = false;
+  let writeAttempted = false;
+  const totalRows = quickImportParsedRows.length;
   try {
     const importedCount = quickImportParsedRows.length;
     const importedStudents = [];
@@ -1147,9 +1152,26 @@ export async function executeQuickImport() {
       }
     });
 
-    // Chờ lưu toàn bộ học viên & ngoại ngữ lên bảng students + languages của Supabase hoàn tất
-    const bulkRes = await upsertStudentsBulkToSupabase(importedStudents, AppState.languages);
-    if (bulkRes?.error) throw new Error(bulkRes.error.message || 'Không thể lưu đầy đủ dữ liệu học viên');
+    const stagedState = structuredClone({ students: AppState.students, subjects: AppState.subjects, grades: AppState.grades, languages: AppState.languages });
+    Object.assign(AppState, structuredClone(previousState));
+    const accepted = await reviewImport({ title: 'Xác nhận nhập hồ sơ', confirm: true,
+      details: `${importedCount} dòng hồ sơ sẽ được thêm/cập nhật theo mã học viên.`,
+      rows: importedStudents.map(s => `${s.code} — ${s.name} — ${s.class}`) });
+    if (!accepted) return;
+    if (JSON.stringify({ students: AppState.students, subjects: AppState.subjects, grades: AppState.grades, languages: AppState.languages }) !== JSON.stringify(previousState)) throw new Error('Dữ liệu đã thay đổi trong lúc xem trước. Hãy đọc lại file.');
+    Object.assign(AppState, stagedState);
+    writeAttempted = true;
+    const result = await importExcelTransaction({ students: importedStudents });
+    if (result.unavailable) {
+      Object.assign(AppState, structuredClone(previousState));
+      const useLegacy = await reviewImport({ title: 'Chưa cài giao dịch Supabase', confirm: true,
+        details: 'Lưu theo từng đợt có thể lưu dở dang khi gặp lỗi. Hủy để cài SQL giao dịch hoặc xác nhận để tiếp tục cách cũ.' });
+      if (!useLegacy) return;
+      Object.assign(AppState, stagedState);
+      const bulkRes = await upsertStudentsBulkToSupabase(importedStudents, AppState.languages);
+      if (bulkRes?.error) throw new Error(bulkRes.error.message || 'Không thể lưu đầy đủ dữ liệu học viên');
+    }
+    databaseCommitted = true;
     logAuditTrail('', '', 'Excel Nhập Nhanh', `${importedCount} học viên`, 'Nhập nhanh danh sách hồ sơ học viên từ Excel lên Supabase');
     await persistData(true);
 
@@ -1158,12 +1180,12 @@ export async function executeQuickImport() {
     updateAllViews();
     quickImportParsedRows = [];
 
-    showToast(`Đã nhập và lưu thành công ${importedCount} học viên lên cơ sở dữ liệu Supabase!`, 'success');
+    await reviewImport({ title: 'Kết quả nhập hồ sơ', details: `${importedCount} dòng thành công; 0 thất bại. ${result.atomic ? 'Đã lưu bằng giao dịch.' : 'Đã lưu theo từng đợt.'}` });
   } catch (err) {
-    Object.assign(AppState, previousState);
+    if (!databaseCommitted) Object.assign(AppState, previousState);
     AppState.hasPendingCloudRefresh = true;
     console.error('Lỗi khi lưu dữ liệu Excel lên Supabase:', err);
-    showToast('Có lỗi khi đồng bộ Excel lên Supabase: ' + (err.message || err), 'error');
+    await reviewImport({ title: 'Nhập hồ sơ chưa hoàn tất', details: databaseCommitted ? `${totalRows} dòng đã lưu; lỗi ở bước cập nhật giao diện/nhật ký. Không nhập lại file.` : err.confirmedRollback ? `0 dòng thành công; ${totalRows} dòng thất bại, toàn bộ giao dịch đã hoàn tác.` : !writeAttempted ? '0 dòng thành công; bản nhập bị chặn trước khi ghi database.' : 'Không xác nhận thành công. Nếu mất kết nối hoặc đang lưu theo từng đợt, cần tải lại dữ liệu để xác định số dòng đã lưu; không tự động thử lại.', rows: [String(err.message || err)] });
   } finally {
     if (btnExec) {
       btnExec.disabled = false;
