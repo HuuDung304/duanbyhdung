@@ -48,3 +48,24 @@ test('report statistics use the same classification and failure rules as the cal
   assert.equal(c.getReportClassification(8.99),'Giỏi');
   assert.equal(c.getReportClassification(9),'Xuất sắc');
 });
+
+
+test('grade conversion follows all new boundaries without gaps and retains missing/failed scores',()=>{
+  const {context:c,state}=fixture();
+  const ranges=[
+    [9,10,'A+',4], [8.5,8.999,'A',3.7], [8,8.499,'B+',3.5],
+    [7,7.999,'B',3], [6.5,6.999,'C+',2.5], [5.5,6.499,'C',2],
+    [5,5.499,'D+',1.5], [4,4.999,'D',1], [0,3.99,'F',0],
+  ];
+  for(const [min,max,letter,scale4] of ranges){
+    for(const score of [min,max]){
+      const result=c.getGradeLetterAndScale4(score);
+      assert.equal(result.letter,letter,`letter at ${score}`);
+      assert.equal(result.scale4,scale4,`scale at ${score}`);
+    }
+  }
+  for(const score of [null,undefined,'']) assert.equal(c.getGradeLetterAndScale4(score).letter,'-');
+  assert.equal(c.getGradeLetterAndScale4('8.5').scale4,3.7);
+  state.grades.a={m:8.5,p:9};
+  assert.ok(Math.abs(c.calculateCumulativeGPA4('a')-3.775)<1e-10);
+});

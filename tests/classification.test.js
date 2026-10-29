@@ -97,11 +97,11 @@ test('manual score editing preserves 3.99 instead of rounding it into a passing 
 });
 
 
-test('preserves the latest GitHub change to the A grade threshold at 9.0', () => {
+test('converts A+ at 9.0 and A at 8.5 with the updated scale', () => {
   const { context } = fixture();
   vm.runInContext(declaration('getGradeLetterAndScale4'), context);
-  assert.equal(context.getGradeLetterAndScale4(9).letter, 'A');
-  assert.equal(context.getGradeLetterAndScale4(8.99).letter, 'B+');
+  assert.equal(context.getGradeLetterAndScale4(9).letter, 'A+');
+  assert.equal(context.getGradeLetterAndScale4(8.99).letter, 'A');
 });
 
 

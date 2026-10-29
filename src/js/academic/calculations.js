@@ -197,7 +197,8 @@ export function createGradeCalculations(context) {
       return { letter: '-', scale4: 0, status: 'Chưa thi' };
     }
     const s = Number(score10);
-    if (s >= 9.0) return { letter: 'A', scale4: 4.0, status: 'Đạt (Giỏi)' };
+    if (s >= 9.0) return { letter: 'A+', scale4: 4.0, status: 'Đạt (Xuất sắc)' };
+    if (s >= 8.5) return { letter: 'A', scale4: 3.7, status: 'Đạt (Giỏi)' };
     if (s >= 8.0) return { letter: 'B+', scale4: 3.5, status: 'Đạt (Khá Giỏi)' };
     if (s >= 7.0) return { letter: 'B', scale4: 3.0, status: 'Đạt (Khá)' };
     if (s >= 6.5) return { letter: 'C+', scale4: 2.5, status: 'Đạt (TB Khá)' };
