@@ -22,7 +22,7 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
     assert.equal(await account.evaluate(el=>el.inert),false);
     assert.equal(await page.locator('#btnAccountSettings').evaluate(el=>getComputedStyle(el).display),'flex');
     assert.equal(await page.locator('#btnLogout span').evaluate(el=>getComputedStyle(el).opacity),'1');
-    assert.equal(await account.evaluate(el=>getComputedStyle(el).backgroundColor),theme==='dark'?'rgb(48, 38, 45)':'rgb(255, 255, 255)');
+    assert.equal(await account.evaluate(el=>getComputedStyle(el).backgroundColor),theme==='dark'?'rgb(35, 40, 50)':'rgb(255, 255, 255)');
     await page.keyboard.press('ArrowDown');assert.equal(await page.locator('#btnLogout').evaluate(el=>el===document.activeElement),true);
     await page.keyboard.press('Home');assert.equal(await page.locator('#btnAccountSettings').evaluate(el=>el===document.activeElement),true);
     await page.keyboard.press('End');assert.equal(await page.locator('#btnLogout').evaluate(el=>el===document.activeElement),true);
@@ -98,12 +98,14 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
    }
    await page.evaluate(()=>window.AuthState.setUser({type:'student',studentId:'s1',code:'HV001',class:'OTQS1'}));
    assert.equal(await page.locator('.u040-it[data-tab="tab-dashboard"]').isVisible(),false);
-   assert.equal(await page.locator('#btnAccountSettings').isVisible(),false);
    await page.evaluate(()=>window.switchTab('tab-preferences'));
-   assert.equal(await page.locator('#tab-preferences').isVisible(),false);
+   assert.equal(await page.locator('#tab-preferences').isVisible(),true);
+   assert.equal(await page.locator('#themeToggle').isVisible(),true);
+   assert.equal(await page.locator('.unit-settings-only').isVisible(),false);
+   assert.equal(await page.locator('#settingsDangerZone').isVisible(),false);
    assert.equal(await page.locator('#languageMissingBody tr').count(),0);
    await page.locator('.sidebar-account-trigger').click();
-   assert.equal(await page.locator('#btnAccountSettings').isVisible(),false);
+   assert.equal(await page.locator('#btnAccountSettings').isVisible(),true);
    await page.locator('#btnLogout').click();
    await page.waitForFunction(()=>window.AppState.role==='guest');
    assert.deepEqual(errors,[]);

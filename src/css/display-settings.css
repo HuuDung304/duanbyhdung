@@ -1,0 +1,59 @@
+/* Readable text and a personal appearance switch; no layout or data reconstruction. */
+.bento-app .display-settings-row{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:0 22px 22px;color:var(--theme-ink)}
+.bento-app .display-settings-row strong{font-size:15px;font-weight:650}
+.bento-app .display-settings-row p{font-size:14px;color:var(--theme-muted);margin-top:5px;line-height:1.6}
+.bento-app #themeToggle{display:flex;align-items:center;gap:12px;padding:10px;border:1px solid var(--theme-border);border-radius:14px;background:var(--theme-surface);color:var(--theme-ink);font:inherit;cursor:pointer;flex:none}
+.bento-app .display-settings-track{display:flex;align-items:center;width:44px;height:26px;padding:3px;border-radius:20px;background:#737a89;transition:background-color .2s ease}
+.bento-app .display-settings-track>span{width:20px;height:20px;background:#fff;border-radius:50%;box-shadow:0 1px 3px #0002;transition:transform .2s ease}
+.bento-app #themeToggle[aria-checked="true"] .display-settings-track{background:#6675b1}
+.bento-app #themeToggle[aria-checked="true"] .display-settings-track>span{transform:translateX(18px)}
+.bento-app .unit-settings-only[hidden]{display:none!important}
+.bento-app:has(#tab-preferences.active) #studentPersonalPanel{display:none}
+/* Neutral text carries content; color is reserved for actions and result states. */
+body.bento-app .u040-content{font-size:15px;line-height:1.65;letter-spacing:0}
+body.bento-app .u040-content :is(h2,h3,h4){letter-spacing:0;font-weight:700}
+body.bento-app :is(#studentPersonalPanel,#studentInlineProfileContainer,#cadetDetailViewSection,#modalStudentProfile){color:var(--theme-ink);font-size:15px;line-height:1.65}
+body.bento-app :is(#studentPersonalPanel,#studentInlineProfileContainer,#cadetDetailViewSection,#modalStudentProfile) :is(label,.text-xs){font-size:14px;line-height:1.6}
+body.bento-app :is(#studentPersonalPanel,#studentInlineProfileContainer,#cadetDetailViewSection,#modalStudentProfile) :is(.text-slate-400,.text-slate-500,.text-slate-600){color:var(--theme-muted)}
+body.bento-app :is(#studentPersonalPanel,#studentInlineProfileContainer,#cadetDetailViewSection,#modalStudentProfile) :is(input,textarea,select){font-size:15px;line-height:1.6;color:var(--theme-ink);opacity:1;-webkit-text-fill-color:var(--theme-ink)}
+body.bento-app :is(#studentPersonalPanel,#studentInlineProfileContainer,#cadetDetailViewSection,#modalStudentProfile) :is(input,textarea,select):disabled{background:var(--theme-soft);color:var(--theme-ink);opacity:1}
+body.bento-app :is(#studentPersonalPanel,#studentInlineProfileContainer,#cadetDetailViewSection) :is(strong,.font-black,.font-extrabold){font-weight:650}
+body.bento-app .readable-section-header{background:var(--theme-soft);background-image:none;border-color:var(--theme-border);color:var(--theme-ink)}
+body.bento-app .readable-section-header :is(h2,h3,h4,p,span,strong,div):not(button):not(button *){color:var(--theme-ink);text-shadow:none}
+body.bento-app .readable-section-header :is(.text-white,.text-gold-300,.text-gold-400,.text-slate-200,.text-slate-300){color:var(--theme-ink)}
+body.bento-app .readable-section-header :is([class*="bg-gold-"],[class*="bg-army-950"],span.bg-slate-800){background:var(--theme-card);border-color:var(--theme-border);color:var(--theme-ink)}
+body.bento-app .readable-section-header h4{font-size:16px;font-weight:700;text-transform:none}
+body.bento-app .u040-content .student-semester-label{background:var(--theme-soft);color:var(--theme-ink);font-size:14px;font-weight:650;text-transform:none}
+body.bento-app .student-course-card{padding:16px;gap:16px;box-shadow:none;align-items:flex-start}
+body.bento-app .u040-content .student-course-title{font-size:15px;font-weight:600;line-height:1.6;white-space:normal;overflow:visible;text-overflow:clip;color:var(--theme-ink)}
+body.bento-app .student-course-card .font-mono{color:var(--theme-muted);font-weight:500;font-size:12px}
+body.bento-app .u040-content .student-course-score{color:var(--theme-ink);font-size:17px;font-weight:700;font-variant-numeric:tabular-nums}
+body.bento-app .u040-content .student-course-score.text-rose-700{color:var(--theme-danger)}
+body.bento-app #studentPersonalPanel :is(#studentMetricHK1,#studentMetricHK2,#studentMetricYear,#studentMetricAchievements){color:var(--theme-ink);font-weight:700}
+body.bento-app #studentPersonalPanel #studentMetricAchievements{font-size:14px;font-weight:500;line-height:1.65}
+body.bento-app #studentPersonalPanel :is([class~="text-[10px]"],[class~="text-[11px]"]){font-size:13px;line-height:1.6;font-weight:500;text-transform:none}
+body.bento-app #studentPersonalPanel .readable-section-header [class~="text-xs"]{font-size:14px}
+body.bento-app #cadetDetailViewSection strong:not(.text-rose-600):not(.text-emerald-600){color:var(--theme-ink)}
+body.bento-app :is(#modalStudentProfile,#modalTranscriptDetail) .bg-army-900{background:var(--theme-soft);color:var(--theme-ink);border-color:var(--theme-border)}
+body.bento-app :is(#modalStudentProfile,#modalTranscriptDetail) .bg-army-900 :is(.text-white,.text-gold-300,.text-gold-400,.text-slate-300){color:var(--theme-ink)}
+@media(max-width:640px){.bento-app .display-settings-row{padding:0 16px 18px;gap:12px}body.bento-app :is(#studentInlineProfileContainer,#modalStudentProfile) :is(input,textarea,select){font-size:16px}}
+@media(prefers-reduced-motion:reduce){.bento-app .display-settings-track,.bento-app .display-settings-track>span{transition:none}}
+
+body.bento-app .u040-content .readable-section-header :is(h2,h3,h4){letter-spacing:0;text-transform:none}
+body.bento-app .student-year-summary{background:var(--theme-surface);border-color:var(--theme-border)}
+body.bento-app .student-year-summary .student-year-summary-label{background:var(--theme-soft);color:var(--theme-ink);font-size:14px;font-weight:650;text-transform:none;line-height:1.6}
+body.bento-app #studentInlineProfileContainer :is(h4,strong.text-rose-800){color:var(--theme-ink)}
+body.bento-app #studentInlineProfileContainer label{font-weight:600}
+body.bento-app #tab-preferences :is(input,select){width:100%;min-height:42px;padding:10px 12px;border:1px solid var(--theme-border-strong);border-radius:10px;font:inherit;box-sizing:border-box}
+body.bento-app #tab-preferences .workspace-settings-card:not(.display-settings)>div:not(.cloud-subtab){padding:18px 22px}
+body.bento-app #tab-preferences .cloud-subtab{background:var(--theme-soft);color:var(--theme-ink);border-color:var(--theme-border)}
+body.bento-app #tab-preferences .settings-danger-zone{background:var(--theme-card);color:var(--theme-danger);border-color:var(--theme-border)}
+body.bento-app #settingsDangerZone summary{color:var(--theme-danger)}
+body.bento-app #settingsDangerZone p,body.bento-app .danger-confirm p{color:var(--theme-muted)}
+body.bento-app :is(.language-summary-pass,.catalog-table-scroll .catalog-has-grades){color:var(--theme-positive)}
+body.bento-app .language-summary-fail{color:var(--theme-danger)}
+body.bento-app #tab-preferences :is(#btnTestCloudConnection,#btnPushInitialData,#btnSaveCloudConfig){padding:10px 14px;min-height:42px;border-radius:10px;border:1px solid var(--theme-border-strong);background:var(--theme-soft);color:var(--theme-ink);font:inherit;font-weight:600}
+body.bento-app #tab-preferences #btnSaveCloudConfig{background:var(--theme-gradient);color:var(--theme-on-primary)}
+body.bento-app #tab-preferences #cloudtab-config>div:last-child{display:flex;flex-wrap:wrap;gap:10px}
+body.bento-app #tab-preferences #cloudtab-config>div:last-child>div{display:flex;flex-wrap:wrap;gap:10px}
+@media print{body.bento-app{--theme-ink:#111;--theme-muted:#444;--theme-card:#fff;--theme-soft:#f4f4f4;--theme-surface:#fff;--theme-primary:#222;--theme-border:#ccc}.display-settings{display:none!important}}

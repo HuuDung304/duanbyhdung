@@ -2,7 +2,11 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="app-release" content="6c0573b33b7d">
+  <meta name="app-release" content="6aad51d59978">
+  <script id="theme-preference-bootstrap">
+    try { document.documentElement.dataset.theme = localStorage.getItem('dd460_display_theme') === 'dark' ? 'dark' : 'light'; }
+    catch { document.documentElement.dataset.theme = 'light'; }
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Quản lý đơn vị</title>
   <link rel="icon" type="image/svg+xml" href="./src/assets/favicon.svg?v=43c991ef71f6">
@@ -125,7 +129,8 @@ body {
   <link rel="stylesheet" href="./src/css/readability.css?v=7e21ef7ee3af">
   <link rel="stylesheet" href="./src/css/motion.css?v=b450b4f5f1f3">
   <link rel="stylesheet" href="./src/css/account-menu.css?v=3e09217e0118">
-  <link rel="stylesheet" href="./src/css/rose-theme.css?v=726913070d69">
+  <link rel="stylesheet" href="./src/css/rose-theme.css?v=65bc7811b37c">
+  <link rel="stylesheet" href="./src/css/display-settings.css?v=ca0a0c9bd694">
 </head>
 <body class="bento-app bg-slate-100 text-slate-800 min-h-screen flex flex-col">
 
@@ -265,7 +270,7 @@ body {
 
     <!-- STUDENT VIEW PANEL (ONLY VISIBLE IN STUDENT ROLE) -->
     <div id="studentPersonalPanel" class="hidden mb-6 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-      <div class="bg-gradient-to-r from-army-800 to-army-700 text-white p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div class="readable-section-header bg-gradient-to-r from-army-800 to-army-700 text-white p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div class="flex items-center gap-4">
           <div class="w-14 h-14 rounded-full bg-gold-500/20 border-2 border-gold-400 flex items-center justify-center text-xl font-bold text-gold-400">
             HV
@@ -2190,7 +2195,7 @@ body {
     "./src/js/academic/calculations.js": "./src/js/academic/calculations.js?v=259acc9cb662",
     "./src/js/academic/transcript.js": "./src/js/academic/transcript.js?v=d532fc5fd546",
     "./src/js/access-controls.js": "./src/js/access-controls.js?v=0c31f2921589",
-    "./src/js/auth.js": "./src/js/auth.js?v=f93543a9c4b8",
+    "./src/js/auth.js": "./src/js/auth.js?v=c5a3e89187e7",
     "./src/js/class-transcript.js": "./src/js/class-transcript.js?v=245c6912b492",
     "./src/js/components/account-menu.js": "./src/js/components/account-menu.js?v=e028c73829f0",
     "./src/js/components/bento-dashboard.js": "./src/js/components/bento-dashboard.js?v=c76ec853266e",
@@ -2201,8 +2206,9 @@ body {
     "./src/js/components/notched-field.js": "./src/js/components/notched-field.js?v=553608c192ae",
     "./src/js/components/readability.js": "./src/js/components/readability.js?v=3099cc2c00eb",
     "./src/js/components/report-center.js": "./src/js/components/report-center.js?v=ede7ff02097f",
+    "./src/js/components/theme-settings.js": "./src/js/components/theme-settings.js?v=451e0056392a",
     "./src/js/components/upload-state.js": "./src/js/components/upload-state.js?v=20000299c632",
-    "./src/js/components/workspace-reports.js": "./src/js/components/workspace-reports.js?v=90aa096c3a05",
+    "./src/js/components/workspace-reports.js": "./src/js/components/workspace-reports.js?v=03ae1d213e37",
     "./src/js/dashboard-statistics.js": "./src/js/dashboard-statistics.js?v=6e42e8415b31",
     "./src/js/database/batches.js": "./src/js/database/batches.js?v=dcbf8f6651d0",
     "./src/js/database/client.js": "./src/js/database/client.js?v=ba2ea5eda791",
@@ -2210,8 +2216,8 @@ body {
     "./src/js/database/mappers.js": "./src/js/database/mappers.js?v=f2762b9cfdf7",
     "./src/js/database/realtime.js": "./src/js/database/realtime.js?v=08238ad1e200",
     "./src/js/database/repository.js": "./src/js/database/repository.js?v=7d0c39435b2e",
-    "./src/js/grades.js": "./src/js/grades.js?v=0d27774870ce",
-    "./src/js/main.js": "./src/js/main.js?v=6c0573b33b7d",
+    "./src/js/grades.js": "./src/js/grades.js?v=e8e698274b15",
+    "./src/js/main.js": "./src/js/main.js?v=6aad51d59978",
     "./src/js/profile-rules.js": "./src/js/profile-rules.js?v=3a3bbf350b00",
     "./src/js/report-workbook.js": "./src/js/report-workbook.js?v=1cd3836da746",
     "./src/js/reports/dashboard.js": "./src/js/reports/dashboard.js?v=ecacb5e5a926",
@@ -2219,7 +2225,7 @@ body {
     "./src/js/reports/statistics.js": "./src/js/reports/statistics.js?v=0ec34478e300",
     "./src/js/reports/year-breakdown.js": "./src/js/reports/year-breakdown.js?v=599b847f964a",
     "./src/js/safe-html.js": "./src/js/safe-html.js?v=07b6fe69e868",
-    "./src/js/students.js": "./src/js/students.js?v=3bd9d9cbb737",
+    "./src/js/students.js": "./src/js/students.js?v=8a299956ecb4",
     "./src/js/subjects/catalog-view.js": "./src/js/subjects/catalog-view.js?v=0dfc729a1b3b",
     "./src/js/subjects/offerings.js": "./src/js/subjects/offerings.js?v=14cd4ed86c7e",
     "./src/js/supabase.js": "./src/js/supabase.js?v=9189692d9884",
@@ -2227,12 +2233,12 @@ body {
   }
 }
   </script>
-  <script type="module" src="./src/js/main.js?v=6c0573b33b7d"></script>
+  <script type="module" src="./src/js/main.js?v=6aad51d59978"></script>
   <script type="module" src="./src/js/components/expanding-rail.js?v=75a8090525a1"></script>
   <script type="module" src="./src/js/components/notched-field.js?v=553608c192ae"></script>
   <script type="module" src="./src/js/components/bento-dashboard.js?v=c76ec853266e"></script>
   <script type="module" src="./src/js/components/readability.js?v=3099cc2c00eb"></script>
   <script type="module" src="./src/js/components/drop-upload.js?v=71abf0bb0378"></script>
-  <script type="module" src="./src/js/components/workspace-reports.js?v=90aa096c3a05"></script>
+  <script type="module" src="./src/js/components/workspace-reports.js?v=03ae1d213e37"></script>
 </body>
 </html>

@@ -1416,7 +1416,7 @@ export function renderStudentVerticalGrades() {
       const isSpec = s.category === 'specialized';
 
       return `
-        <div class="p-3 rounded-lg border ${isFail ? 'bg-rose-50 border-rose-300' : 'bg-white border-slate-200'} shadow-sm flex items-center justify-between gap-2">
+        <div class="student-course-card p-3 rounded-lg border ${isFail ? 'bg-rose-50 border-rose-300' : 'bg-white border-slate-200'} shadow-sm flex items-center justify-between gap-2">
           <div class="min-w-0">
             <div class="flex items-center gap-1.5">
               <span class="font-mono font-bold text-[11px] text-army-800">${escapeHTML(s.code)}</span>
@@ -1425,10 +1425,10 @@ export function renderStudentVerticalGrades() {
               </span>
               <span class="text-[10px] text-slate-400 font-semibold">(${s.credits} TC)</span>
             </div>
-            <div class="text-xs font-bold text-slate-900 truncate mt-0.5" title="${escapeHTML(getFullSubjectName(s))}">${escapeHTML(getFullSubjectName(s))}</div>
+            <div class="student-course-title text-xs font-bold text-slate-900 truncate mt-0.5" title="${escapeHTML(getFullSubjectName(s))}">${escapeHTML(getFullSubjectName(s))}</div>
           </div>
           <div class="text-right shrink-0">
-            <div class="text-sm font-black ${isFail ? 'text-rose-700' : isScale4 ? 'text-blue-800' : 'text-army-900'}">${dispScore}</div>
+            <div class="student-course-score text-sm font-black ${isFail ? 'text-rose-700' : isScale4 ? 'text-blue-800' : 'text-army-900'}">${dispScore}</div>
             <div class="text-[10px] font-semibold ${isFail ? 'text-rose-600' : 'text-emerald-600'}">${!hasScore ? 'Chưa có' : isFail ? 'Rớt (< 4.0)' : 'Đạt'}</div>
           </div>
         </div>
@@ -1439,7 +1439,7 @@ export function renderStudentVerticalGrades() {
       <div class="p-4 bg-slate-50/70 border-b border-slate-200 space-y-3">
         <div class="flex flex-wrap items-center justify-between gap-2">
           <div class="flex items-center gap-2">
-            <span class="px-2.5 py-1 rounded-md bg-army-800 text-gold-300 font-extrabold text-xs uppercase">${termLabel} (Học kỳ ${semNumber})</span>
+            <span class="student-semester-label px-2.5 py-1 rounded-md bg-army-800 text-gold-300 font-extrabold text-xs uppercase">${termLabel} (Học kỳ ${semNumber})</span>
             <span class="text-xs text-slate-500 font-medium">${subs.length} môn học • ${semCreds} tín chỉ</span>
           </div>
           <div class="text-xs font-bold text-slate-700 bg-white px-3 py-1 rounded-lg border border-slate-200 shadow-sm">
@@ -1465,7 +1465,7 @@ export function renderStudentVerticalGrades() {
 
     blocksHtml += `
       <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        <div class="bg-gradient-to-r from-army-900 to-army-800 text-white px-5 py-3 flex flex-wrap items-center justify-between gap-2 border-b-2 border-gold-500">
+        <div class="readable-section-header student-year-header bg-gradient-to-r from-army-900 to-army-800 text-white px-5 py-3 flex flex-wrap items-center justify-between gap-2 border-b-2 border-gold-500">
           <div class="flex items-center gap-2.5">
             <span class="w-7 h-7 rounded-lg bg-gold-500 text-slate-950 font-black text-xs flex items-center justify-center">N${y}</span>
             <div>
@@ -1485,9 +1485,9 @@ export function renderStudentVerticalGrades() {
         ${renderSemesterSubjectsGrid(sem2, 'Hàng 2 — Học Kỳ 2')}
 
         <!-- HÀNG 3: Điểm tổng kết năm (Điểm trung bình năm học) và Xếp loại của năm đó -->
-        <div class="p-4 bg-amber-50/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div class="student-year-summary p-4 bg-amber-50/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div class="flex items-center gap-2">
-            <span class="px-2.5 py-1 rounded-md bg-gold-500 text-slate-950 font-black text-xs uppercase">Hàng 3 — Điểm Tổng Kết Năm Thứ ${y}</span>
+            <span class="student-year-summary-label px-2.5 py-1 rounded-md bg-gold-500 text-slate-950 font-black text-xs uppercase">Hàng 3 — Điểm Tổng Kết Năm Thứ ${y}</span>
             ${yearDebts.length > 0
               ? `<span class="text-xs font-bold text-rose-700">⚠️ Học phần rớt: ${yearDebts.map(d => formatFailedSubjectItem(d.subject)).join(', ')}</span>`
               : `<span class="text-xs font-semibold text-emerald-700">✅ Hoàn thành 100% học phần Năm thứ ${y}</span>`

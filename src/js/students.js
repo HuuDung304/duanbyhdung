@@ -121,8 +121,12 @@ export function renderStudentView() {
   const langEval = evaluateLangLevelStatus(student.currentLangLevel || 'Chưa đạt', AppState.requiredLangStandard);
   setElText('studentMetricLang', `Trình độ hiện tại: ${langEval.actualLevel}`);
   const languageMetric = document.getElementById('studentMetricLang');
-  if (languageMetric) languageMetric.style.color = langEval.isPassed ? '#047857' : '#be123c';
+  if (languageMetric) languageMetric.style.color = langEval.isPassed ? 'var(--theme-positive, #047857)' : 'var(--theme-danger, #be123c)';
   setElText('studentMetricLangSub', `${langEval.isPassed ? 'Đạt' : 'Chưa đạt'} yêu cầu hiện tại ${langEval.requiredStandard}`);
+  const languageNote=document.getElementById('studentMetricLangSub');
+  if(languageNote)languageNote.style.color=langEval.isPassed?'var(--theme-positive, #047857)':'var(--theme-danger, #be123c)';
+  const debtNote=document.getElementById('studentMetricRank');
+  if(debtNote)debtNote.style.color=debts.length?'var(--theme-danger, #be123c)':'var(--theme-positive, #047857)';
   setElText('studentMetricAchievements', achList.length > 0 ? achList.join(' • ') : 'Chưa có danh hiệu');
   setElText('studentMetricAchievementsSub', `${achList.length} danh hiệu lưu trữ`);
 
@@ -412,7 +416,7 @@ export function renderStudentInlineProfile(options = {}) {
 
   container.innerHTML = sanitizeHTML(`
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-      <div class="bg-gradient-to-r from-army-900 via-army-800 to-army-900 text-white p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-2 border-gold-500">
+      <div class="readable-section-header bg-gradient-to-r from-army-900 via-army-800 to-army-900 text-white p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-2 border-gold-500">
         <div class="flex items-center gap-3.5">
           <div class="w-12 h-12 rounded-xl bg-gold-500/20 border-2 border-gold-400 flex items-center justify-center font-black text-gold-300 text-base">
             HS

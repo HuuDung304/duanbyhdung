@@ -2,12 +2,12 @@
 body.bento-app{
  --theme-canvas:#fafafa;--theme-glow:rgba(244,211,221,.44);--theme-surface:#fff;--theme-card:#fff;
  --theme-soft:#f5f5f8;--theme-selected:#eeeff8;--theme-border:#e5e6eb;--theme-border-strong:#c9ccdd;
- --theme-ink:#252631;--theme-muted:#626474;--theme-primary:#525b91;--theme-primary-hover:#454d7c;--theme-focus:#737bb2;
+ --theme-ink:#232933;--theme-muted:#535b69;--theme-primary:#525b91;--theme-primary-hover:#454d7c;--theme-focus:#737bb2;
  --theme-on-primary:#fff;--theme-positive:#246b57;--theme-positive-soft:#eaf4ee;--theme-danger:#ad3455;--theme-danger-soft:#fbe9ee;--theme-amber:#986321;
  --theme-shadow:rgba(35,40,65,.045);--theme-gradient:linear-gradient(115deg,#6671a5,#525b91 70%,#454d7c);
  --digital-primary:var(--theme-primary);--digital-indigo:var(--theme-primary);--digital-accent:#b8854c;--digital-focus:var(--theme-focus);--digital-gradient:var(--theme-gradient);
  --bento-bg:var(--theme-canvas);--bento-surface:var(--theme-card);--bento-green:var(--theme-primary);--bento-text:var(--theme-ink);--bento-border:var(--theme-border);--bento-muted:var(--theme-muted);
- color:var(--theme-ink);background-color:var(--theme-canvas);background-image:radial-gradient(ellipse at 18% 16%,var(--theme-glow),transparent 46%),radial-gradient(ellipse at 90% 62%,rgba(208,224,244,.4),transparent 45%),radial-gradient(ellipse at 65% 0%,rgba(251,237,206,.35),transparent 38%);background-attachment:fixed;color-scheme:light;
+ color:var(--theme-ink);background-color:var(--theme-canvas);background-image:radial-gradient(ellipse at 18% 16%,var(--theme-glow),transparent 46%),radial-gradient(ellipse at 90% 62%,var(--theme-glow-blue,rgba(208,224,244,.22)),transparent 45%),radial-gradient(ellipse at 65% 0%,var(--theme-glow-yellow,rgba(251,237,206,.20)),transparent 38%);background-attachment:fixed;color-scheme:light;
 }
 /* Keep the canvas visible through the entire workspace; sticky cells remain opaque. */
 body.bento-app .bento-shell{background:transparent;color:var(--theme-ink);--ux-page:var(--theme-canvas);--ux-surface:var(--theme-card);--ux-ink:var(--theme-ink)!important;--ux-accent:var(--theme-primary)!important;--ux-grad:var(--theme-gradient)}
@@ -115,5 +115,5 @@ body.bento-app :is(.text-army-950,.text-slate-950){color:var(--theme-ink)}
 body.bento-app #tab-cumulative [class~="bg-amber-50/90"]{background:var(--theme-soft);border-color:var(--theme-border-strong)}
 body.bento-app #tab-cumulative div:has(>.required-lang-standard-select){flex-wrap:wrap;min-width:0;max-width:100%}
 body.bento-app #tab-cumulative .required-lang-standard-select{max-width:100%}
-html[data-theme="dark"] body.bento-app,html.dark body.bento-app{--theme-canvas:#211a20;--theme-glow:rgba(90,87,130,.12);--theme-surface:#2b2229;--theme-card:#30262d;--theme-soft:#392c35;--theme-selected:#533647;--theme-border:#503d49;--theme-border-strong:#91657d;--theme-ink:#f8edf1;--theme-muted:#cbb5c1;--theme-primary:#bcc4ef;--theme-primary-hover:#7d3653;--theme-focus:#bcc4ef;--theme-gradient:linear-gradient(115deg,#6671a5,#525b91 70%,#454d7c);--theme-on-primary:#fff;--theme-positive:#93d3b4;--theme-positive-soft:#243d32;--theme-danger:#f2a6ba;--theme-danger-soft:#4a2936;--theme-amber:#e8bf86;--theme-shadow:rgba(0,0,0,.16);color-scheme:dark;}
+html[data-theme="dark"] body.bento-app,html.dark body.bento-app{--theme-canvas:#181b22;--theme-glow:rgba(90,100,130,.06);--theme-glow-blue:rgba(60,80,110,.06);--theme-glow-yellow:rgba(80,80,60,.03);--theme-surface:#1d2129;--theme-card:#232832;--theme-soft:#2b313c;--theme-selected:#333e57;--theme-border:#3e4756;--theme-border-strong:#717f96;--theme-ink:#eef1f6;--theme-muted:#b9c3d1;--theme-primary:#bcc4ef;--theme-primary-hover:#7d3653;--theme-focus:#bcc4ef;--theme-gradient:linear-gradient(115deg,#6671a5,#525b91 70%,#454d7c);--theme-on-primary:#fff;--theme-positive:#93d3b4;--theme-positive-soft:#243d32;--theme-danger:#f2a6ba;--theme-danger-soft:#4a2936;--theme-amber:#e8bf86;--theme-shadow:rgba(0,0,0,.16);color-scheme:dark;}
 @media print{body.bento-app{background:#fff;color:#000}body.bento-app .u040-content table th{background:#f4f4f4;color:#000}}

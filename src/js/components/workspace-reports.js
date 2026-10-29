@@ -1,3 +1,4 @@
+import { mountThemeSettings } from './theme-settings.js';
 import './readability.js';
 import './report-center.js';
 import { AppState, DEFAULT_CLASSES, getScopedStudents, getCurrentUserClassScope, evaluateLangLevelStatus, formatVN, registerExternalHooks, renderDashboard } from '../grades.js';
@@ -12,7 +13,9 @@ if (main && dashboard) {
   if(subjectLink)subjectLink.textContent='Môn học';
   const preferences=make('section','tab-content hidden space-y-4');preferences.id='tab-preferences';
   preferences.append(make('h2','workspace-page-title','Cài đặt'));
-  const cloud=make('article','workspace-settings-card');
+  mountThemeSettings(preferences);
+  const cloud=make('article','workspace-settings-card unit-settings-only');
+  cloud.hidden=AppState.role==='student'||AppState.role==='guest';
   cloud.append(make('h3','','Đồng bộ đám mây & liên kết lớp'));
   const modal=$('modalCloudSync');
   const cloudTabs=modal?.querySelector('.cloud-subtab')?.parentElement;
@@ -96,7 +99,7 @@ if (main && dashboard) {
   head.append(header);const rows=document.createElement('tbody');rows.id='languageMissingBody';table.append(head,rows);scroll.append(table);missing.append(missingHead,scroll);panelElements[0].append(missing);
   const ranks=['Chưa đạt','A1','A21','A2','B11','B1'];
   function render(){
-    const student=AppState.role==='student'||AppState.role==='guest';settings.hidden=student;
+    const student=AppState.role==='student'||AppState.role==='guest';settings.hidden=AppState.role==='guest';cloud.hidden=student;
     for(const id of ['cfgUnitRoomId','cfgFirebaseDbUrl','cfgFirebaseApiKey','cfgFirebaseProjectId','btnSaveCloudConfig','btnPushInitialData']){const control=$(id);if(control)control.disabled=AppState.role!=='admin';}
     if(danger)danger.hidden=AppState.role!=='admin';
     rows.replaceChildren();if(student)return;

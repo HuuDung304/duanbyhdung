@@ -23,12 +23,12 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
    for(const theme of ['light','dark']){
     await page.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);
     const primary=theme==='light'?'rgb(82, 91, 145)':'rgb(188, 196, 239)';
-    assert.equal(await page.locator('body').evaluate(el=>getComputedStyle(el).backgroundColor),theme==='light'?'rgb(250, 250, 250)':'rgb(33, 26, 32)');
+    assert.equal(await page.locator('body').evaluate(el=>getComputedStyle(el).backgroundColor),theme==='light'?'rgb(250, 250, 250)':'rgb(24, 27, 34)');
     assert.equal(await page.locator('.u040-it[aria-current="page"]').evaluate(el=>getComputedStyle(el).color),primary);
-    assert.equal(await page.locator('#dashboardKpis>div').first().evaluate(el=>getComputedStyle(el).backgroundColor),theme==='light'?'rgb(255, 255, 255)':'rgb(48, 38, 45)');
+    assert.equal(await page.locator('#dashboardKpis>div').first().evaluate(el=>getComputedStyle(el).backgroundColor),theme==='light'?'rgb(255, 255, 255)':'rgb(35, 40, 50)');
     await page.screenshot({path:`/tmp/rose-dashboard-${width}-${theme}.png`});
     await page.locator('.sidebar-account-trigger').click();
-    assert.equal(await page.locator('#sidebarAccountMenu').evaluate(el=>getComputedStyle(el).backgroundColor),theme==='light'?'rgb(255, 255, 255)':'rgb(48, 38, 45)');
+    assert.equal(await page.locator('#sidebarAccountMenu').evaluate(el=>getComputedStyle(el).backgroundColor),theme==='light'?'rgb(255, 255, 255)':'rgb(35, 40, 50)');
     await page.keyboard.press('Escape');
     await page.evaluate(()=>window.switchTab('tab-reports'));
     const button=page.locator('#btnExportClassExcel');
@@ -51,7 +51,7 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
     }
     await page.evaluate(()=>window.switchTab('tab-dashboard'));
     await page.getByRole('tab',{name:'Xếp loại điểm quá trình',exact:true}).click();
-    assert.equal(await page.locator('#yearBreakdownTable tbody td').first().evaluate(el=>getComputedStyle(el).backgroundColor),theme==='light'?'rgb(255, 255, 255)':'rgb(48, 38, 45)');
+    assert.equal(await page.locator('#yearBreakdownTable tbody td').first().evaluate(el=>getComputedStyle(el).backgroundColor),theme==='light'?'rgb(255, 255, 255)':'rgb(35, 40, 50)');
     await page.screenshot({path:`/tmp/rose-year-${width}-${theme}.png`});
    }
    assert.deepEqual(errors,[]);
