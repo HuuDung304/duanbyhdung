@@ -16,6 +16,8 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
     await page.evaluate(()=>window.switchTab('tab-reports'));
     assert.equal(await page.locator('button[id^="btnExport"]').count(),4);
     await page.evaluate(()=>window.switchTab('tab-sheet'));
+    assert.equal(await page.locator('#spreadsheetTable tfoot').count(),0);
+    assert.ok(await page.locator('#spreadsheetTbody .cell-hk1-gpa').count()>0);
     if(await page.locator('#sheetClassSelect').isEnabled()) await page.locator('#sheetClassSelect').selectOption('OTQS1');
     await page.locator('#sheetSearchInput').fill('nguyen minh anh');
     assert.equal(await page.locator('#spreadsheetTbody tr[data-student-id]:visible').count(),1);

@@ -1188,7 +1188,6 @@ export function renderSpreadsheet() {
 
   const thead = document.getElementById('spreadsheetThead');
   const tbody = document.getElementById('spreadsheetTbody');
-  const tfoot = document.getElementById('spreadsheetTfoot');
   if (!thead || !tbody) return;
 
   const classScope = getCurrentUserClassScope();
@@ -1240,7 +1239,6 @@ export function renderSpreadsheet() {
   const classStudents = selectedClass === 'all' ? [...AppState.students] : AppState.students.filter(s => s.class === selectedClass);
   const subsHK1 = getSubjectsForClass(selectedClass, sem1);
   const subsHK2 = getSubjectsForClass(selectedClass, sem2);
-  const activeSubjects = [...subsHK1, ...subsHK2];
 
   const canEdit = canUserEditCurrentSheet();
   const isLocked = isCurrentSheetLocked();
@@ -1315,17 +1313,6 @@ export function renderSpreadsheet() {
   thead.innerHTML = sanitizeHTML(theadHtml);
 
   let tbodyHtml = '';
-  const subjectSums = {};
-  const subjectCounts = {};
-  activeSubjects.forEach(s => {
-    subjectSums[s.id] = 0;
-    subjectCounts[s.id] = 0;
-  });
-
-  let totalYearGpaSum = 0;
-  let totalHk1Sum = 0;
-  let totalHk2Sum = 0;
-
   if (AppState.isLoadingCloud) {
     tbodyHtml = `<tr><td colspan="25" class="py-12 text-center text-army-700 font-bold animate-pulse">⏳ Đang tải dữ liệu thực tế từ cơ sở dữ liệu đám mây Supabase (wxiimjbseovuxmvolswh)...</td></tr>`;
   } else if (classStudents.length === 0) {
@@ -1345,9 +1332,6 @@ export function renderSpreadsheet() {
       const dispHk2 = isScale4 ? hk2Gpa4 : hk2Gpa10;
       const dispYear = isScale4 ? yearGpa4 : yearGpa10;
 
-      totalHk1Sum += dispHk1;
-      totalHk2Sum += dispHk2;
-      totalYearGpaSum += dispYear;
 
       const yearRank = getClassification(yearGpa10);
 
@@ -1361,11 +1345,6 @@ export function renderSpreadsheet() {
         const score = studentGrades[subj.id] !== undefined ? studentGrades[subj.id] : '';
         const isFail = score !== '' && !isNaN(score) && Number(score) < 4.0;
         const { letter, scale4 } = getGradeLetterAndScale4(score);
-
-        if (score !== '' && !isNaN(score)) {
-          subjectSums[subj.id] += isScale4 ? Number(scale4) : Number(score);
-          subjectCounts[subj.id]++;
-        }
 
         if (isScale4) {
           return `
@@ -1429,31 +1408,6 @@ export function renderSpreadsheet() {
 
   tbody.innerHTML = sanitizeHTML(tbodyHtml);
   filterSheetStudents();
-
-  if (classStudents.length === 0) {
-    tfoot.innerHTML = sanitizeHTML(`<tr><td colspan="100%" class="py-2.5 px-3 text-center text-slate-400 text-xs italic">Quân số lớp ${selectedClass}: 0 đồng chí</td></tr>`);
-  } else {
-    const avgHk1 = (totalHk1Sum / classStudents.length).toFixed(2);
-    const avgHk2 = (totalHk2Sum / classStudents.length).toFixed(2);
-    const avgYear = (totalYearGpaSum / classStudents.length).toFixed(2);
-
-    const renderAvgTd = (s) => {
-      const avg = subjectCounts[s.id] > 0 ? (subjectSums[s.id] / subjectCounts[s.id]).toFixed(2) : '-';
-      return `<td class="py-2.5 px-2 text-center text-slate-800 font-bold">${avg}</td>`;
-    };
-
-    tfoot.innerHTML = sanitizeHTML(`
-      <tr class="divide-x divide-slate-300 bg-slate-100">
-        <td colspan="4" class="py-2.5 px-4 text-right uppercase text-slate-700 font-bold tracking-wider">ĐIỂM TRUNG BÌNH ${selectedClass === 'all' ? 'TOÀN ĐẠI ĐỘI 460' : 'LỚP ' + selectedClass} (NĂM THỨ ${yearNum}):</td>
-        ${subsHK1.length > 0 ? subsHK1.map(renderAvgTd).join('') : '<td>-</td>'}
-        <td class="py-2.5 px-2 text-center font-black text-army-900 bg-army-100/70">${avgHk1}</td>
-        ${subsHK2.length > 0 ? subsHK2.map(renderAvgTd).join('') : '<td>-</td>'}
-        <td class="py-2.5 px-2 text-center font-black text-emerald-900 bg-emerald-100/70">${avgHk2}</td>
-        <td class="py-2.5 px-3 text-center font-black text-sm text-army-950 bg-gold-200/80">${avgYear}</td>
-        <td class="py-2.5 px-3 text-center text-[11px] text-slate-600 font-semibold">Quân số: ${classStudents.length} đ/c</td>
-      </tr>
-    `);
-  }
 
   if (canEdit) {
     attachSpreadsheetGridEvents();
