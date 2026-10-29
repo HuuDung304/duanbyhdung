@@ -1,3 +1,4 @@
+import { trackImportRead } from './components/upload-state.js';
 import { createGradeCalculations } from './academic/calculations.js';
 import { createTranscript } from './academic/transcript.js';
 import { createReportStatistics } from './reports/statistics.js';
@@ -2426,6 +2427,8 @@ export let parsedImportData = null;
 
 export function handleExcelFileUpload(file) {
   parsedImportData = null;
+  const status = document.getElementById('importFileStatus');
+  if (status) { status.textContent = ''; status.classList.add('hidden'); }
   const confirmButton = document.getElementById('btnConfirmImport');
   if (confirmButton) confirmButton.disabled = true;
   if (!file) return;
@@ -2516,6 +2519,7 @@ export function handleExcelFileUpload(file) {
       showToast('Lỗi khi đọc file Excel! Vui lòng kiểm tra lại định dạng file.', 'error');
     }
   };
+  trackImportRead(reader, file, 'excelFileInput', 'btnConfirmImport');
   reader.readAsArrayBuffer(file);
 }
 

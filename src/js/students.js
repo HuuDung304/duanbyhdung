@@ -1,3 +1,4 @@
+import { trackImportRead } from './components/upload-state.js';
 import { reviewImport } from './components/import-review.js';
 import { sanitizeHTML, escapeHTML } from './safe-html.js';
 import { writeReportWorkbook } from './report-workbook.js';
@@ -1074,6 +1075,7 @@ export function handleQuickImportFileUpload(file) {
       showToast('Lỗi khi đọc file Excel: ' + err.message, 'error');
     }
   };
+  trackImportRead(reader, file, 'quickImportFileInput', 'btnExecuteQuickImport');
   reader.readAsArrayBuffer(file);
 }
 
