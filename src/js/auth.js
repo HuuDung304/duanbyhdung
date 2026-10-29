@@ -1,22 +1,14 @@
-/**
- * MODULE: src/js/auth.js
- * Quản lý Xác thực, Trang đăng nhập riêng biệt (No Autocomplete) & Phân quyền RBAC
- * tối ưu cho 70-80 người đăng nhập đồng thời:
- * 1. Tài khoản Admin cố định: `huudung` | `hd304` (Toàn quyền quản lý hệ thống).
- * 2. Tài khoản Cán bộ Đại đội cố định: `canbo` | `canbon460` (Chỉ xem, lọc và xuất toàn bộ đại đội).
- * 3. 5 Tài khoản Lớp cố định (OTQS1, OTQS2, TTG1, TTG2, XMCB):
- *    - Tên đăng nhập: `otqs1`, `otqs2`, `ttg1`, `ttg2`, `xmcb`
- *    - Mật khẩu: `[tên_lớp]a@` (`otqs1a@`, `otqs2a@`, `ttg1a@`, `ttg2a@`, `xmcba@`)
- *    - Mở khóa tính năng "Báo cáo giao ban" (`tab-dashboard`), cô lập dữ liệu tuyệt đối trong phạm vi lớp mình phụ trách.
- * 4. Tài khoản Học viên (Student): Xác thực bằng truy vấn Mã học viên trực tiếp trên Supabase (`findStudentByCodeOnSupabase`)
- *    sử dụng `.maybeSingle()` an toàn + Retry chống nghẽn mạng.
- * 5. Chống Double Submit nút Đăng nhập: Khóa nút (`disabled = true`) và hiển thị "⏳ Đang xác thực..." ngay khi bấm.
- */
+import { sanitizeHTML } from './safe-html.js';
+import { signInAccount, signOutAccount, restoreAuthenticatedSession, onSessionExpired, authenticatedIdentity } from './auth-session.js';
+// Authentication is verified by Supabase Auth and account_profiles, never by local credentials.
 
 import {
   AUTH_STORAGE_KEY,
   DEFAULT_CLASSES,
   AppState,
+  CloudSync,
+  initData,
+  initCloudSyncConfig,
   getCurrentUserClassScope,
   showToast,
   hideModal,
@@ -42,15 +34,6 @@ import {
 } from './supabase.js';
 
 export const GENERIC_LOGIN_ERROR_MESSAGE = 'Sai thông tin đăng nhập hoặc mã học viên không tồn tại';
-
-// Danh mục 5 tài khoản Lớp cố định với mật khẩu chuẩn [tên_lớp]a@
-export const CLASS_ACCOUNTS = {
-  'otqs1': { classCode: 'OTQS1', pass: 'otqs1a@', displayName: 'Tài khoản Lớp OTQS1' },
-  'otqs2': { classCode: 'OTQS2', pass: 'otqs2a@', displayName: 'Tài khoản Lớp OTQS2' },
-  'ttg1':  { classCode: 'TTG1',  pass: 'ttg1a@',  displayName: 'Tài khoản Lớp TTG1' },
-  'ttg2':  { classCode: 'TTG2',  pass: 'ttg2a@',  displayName: 'Tài khoản Lớp TTG2' },
-  'xmcb':  { classCode: 'XMCB',  pass: 'xmcba@',  displayName: 'Tài khoản Lớp XMCB' }
-};
 
 export function canUserConfigureLangStandard() {
   return AppState.role === 'admin';
@@ -133,7 +116,7 @@ export function enforceClassIsolationOnSelectors() {
     if (!el) return;
 
     if (classScope) {
-      el.innerHTML = `<option value="${classScope}">Lớp ${classScope}</option>`;
+      el.innerHTML = sanitizeHTML(`<option value="${classScope}">Lớp ${classScope}</option>`);
       el.value = classScope;
       el.disabled = true;
     } else {
@@ -144,7 +127,7 @@ export function enforceClassIsolationOnSelectors() {
         html += `<option value="all">${cfg.allLabel}</option>`;
       }
       html += DEFAULT_CLASSES.map(c => `<option value="${c}">Lớp ${c}</option>`).join('');
-      el.innerHTML = html;
+      el.innerHTML = sanitizeHTML(html);
       if (currentVal && (currentVal === 'all' || DEFAULT_CLASSES.includes(currentVal))) {
         el.value = currentVal;
       } else if (cfg.id === 'sheetClassSelect') {
@@ -546,10 +529,33 @@ export function updateAuthUI() {
   }
 }
 
-export function handleLogout() {
-  AuthState.setUser(null);
-  openLoginModal(true);
+function clearAuthenticatedData() {
+  CloudSync.realtimeChannel?.unsubscribe?.();
+  clearInterval(CloudSync.pollTimer);
+  if (CloudSync.writeListener) window.removeEventListener('dd460-database-written', CloudSync.writeListener);
+  AppState.students = []; AppState.subjects = []; AppState.grades = {}; AppState.languages = {}; AppState.auditLogs = []; AppState.locks = {};
+  AppState.studentViewingId = null; AppState.studentProfileEditMode = false; AppState.isEditingForm = false;
+  document.querySelectorAll('[id^="modal"].fixed').forEach(modal => { if (modal.id !== 'modalAuthLogin') hideModal(modal); });
 }
+export async function handleLogout() {
+  clearAuthenticatedData(); AuthState.setUser(null); openLoginModal(true);
+  await signOutAccount();
+}
+export async function restoreApplicationSession() {
+  clearAuthenticatedData();
+  const user = await restoreAuthenticatedSession();
+  AuthState.setUser(user, true);
+  if (user) closeAuthModal(); else openLoginModal(true);
+  return user;
+}
+async function acceptAuthenticatedUser(user) {
+  clearAuthenticatedData(); AuthState.setUser(user); closeAuthModal();
+  await initData();
+  if (authenticatedIdentity()?.id !== user.id) return;
+  initCloudSyncConfig();
+  switchTab(user.type === 'student' ? 'tab-sheet' : 'tab-dashboard');
+}
+onSessionExpired(() => { clearAuthenticatedData(); AuthState.setUser(null, true); openLoginModal(true); });
 
 // Biến khóa chống Double Submit khi nhiều người bấm nút Đăng nhập liên tục
 let isAdminLoginBusy = false;
@@ -571,78 +577,12 @@ export async function handleMockLogin(e) {
 export async function processAdminLogin(user, pass) {
   if (isAdminLoginBusy) return false;
   isAdminLoginBusy = true;
-
   try {
-    return await withButtonLock('btnSubmitAdminLogin', '⏳ Đang xác thực...', async () => {
-      const u = (user || '').toLowerCase().trim();
-      const p = (pass || '').trim();
-      const errBox = document.getElementById('loginAdminError');
-      const errMsg = document.getElementById('loginAdminErrorMsg');
-
-      if (errBox) {
-        errBox.classList.add('hidden');
-        errBox.style.display = 'none';
-      }
-
-      // 1. Tài khoản Admin cố định: huudung | hd304
-      if (u === 'huudung' && p === 'hd304') {
-        const userObj = {
-          type: 'admin',
-          username: 'huudung',
-          displayName: 'Admin Hệ thống (huudung)'
-        };
-        AuthState.setUser(userObj);
-        closeAuthModal();
-        switchTab('tab-dashboard');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        return true;
-      }
-
-      // 2. Tài khoản Cán bộ Đại đội cố định: canbo | canbon460
-      if (u === 'canbo' && p === 'canbon460') {
-        const userObj = {
-          type: 'company_officer',
-          username: 'canbo',
-          displayName: 'Cán bộ Đại đội (canbo)'
-        };
-        AppState.currentSheetClass = 'all';
-        AuthState.setUser(userObj);
-        closeAuthModal();
-        switchTab('tab-dashboard');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        return true;
-      }
-
-      // 3. 5 Tài khoản Lớp riêng biệt: otqs1/otqs1a@, otqs2/otqs2a@, ttg1/ttg1a@, ttg2/ttg2a@, xmcb/xmcba@
-      if (CLASS_ACCOUNTS[u] && p.toLowerCase() === CLASS_ACCOUNTS[u].pass) {
-        const targetCls = CLASS_ACCOUNTS[u].classCode;
-        const userObj = {
-          type: 'class_account',
-          username: u,
-          class: targetCls,
-          displayName: CLASS_ACCOUNTS[u].displayName
-        };
-        AuthState.setUser(userObj);
-        closeAuthModal();
-        switchTab('tab-dashboard');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        return true;
-      }
-
-      // Khi nhập sai thông tin: Tuyệt đối không gợi ý hay làm lộ tài khoản có sẵn
-      if (errBox) {
-        if (errMsg) {
-          errMsg.textContent = GENERIC_LOGIN_ERROR_MESSAGE;
-        }
-        errBox.classList.remove('hidden');
-        errBox.style.display = 'flex';
-      }
-      showToast(GENERIC_LOGIN_ERROR_MESSAGE, 'error');
-      return false;
+    return await withButtonLock('btnSubmitAdminLogin', 'Đang xác thực...', async () => {
+      try { const verified = await signInAccount(user, pass); await acceptAuthenticatedUser(verified); return true; }
+      catch { showToast('Không đăng nhập được. Kiểm tra tài khoản, mật khẩu và kết nối.', 'error'); return false; }
     });
-  } finally {
-    isAdminLoginBusy = false;
-  }
+  } finally { isAdminLoginBusy = false; }
 }
 
 export async function handleCadetSubmit(e) {
@@ -653,75 +593,19 @@ export async function handleCadetSubmit(e) {
   if (isCadetLoginBusy) return false;
   const codeEl = document.getElementById('loginCadetCode');
   const code = codeEl ? codeEl.value : '';
-  return await processCadetLogin(code);
+  return await processCadetLogin(code, document.getElementById('loginCadetPassword')?.value || '');
 }
 
-/**
- * Xác thực Học viên bằng Mã học viên (Tối ưu cho 70-80 học viên đăng nhập cùng lúc):
- * - Khóa nút `#btnSubmitCadetLogin` (`disabled = true`) ngay lập tức và hiển thị "⏳ Đang xác thực...".
- * - Sử dụng `findStudentByCodeOnSupabase` (kết hợp `.maybeSingle()` + Auto-Retry chống timeout).
- * - Chỉ mở lại nút sau khi Supabase phản hồi xong.
- */
-export async function processCadetLogin(rawCode) {
+export async function processCadetLogin(rawCode, password) {
   if (isCadetLoginBusy) return false;
   isCadetLoginBusy = true;
-
   try {
-    return await withButtonLock('btnSubmitCadetLogin', '⏳ Đang xác thực...', async () => {
-      const code = (rawCode || '').toUpperCase().trim();
-      const errBox = document.getElementById('loginCadetError') || document.getElementById('loginAdminError');
-      const errMsg = document.getElementById('loginCadetErrorMsg') || document.getElementById('loginAdminErrorMsg');
-
-      if (errBox) {
-        errBox.classList.add('hidden');
-        errBox.style.display = 'none';
-      }
-
-      if (!code) {
-        if (errBox) {
-          if (errMsg) errMsg.textContent = GENERIC_LOGIN_ERROR_MESSAGE;
-          errBox.classList.remove('hidden');
-          errBox.style.display = 'flex';
-        }
-        showToast(GENERIC_LOGIN_ERROR_MESSAGE, 'error');
-        return false;
-      }
-
-      // Truy vấn trực tiếp Mã học viên trên Supabase với `.maybeSingle()` và cơ chế chống timeout
-      const student = await findStudentByCodeOnSupabase(code, AppState.students);
-      if (!student) {
-        if (errBox) {
-          if (errMsg) errMsg.textContent = GENERIC_LOGIN_ERROR_MESSAGE;
-          errBox.classList.remove('hidden');
-          errBox.style.display = 'flex';
-        }
-        showToast(GENERIC_LOGIN_ERROR_MESSAGE, 'error');
-        return false;
-      }
-
-      // Đảm bảo học viên vừa tải từ Supabase cũng có mặt trong AppState.students
-      if (!AppState.students.some(s => s.id === student.id || s.code.toUpperCase() === student.code.toUpperCase())) {
-        AppState.students.push(student);
-      }
-
-      const userObj = {
-        type: 'student',
-        code: student.code,
-        studentId: student.id,
-        name: student.name,
-        displayName: `${student.name} (${student.code})`,
-        class: student.class,
-        rank: student.rank,
-        position: student.position || 'Học viên'
-      };
-
-      AuthState.setUser(userObj);
-      closeAuthModal();
-      switchTab('tab-sheet');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return true;
+    return await withButtonLock('btnSubmitCadetLogin', 'Đang xác thực...', async () => {
+      try {
+        const user = await signInAccount(String(rawCode || '').trim(), password);
+        if (user.type !== 'student') { await signOutAccount(); throw new Error('Không phải tài khoản học viên.'); }
+        await acceptAuthenticatedUser(user); return true;
+      } catch { showToast('Không đăng nhập được. Kiểm tra mã học viên, mật khẩu và kết nối.', 'error'); return false; }
     });
-  } finally {
-    isCadetLoginBusy = false;
-  }
+  } finally { isCadetLoginBusy = false; }
 }

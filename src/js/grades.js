@@ -1,3 +1,5 @@
+import { sanitizeHTML } from './safe-html.js';
+import { authenticatedIdentity, authenticationGeneration } from './auth-session.js';
 import { RANKING_HEADERS, rankingTableRows } from './academic-ranking.js';
 import { buildClassTranscript } from './class-transcript.js';
 import { studentBirthYear, collectLanguageStatistics, failedStudentExportRows } from './dashboard-statistics.js';
@@ -35,6 +37,7 @@ import {
   loadAllDataFromSupabase,
   upsertStudentToSupabase,
   upsertStudentsBulkToSupabase,
+  importAcademicDataToSupabase,
   upsertSubjectToSupabase,
   upsertSubjectsBulkToSupabase,
   deleteSubjectFromSupabase,
@@ -873,6 +876,8 @@ export function applyCloudSnapshotToState(parsed) {
  * 3. Tuyệt đối KHÔNG tự động sinh dữ liệu mẫu (No Auto-Seeding).
  */
 export async function initData() {
+  const sessionGeneration = authenticationGeneration();
+  if (!authenticatedIdentity()) return;
   initSupabaseClient(SUPABASE_URL, SUPABASE_KEY);
   AppState.subjects = [];
   AppState.students = [];
@@ -888,6 +893,7 @@ export async function initData() {
 
   try {
     const cloudData = await loadAllDataFromSupabase(CloudSync.unitRoomId || 'daidoi460');
+    if (sessionGeneration !== authenticationGeneration()) return;
     if (cloudData && typeof cloudData === 'object') {
       if (isAnyEditFormActive()) {
         // Nếu người dùng đã mở form chỉnh sửa trong lúc đang tải, hoãn đồng bộ ngược để không reset form
@@ -1185,12 +1191,12 @@ export function showToast(message, type = 'error') {
   if (!container) return;
   const toast = document.createElement('div');
   toast.className = 'pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-xl text-xs font-bold text-white bg-rose-800 border border-rose-500 transition-all transform duration-300 translate-y-2 opacity-0';
-  toast.innerHTML = `
+  toast.innerHTML = sanitizeHTML(`
     <svg class="w-4 h-4 flex-shrink-0 text-rose-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
     </svg>
     <span></span>
-  `;
+  `);
   toast.querySelector('span').textContent = String(message);
   container.appendChild(toast);
   setTimeout(() => {
@@ -1274,14 +1280,14 @@ export function renderSpreadsheet() {
   const sheetClassSelect = document.getElementById('sheetClassSelect');
   if (sheetClassSelect) {
     if (classScope) {
-      sheetClassSelect.innerHTML = `<option value="${classScope}">Lớp ${classScope}</option>`;
+      sheetClassSelect.innerHTML = sanitizeHTML(`<option value="${classScope}">Lớp ${classScope}</option>`);
       sheetClassSelect.value = classScope;
       sheetClassSelect.disabled = true;
     } else {
       sheetClassSelect.disabled = false;
       sheetClassSelect.innerHTML =
-        `<option value="all" ${selectedClass === 'all' ? 'selected' : ''}>🏢 Toàn bộ Đại đội 460 (Tất cả 5 Lớp)</option>` +
-        DEFAULT_CLASSES.map(c => `<option value="${c}" ${c === selectedClass ? 'selected' : ''}>Lớp ${c}</option>`).join('');
+        sanitizeHTML(`<option value="all" ${selectedClass === 'all' ? 'selected' : ''}>🏢 Toàn bộ Đại đội 460 (Tất cả 5 Lớp)</option>` +
+        DEFAULT_CLASSES.map(c => `<option value="${c}" ${c === selectedClass ? 'selected' : ''}>Lớp ${c}</option>`).join(''));
     }
   }
 
@@ -1324,12 +1330,12 @@ export function renderSpreadsheet() {
   if (lockBadge && btnToggleLock) {
     if (isLocked) {
       lockBadge.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-100 text-rose-800 border border-rose-300';
-      lockBadge.innerHTML = `🔒 Sổ điểm Năm ${yearNum}: ĐÃ KHÓA`;
+      lockBadge.innerHTML = sanitizeHTML(`🔒 Sổ điểm Năm ${yearNum}: ĐÃ KHÓA`);
       btnToggleLock.textContent = 'Mở Khóa Sổ';
       btnToggleLock.className = 'text-xs bg-emerald-700 hover:bg-emerald-800 text-white font-medium py-1.5 px-3 rounded-lg transition';
     } else {
       lockBadge.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300';
-      lockBadge.innerHTML = `🔓 Sổ điểm Năm ${yearNum}: Mở`;
+      lockBadge.innerHTML = sanitizeHTML(`🔓 Sổ điểm Năm ${yearNum}: Mở`);
       btnToggleLock.textContent = 'Khóa Sổ Điểm';
       btnToggleLock.className = 'text-xs bg-rose-700 hover:bg-rose-800 text-white font-medium py-1.5 px-3 rounded-lg transition';
     }
@@ -1386,7 +1392,7 @@ export function renderSpreadsheet() {
       <th class="py-2 px-2 text-center bg-emerald-100 text-emerald-900 font-extrabold min-w-[78px]">ĐTB HK2</th>
     </tr>
   `;
-  thead.innerHTML = theadHtml;
+  thead.innerHTML = sanitizeHTML(theadHtml);
 
   let tbodyHtml = '';
   const subjectSums = {};
@@ -1501,11 +1507,11 @@ export function renderSpreadsheet() {
       }
     : null;
 
-  tbody.innerHTML = tbodyHtml;
+  tbody.innerHTML = sanitizeHTML(tbodyHtml);
   filterSheetStudents();
 
   if (classStudents.length === 0) {
-    tfoot.innerHTML = `<tr><td colspan="100%" class="py-2.5 px-3 text-center text-slate-400 text-xs italic">Quân số lớp ${selectedClass}: 0 đồng chí</td></tr>`;
+    tfoot.innerHTML = sanitizeHTML(`<tr><td colspan="100%" class="py-2.5 px-3 text-center text-slate-400 text-xs italic">Quân số lớp ${selectedClass}: 0 đồng chí</td></tr>`);
   } else {
     const avgHk1 = (totalHk1Sum / classStudents.length).toFixed(2);
     const avgHk2 = (totalHk2Sum / classStudents.length).toFixed(2);
@@ -1516,7 +1522,7 @@ export function renderSpreadsheet() {
       return `<td class="py-2.5 px-2 text-center text-slate-800 font-bold">${avg}</td>`;
     };
 
-    tfoot.innerHTML = `
+    tfoot.innerHTML = sanitizeHTML(`
       <tr class="divide-x divide-slate-300 bg-slate-100">
         <td colspan="4" class="py-2.5 px-4 text-right uppercase text-slate-700 font-bold tracking-wider">ĐIỂM TRUNG BÌNH ${selectedClass === 'all' ? 'TOÀN ĐẠI ĐỘI 460' : 'LỚP ' + selectedClass} (NĂM THỨ ${yearNum}):</td>
         ${subsHK1.length > 0 ? subsHK1.map(renderAvgTd).join('') : '<td>-</td>'}
@@ -1526,7 +1532,7 @@ export function renderSpreadsheet() {
         <td class="py-2.5 px-3 text-center font-black text-sm text-army-950 bg-gold-200/80">${avgYear}</td>
         <td class="py-2.5 px-3 text-center text-[11px] text-slate-600 font-semibold">Quân số: ${classStudents.length} đ/c</td>
       </tr>
-    `;
+    `);
   }
 
   if (canEdit) {
@@ -1555,7 +1561,7 @@ export function renderStudentVerticalGrades() {
 
   const student = getLoggedInStudent() || (AppState.role !== 'student' ? AppState.students.find(s => s.id === AppState.studentViewingId) || AppState.students[0] : null);
   if (!student) {
-    container.innerHTML = `<div class="p-8 text-center text-slate-400">Không tìm thấy thông tin bảng điểm học viên.</div>`;
+    container.innerHTML = sanitizeHTML(`<div class="p-8 text-center text-slate-400">Không tìm thấy thông tin bảng điểm học viên.</div>`);
     return;
   }
 
@@ -1677,7 +1683,7 @@ export function renderStudentVerticalGrades() {
     `;
   }
 
-  container.innerHTML = `<div class="space-y-6">${blocksHtml}</div>`;
+  container.innerHTML = sanitizeHTML(`<div class="space-y-6">${blocksHtml}</div>`);
 }
 
 export function attachSpreadsheetGridEvents() {
@@ -1782,37 +1788,9 @@ export async function handleGradeChange(inputEl) {
   }
 }
 
-export function logAuditTrail(studentId, subjectId, oldVal, newVal, reason) {
-  const student = AppState.students.find(s => s.id === studentId);
-  const subject = AppState.subjects.find(s => s.id === subjectId);
-  const now = new Date();
-  const timestamp = now.getFullYear() + '-' +
-    String(now.getMonth() + 1).padStart(2, '0') + '-' +
-    String(now.getDate()).padStart(2, '0') + ' ' +
-    String(now.getHours()).padStart(2, '0') + ':' +
-    String(now.getMinutes()).padStart(2, '0') + ':' +
-    String(now.getSeconds()).padStart(2, '0');
-
-  let actor = AppState.currentUser?.displayName || 'Chỉ huy Đại đội (Admin)';
-  if (AppState.role && AppState.role.startsWith('class_leader_')) {
-    const cls = AppState.role.replace('class_leader_', '');
-    actor = `Tài khoản Lớp ${cls}`;
-  }
-
-  AppState.auditLogs.unshift({
-    timestamp,
-    actor,
-    student: student ? `${student.name} (${student.code})` : studentId,
-    class: student ? student.class : (getCurrentUserClassScope() || 'Toàn ĐĐ'),
-    subject: subject ? getFullSubjectName(subject) : subjectId,
-    oldVal: oldVal || 'Chưa có',
-    newVal: newVal,
-    reason: reason || 'Chỉnh sửa dữ liệu'
-  });
-
-  if (AppState.auditLogs.length > 200) {
-    AppState.auditLogs.pop();
-  }
+export function logAuditTrail() {
+  // The authoritative audit trail is written by database triggers, with auth.uid().
+  AppState.hasPendingCloudRefresh = true;
 }
 
 // --- 5. TỔNG HỢP TOÀN ĐẠI ĐỘI (CÓ BỘ LỌC THEO KỲ & BỎ CỘT ĐIỂM RÈN LUYỆN) ---
@@ -1826,7 +1804,7 @@ export function renderMasterTable() {
   const masterClassSelect = document.getElementById('masterFilterClass');
   if (masterClassSelect) {
     if (classScope) {
-      masterClassSelect.innerHTML = `<option value="${classScope}">Lớp ${classScope}</option>`;
+      masterClassSelect.innerHTML = sanitizeHTML(`<option value="${classScope}">Lớp ${classScope}</option>`);
       masterClassSelect.value = classScope;
       masterClassSelect.disabled = true;
       filters.class = classScope;
@@ -1900,15 +1878,15 @@ export function renderMasterTable() {
   if (filtered.length === 0) {
     html = `<tr><td colspan="10" class="py-8 text-center text-slate-400">Không tìm thấy học viên nào phù hợp với bộ lọc hiện tại.</td></tr>`;
   }
-  tbody.innerHTML = html;
+  tbody.innerHTML = sanitizeHTML(html);
 
   if (footer) {
     const scopeTotal = getScopedStudents().length;
     const semLabel = `Năm ${year} (Học kỳ ${sem1} & ${sem2})`;
-    footer.innerHTML = `
+    footer.innerHTML = sanitizeHTML(`
       <span>Hiển thị <strong>${filtered.length}</strong> / ${scopeTotal} học viên • Năm học: <strong>${semLabel}</strong></span>
       <span class="text-[11px] text-slate-500">Đại đội 460 • Tiểu đoàn 4</span>
-    `;
+    `);
   }
 }
 
@@ -2193,7 +2171,7 @@ export function renderDashboard() {
   const dashClassSelect = document.getElementById('dashboardClassFilter');
   if (dashClassSelect) {
     if (classScope) {
-      dashClassSelect.innerHTML = `<option value="${classScope}">Lớp ${classScope}</option>`;
+      dashClassSelect.innerHTML = sanitizeHTML(`<option value="${classScope}">Lớp ${classScope}</option>`);
       dashClassSelect.value = classScope;
       dashClassSelect.disabled = true;
       AppState.dashboardFilters.class = classScope;
@@ -2311,10 +2289,10 @@ export function renderDashboard() {
     }).join('');
 
     // Hai hàng sau các mức xếp loại trong Bảng 1: Tỷ lệ Đạt / Rớt tích lũy từ đầu khóa đến nay
-    companyTbody.innerHTML = rankRowsHtml;
+    companyTbody.innerHTML = sanitizeHTML(rankRowsHtml);
 
     if (companyTfoot) {
-      companyTfoot.innerHTML = `
+      companyTfoot.innerHTML = sanitizeHTML(`
         <tr class="bg-slate-100 border-t-2 border-slate-300 text-slate-900">
           <td colspan="3" class="py-3 px-4 uppercase text-army-900 font-black">TỔNG HỢP TÍCH LŨY TOÀN KHÓA (TỪ ĐẦU KHÓA ĐẾN NAY):</td>
           <td class="py-3 px-3 text-center font-black text-army-900 text-xs">${courseStats.totalCadets} đồng chí (100%)</td>
@@ -2329,7 +2307,7 @@ export function renderDashboard() {
             </div>
           </td>
         </tr>
-      `;
+      `);
     }
   }
 
@@ -2371,7 +2349,7 @@ export function renderDashboard() {
       `;
     }).join('');
 
-    matrixThead.innerHTML = `
+    matrixThead.innerHTML = sanitizeHTML(`
       <tr class="divide-x divide-slate-600 bg-army-950 text-white text-xs">
         <th rowspan="2" class="py-2.5 px-2 text-center w-10 sticky left-0 z-20 bg-army-950">STT</th>
         <th rowspan="2" class="py-2.5 px-3 min-w-[155px] sticky left-10 z-20 bg-army-950">Xếp Loại Học Lực / Chỉ Tiêu</th>
@@ -2381,7 +2359,7 @@ export function renderDashboard() {
       <tr class="divide-x divide-slate-600 text-[11px]">
         ${subYearHeaders}
       </tr>
-    `;
+    `);
 
     // 7 hàng xếp loại học lực
     const rankMatrixRows = REPORT_RANK_META.map((item, rIdx) => {
@@ -2429,7 +2407,7 @@ export function renderDashboard() {
       `;
     }).join('');
 
-    matrixTbody.innerHTML = rankMatrixRows;
+    matrixTbody.innerHTML = sanitizeHTML(rankMatrixRows);
 
     if (matrixTfoot) {
       const footCells = yearsBreakdown.map(yb => `
@@ -2450,14 +2428,14 @@ export function renderDashboard() {
         </td>
       `).join('');
 
-      matrixTfoot.innerHTML = `
+      matrixTfoot.innerHTML = sanitizeHTML(`
         <tr class="divide-x divide-slate-300 bg-slate-100 border-t-2 border-slate-300 text-xs">
           <td colspan="3" class="py-3 px-3 uppercase text-army-900 font-black sticky left-0 bg-slate-100 z-10">
             TỔNG HỢP ĐTB &amp; RỚT MÔN THEO TỪNG NĂM (QUÂN SỐ: ${courseStats.totalCadets} Đ/C):
           </td>
           ${footCells}
         </tr>
-      `;
+      `);
     }
   }
 
@@ -2477,7 +2455,7 @@ export function renderDebtCadetsSection(debtCadetsList = null, failedCourseDetai
   const filterSelect = document.getElementById('reportDebtFilterClass');
   if (filterSelect) {
     if (classScope) {
-      filterSelect.innerHTML = `<option value="${classScope}">Lớp ${classScope}</option>`;
+      filterSelect.innerHTML = sanitizeHTML(`<option value="${classScope}">Lớp ${classScope}</option>`);
       filterSelect.value = classScope;
       filterSelect.disabled = true;
     } else {
@@ -2557,14 +2535,14 @@ export function renderDebtCadetsSection(debtCadetsList = null, failedCourseDetai
       `;
     });
   }
-  tbody.innerHTML = rowsHtml;
+  tbody.innerHTML = sanitizeHTML(rowsHtml);
 
   if (footer) {
     const totalFailsInFilter = list.reduce((sum, item) => sum + item.failCount, 0);
-    footer.innerHTML = `
+    footer.innerHTML = sanitizeHTML(`
       <span>Tổng số học viên rớt môn: <strong class="text-rose-700">${list.length} học viên</strong> • Tổng số lượt rớt: <strong class="text-rose-800">${totalFailsInFilter} lượt học phần (&lt; 4.0)</strong></span>
       <span class="text-[11px] text-slate-500 italic">Hiển thị đầy đủ Tên môn học (không viết tắt) &amp; Điểm số cụ thể</span>
-    `;
+    `);
   }
 }
 
@@ -2873,7 +2851,7 @@ export function renderLanguages() {
   const langClassSelect = document.getElementById('cumulFilterClass');
   if (langClassSelect) {
     if (classScope) {
-      langClassSelect.innerHTML = `<option value="${classScope}">Lớp ${classScope}</option>`;
+      langClassSelect.innerHTML = sanitizeHTML(`<option value="${classScope}">Lớp ${classScope}</option>`);
       langClassSelect.value = classScope;
       langClassSelect.disabled = true;
     } else {
@@ -2901,7 +2879,7 @@ export function renderLanguages() {
       </div>
     `;
   });
-  summaryContainer.innerHTML = summaryHtml;
+  summaryContainer.innerHTML = sanitizeHTML(summaryHtml);
 
 }
 
@@ -2921,7 +2899,7 @@ export function openLangModal(studentId) {
   let activeId = studentId || scoped[0].id;
   const sel = document.getElementById('langStudentSelect');
   if (sel) {
-    sel.innerHTML = scoped.map(s => `<option value="${s.id}" ${s.id === activeId ? 'selected' : ''}>${s.name} (${s.code} - ${s.class})</option>`).join('');
+    sel.innerHTML = sanitizeHTML(scoped.map(s => `<option value="${s.id}" ${s.id === activeId ? 'selected' : ''}>${s.name} (${s.code} - ${s.class})</option>`).join(''));
     sel.onchange = function() {
       loadStudentLangData(this.value);
     };
@@ -2942,7 +2920,7 @@ export function loadStudentLangData(studentId) {
   document.getElementById('langChoice').value = l.lang || 'Tiếng Nga';
   const actualLevel = document.getElementById('langActualLevel');
   if (actualLevel) {
-    actualLevel.innerHTML = LANGUAGE_LEVEL_OPTIONS.map(level => `<option value="${level}">${level}</option>`).join('');
+    actualLevel.innerHTML = sanitizeHTML(LANGUAGE_LEVEL_OPTIONS.map(level => `<option value="${level}">${level}</option>`).join(''));
     actualLevel.value = evaluateLangLevelStatus(student.currentLangLevel || l.currentLevel).actualLevel;
   }
   document.getElementById('langLevelA1').value = l.A1 || 'Đ';
@@ -2969,11 +2947,11 @@ export function renderAuditLog() {
     : AppState.auditLogs;
 
   if (logs.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-slate-400">Chưa có bản ghi lịch sử chỉnh sửa nào.</td></tr>`;
+    tbody.innerHTML = sanitizeHTML(`<tr><td colspan="8" class="p-6 text-center text-slate-400">Chưa có bản ghi lịch sử chỉnh sửa nào.</td></tr>`);
     return;
   }
 
-  tbody.innerHTML = logs.map(log => `
+  tbody.innerHTML = sanitizeHTML(logs.map(log => `
     <tr class="hover:bg-slate-50 transition">
       <td class="py-2 px-3 font-mono text-[11px] text-slate-500">${log.timestamp}</td>
       <td class="py-2 px-3 font-semibold text-slate-800">${log.actor}</td>
@@ -2984,7 +2962,7 @@ export function renderAuditLog() {
       <td class="py-2 px-3 text-center font-bold text-emerald-700">${log.newVal}</td>
       <td class="py-2 px-3 text-slate-600 italic text-[11px]">${log.reason}</td>
     </tr>
-  `).join('');
+  `).join(''));
 }
 
 // --- 10. QUẢN LÝ DANH MỤC MÔN HỌC: MÔN HỌC CHUNG & MÔN HỌC CHUYÊN NGÀNH ---
@@ -3215,7 +3193,7 @@ export function renderSubjectsSettings() {
         </button>
       `;
     }
-    tabsContainer.innerHTML = tabsHtml;
+    tabsContainer.innerHTML = sanitizeHTML(tabsHtml);
 
     tabsContainer.querySelectorAll('.btn-setting-year-tab').forEach(b => {
       b.addEventListener('click', function() {
@@ -3344,10 +3322,10 @@ export function renderSubjectsSettings() {
     `;
   };
 
-  semContainer.innerHTML = `
+  semContainer.innerHTML = sanitizeHTML(`
     ${renderSemesterCard(semA, listA, currentMeta.s1Label)}
     ${renderSemesterCard(semB, listB, currentMeta.s2Label)}
-  `;
+  `);
 
   // Event Delegation xử lý .btn-add-to-sem, .btn-edit-subj, .btn-del-subj & .input-subj-credits tại document
 }
@@ -3373,14 +3351,14 @@ export function updateAllViews(options = {}) {
   }
 }
 
-export function toggleCurrentSheetLock() {
-  if (AppState.role !== 'admin') {
-    showToast('Chỉ Chỉ huy Đại đội mới có thẩm quyền khóa/mở sổ điểm!', 'error');
-    return;
-  }
+export async function toggleCurrentSheetLock() {
+  if (AppState.role !== 'admin') { showToast('Chỉ Admin được khóa/mở sổ điểm.', 'error'); return; }
+  if (!DEFAULT_CLASSES.includes(AppState.currentSheetClass)) { showToast('Chọn một lớp trước khi khóa sổ.', 'error'); return; }
   const key = `${AppState.currentSheetClass}_year_${AppState.currentSheetSemester}`;
-  AppState.locks[key] = !AppState.locks[key];
-  persistData();
+  const old = AppState.locks[key];
+  AppState.locks[key] = !old;
+  try { await persistData(true); }
+  catch (error) { AppState.locks[key] = old; showToast(error.message, 'error'); }
   renderSpreadsheet();
 }
 
@@ -4086,37 +4064,7 @@ export async function executeExcelImport() {
       throw new Error('Không tìm thấy ô điểm hợp lệ. Kiểm tra tiêu đề cột và dữ liệu Excel.');
     }
 
-    // 1. Lưu học viên trước để đảm bảo khóa ngoại student_id trên bảng grades
-    if (createdStudents.length > 0) {
-      const originalIds = createdStudents.map(student => student.id);
-      const result = await upsertStudentsBulkToSupabase(createdStudents, AppState.languages, { createOnly: true });
-      if (result?.error) throw new Error(result.error.message || 'Không thể lưu học viên');
-      // A concurrent import may have created the same code with an existing ID.
-      const remappedIds = new Map();
-      createdStudents.forEach((student, index) => {
-        const oldId = originalIds[index];
-        if (oldId !== student.id) {
-          remappedIds.set(oldId, student.id);
-          AppState.grades[student.id] = AppState.grades[oldId] || {};
-          delete AppState.grades[oldId];
-        }
-      });
-      bulkGradeEntries.forEach(entry => {
-        entry.studentId = remappedIds.get(entry.studentId) || entry.studentId;
-      });
-    }
-
-    // 2. Lưu các môn học mới được nhận diện tự động theo khóa kết hợp (course_name + class_code + semester)
-    if (newSubjectsMap.size > 0) {
-      const result = await upsertSubjectsBulkToSupabase(Array.from(newSubjectsMap.values()));
-      if (result?.error) throw new Error(result.error.message || 'Không thể lưu môn học');
-    }
-
-    // 3. Lưu toàn bộ điểm số lên bảng grades của Supabase
-    if (bulkGradeEntries.length > 0) {
-      const result = await upsertGradesBulkToSupabase(bulkGradeEntries);
-      if (result?.error) throw new Error(result.error.message || 'Không thể lưu điểm');
-    }
+    await importAcademicDataToSupabase(createdStudents, Array.from(newSubjectsMap.values()), bulkGradeEntries, AppState.languages);
 
     logAuditTrail(
       '',
@@ -4125,7 +4073,6 @@ export async function executeExcelImport() {
       `${updatedCount} điểm (${createdStudentsCount} HV mới${newSubjectsMap.size > 0 ? `, ${newSubjectsMap.size} môn mới` : ''})`,
       'Nhập dữ liệu điểm từ file Excel theo khóa kết hợp (Tên môn + Lớp + Học kỳ) lên Supabase'
     );
-    await persistData(true);
     hideModal('modalImportExcel');
     updateAllViews();
     parsedImportData = null;
@@ -4251,7 +4198,7 @@ export function renderCumulativeTable() {
   const cumulClassSelect = document.getElementById('cumulFilterClass');
   if (cumulClassSelect) {
     if (classScope) {
-      cumulClassSelect.innerHTML = `<option value="${classScope}">Lớp ${classScope}</option>`;
+      cumulClassSelect.innerHTML = sanitizeHTML(`<option value="${classScope}">Lớp ${classScope}</option>`);
       cumulClassSelect.value = classScope;
       cumulClassSelect.disabled = true;
     } else {
@@ -4374,17 +4321,17 @@ export function renderCumulativeTable() {
   if (filtered.length === 0) {
     rowsHtml = `<tr><td colspan="11" class="p-8 text-center text-slate-400">Không tìm thấy quân nhân nào phù hợp với bộ lọc.</td></tr>`;
   }
-  tbody.innerHTML = rowsHtml;
+  tbody.innerHTML = sanitizeHTML(rowsHtml);
   // Leave missing proficiency unselected; never imply that an unrecorded level is A1.
   tbody.querySelectorAll('.select-cumul-lang').forEach(select => {
     if (!select.querySelector('option[selected]')) select.selectedIndex = -1;
   });
 
   if (footer) {
-    footer.innerHTML = `
+    footer.innerHTML = sanitizeHTML(`
       <span>Hiển thị <strong>${filtered.length}</strong> / ${scoped.length} quân nhân • Tích lũy toàn khóa</span>
       <span class="text-[11px] text-slate-500">Hỗ trợ chọn trực tiếp Trình độ ngoại ngữ hiện tại (A1, A21, A2, B11, B1) </span>
-    `;
+    `);
   }
 
   // Event Delegation xử lý .btn-open-transcript, .select-cumul-lang, .select-cumul-it tại document
@@ -4469,14 +4416,14 @@ export function openTranscriptModal(studentId) {
       section = document.getElementById(`tcHk${semester}TableBody`).closest('table').parentElement;
     } else if (subjects.length) {
       section = document.createElement('div'); section.className = 'space-y-2';
-      section.innerHTML = `<div class="flex flex-wrap items-center justify-between gap-2 border-b pb-1"><h4 class="font-bold text-army-900 uppercase"></h4><span id="tcHk${semester}Summary" class="text-[11px] font-semibold text-slate-600"></span></div><table class="w-full text-xs text-left border-collapse border border-slate-200">${tableHeader}<tbody id="tcHk${semester}TableBody" class="divide-y divide-slate-100"></tbody></table>`;
+      section.innerHTML = sanitizeHTML(`<div class="flex flex-wrap items-center justify-between gap-2 border-b pb-1"><h4 class="font-bold text-army-900 uppercase"></h4><span id="tcHk${semester}Summary" class="text-[11px] font-semibold text-slate-600"></span></div><table class="w-full text-xs text-left border-collapse border border-slate-200">${tableHeader}<tbody id="tcHk${semester}TableBody" class="divide-y divide-slate-100"></tbody></table>`);
       extra.append(section);
     }
     if (!section) continue;
     section.dataset.semester = String(semester);
     section.hidden = !subjects.length;
     const tbody = section.querySelector('tbody');
-    tbody.innerHTML = subjects.map(renderSubjRow).join('');
+    tbody.innerHTML = sanitizeHTML(subjects.map(renderSubjRow).join(''));
     if (!subjects.length) continue;
     visibleSemesters++; recordedCredits += credits;
     section.querySelector('h4').textContent = `Học kỳ ${semester} (${credits} tín chỉ đã có điểm)`;
@@ -4599,6 +4546,8 @@ export function connectFirebaseRealtime() {
 
   let refreshQueued = false;
   const refreshCloudData = async () => {
+    const sessionGeneration = authenticationGeneration();
+    if (!authenticatedIdentity()) return;
     if (CloudSync.isIncomingSync) {
       refreshQueued = true;
       return;
@@ -4612,6 +4561,7 @@ export function connectFirebaseRealtime() {
     CloudSync.isIncomingSync = true;
     try {
       const freshData = await loadAllDataFromSupabase(CloudSync.unitRoomId || 'daidoi460');
+      if (sessionGeneration !== authenticationGeneration()) return;
       if (freshData && typeof freshData === 'object') {
         // Kiểm tra lại lần 2 sau khi await mạng: nếu người dùng vừa mở form Sửa trong lúc chờ mạng thì hủy ngay
         if (isAnyEditFormActive()) {
@@ -4633,6 +4583,11 @@ export function connectFirebaseRealtime() {
       }
     }
   };
+  if (CloudSync.writeListener) window.removeEventListener('dd460-database-written', CloudSync.writeListener);
+  CloudSync.writeListener = refreshCloudData;
+  window.addEventListener('dd460-database-written', refreshCloudData);
+  clearInterval(CloudSync.pollTimer);
+  CloudSync.pollTimer = setInterval(() => { if (document.visibilityState === 'visible') void refreshCloudData(); }, 30000);
   CloudSync.realtimeChannel = subscribeSupabaseRealtime(refreshCloudData);
 }
 
@@ -4642,15 +4597,13 @@ export function pushDataToCloud(immediate = false) {
   clearTimeout(CloudSync.debounceTimer);
 
   const executeWrite = () => {
-    return saveUnitSettingsToSupabase(AppState, CloudSync.unitRoomId || 'daidoi460').catch(err => {
-      console.warn('Supabase settings sync error:', err);
-    });
+    return saveUnitSettingsToSupabase(AppState, CloudSync.unitRoomId || 'daidoi460');
   };
 
   if (immediate) {
     return executeWrite();
   } else {
-    CloudSync.debounceTimer = setTimeout(executeWrite, 180);
+    CloudSync.debounceTimer = setTimeout(() => executeWrite().catch(error => showToast(error.message, 'error')), 180);
     return Promise.resolve();
   }
 }

@@ -1,3 +1,4 @@
+import { sanitizeHTML } from './safe-html.js';
 import { syncReportExportScope, requestReportOptions } from './components/report-center.js';
 import { requestDestructiveConfirmation } from './components/destructive-confirm.js';
 import { installOfficerReadOnlyGuard } from './access-controls.js';
@@ -117,6 +118,7 @@ import {
   openLoginModal,
   updateAuthUI,
   handleLogout,
+  restoreApplicationSession,
   handleMockLogin,
   handleCadetSubmit
 } from './auth.js';
@@ -367,7 +369,7 @@ export function openAddCadetModal() {
   const classScope = getCurrentUserClassScope();
   const clsSelect = document.getElementById('newCadetClass');
   if (clsSelect && classScope) {
-    clsSelect.innerHTML = `<option value="${classScope}">Lớp ${classScope}</option>`;
+    clsSelect.innerHTML = sanitizeHTML(`<option value="${classScope}">Lớp ${classScope}</option>`);
     clsSelect.value = classScope;
     clsSelect.disabled = true;
   } else if (clsSelect) {
@@ -1489,10 +1491,11 @@ function registerGlobalEventDelegation() {
         target.value = AppState.requiredLangStandard || 'A2';
         return;
       }
+      const previousStandard = AppState.requiredLangStandard;
       AppState.requiredLangStandard = target.value;
       document.querySelectorAll('.required-lang-standard-select').forEach(s => { s.value = AppState.requiredLangStandard; });
       document.querySelectorAll('.required-lang-standard-badge').forEach(b => { b.textContent = AppState.requiredLangStandard; });
-      persistData(true);
+      try { await persistData(true); } catch (error) { AppState.requiredLangStandard = previousStandard; showToast(error.message, 'error'); }
       updateAllViews();
       return;
     }
@@ -1588,7 +1591,7 @@ function registerGlobalEventDelegation() {
 
 let _localAppInitialized = false;
 
-export function initApp() {
+export async function initApp() {
   installOfficerReadOnlyGuard(() => AppState.role, showToast);
   // Chốt chặn Idempotent trong cùng một lần tải script
   if (_localAppInitialized) return;
@@ -1648,20 +1651,9 @@ export function initApp() {
     console.error('initAuthSubscription error:', err);
   }
 
-  try {
-    const savedSession = sessionStorage.getItem(AUTH_STORAGE_KEY);
-    const parsedSession = savedSession ? JSON.parse(savedSession) : null;
-    if (parsedSession && ['admin', 'company_officer', 'class_account', 'class_leader', 'student'].includes(parsedSession.type)) {
-      AuthState.setUser(parsedSession, true);
-      closeAuthModal();
-    } else {
-      AuthState.setUser(null, true);
-      openLoginModal(true);
-    }
-  } catch (err) {
-    AuthState.setUser(null, true);
-    openLoginModal(true);
-  }
+  let restoredUser = null;
+  try { restoredUser = await restoreApplicationSession(); }
+  catch { AuthState.setUser(null, true); openLoginModal(true); }
 
   // 5. Đồng bộ giá trị mặc định cho bộ chọn chuẩn ngoại ngữ
   try {
@@ -1674,7 +1666,7 @@ export function initApp() {
 
   // 6. Khởi tạo dữ liệu từ Supabase Cloud và cấu hình Realtime
   try {
-    initData();
+    if (restoredUser) await initData();
   } catch (err) {
     console.error('initData error:', err);
   }
@@ -1686,7 +1678,7 @@ export function initApp() {
   }
 
   try {
-    initCloudSyncConfig();
+    if (restoredUser) initCloudSyncConfig();
   } catch (err) {
     console.warn('initCloudSyncConfig warning:', err);
   }

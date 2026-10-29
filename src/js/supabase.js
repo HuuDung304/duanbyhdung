@@ -1,3 +1,6 @@
+import { sanitizeHTML } from './safe-html.js';
+import { configureSecureData, secureRpc, rememberServerRows, rememberSettings, writeAcademicTransaction, deleteAcademicRecord, writeUnitSettings } from './secure-data.js';
+import { configureAuthentication, authenticatedFetch, accessToken, authenticatedIdentity, authenticationGeneration } from './auth-session.js';
 import { calendarDate, parentBirthYear, readParentYear, politicalDates, assertDatabaseWriteAllowed } from './profile-rules.js';
 
 /**
@@ -23,6 +26,7 @@ import { calendarDate, parentBirthYear, readParentYear, politicalDates, assertDa
 export const SUPABASE_PROJECT_REF = 'wxiimjbseovuxmvolswh';
 export const SUPABASE_URL = 'https://wxiimjbseovuxmvolswh.supabase.co';
 export const SUPABASE_KEY = 'sb_publishable_cTXx8S_xLJpKB4YmvRr_Fw_IbhbFxw2';
+configureAuthentication(SUPABASE_URL, SUPABASE_KEY);
 
 export const SUPABASE_CONFIG = Object.freeze({
   projectRef: SUPABASE_PROJECT_REF,
@@ -78,7 +82,7 @@ export async function withButtonLock(btnOrId, loadingText = '⏳ Đang xử lý.
       btn.disabled = wasDisabled;
       btn.removeAttribute('aria-busy');
       btn.classList.remove('opacity-70', 'cursor-not-allowed');
-      btn.innerHTML = originalHtml;
+      btn.innerHTML = sanitizeHTML(originalHtml);
     }
   }
 }
@@ -256,7 +260,7 @@ function createRestFallbackClient(baseUrl, apiKey) {
       const qs = this.queryParams.length > 0 ? `?${this.queryParams.join('&')}` : '';
       const url = `${cleanUrl}/rest/v1/${this.table}${qs}`;
       try {
-        const res = await fetch(url, {
+        const res = await authenticatedFetch(url, {
           method: this.method,
           headers: {
             ...headers,
@@ -291,6 +295,13 @@ function createRestFallbackClient(baseUrl, apiKey) {
 
   return {
     _isFallback: true,
+    async rpc(name, args = {}) {
+      try {
+        const response = await authenticatedFetch(`${cleanUrl}/rest/v1/rpc/${encodeURIComponent(name)}`, { method: 'POST', headers, body: JSON.stringify(args) });
+        const text = await response.text(); const data = text ? JSON.parse(text) : null;
+        return response.ok ? { data, error: null } : { data: null, error: { ...data, status: response.status } };
+      } catch (error) { return { data: null, error }; }
+    },
     from(table) {
       return new QueryBuilder(table);
     },
@@ -344,6 +355,7 @@ export function initSupabaseClient(customUrl = SUPABASE_URL, customKey = SUPABAS
         autoRefreshToken: false,
         detectSessionInUrl: false
       },
+      global: { fetch: authenticatedFetch },
       realtime: {
         params: {
           eventsPerSecond: 10
@@ -371,6 +383,8 @@ export function getSupabaseClient() {
   }
   return supabaseClientInstance;
 }
+
+configureSecureData(getSupabaseClient);
 
 // ============================================================================
 // HÀM CHUYỂN ĐỔI DỮ LIỆU GIỮA DATABASE (SNAKE_CASE) VÀ WEB APP (CAMELCASE)
@@ -556,6 +570,7 @@ async function safeUpsertRows(client, tableName, rowsInput, primaryConflictCol =
   assertDatabaseWriteAllowed();
   if (!rowsInput) return { data: [], error: null };
   const rowsArray = Array.isArray(rowsInput) ? rowsInput : [rowsInput];
+  if (['students','subjects','grades','languages'].includes(tableName)) return writeAcademicTransaction({ [tableName]: rowsArray });
   if (rowsArray.length === 0) return { data: [], error: null };
 
   let workingRows = rowsArray.map(r => ({ ...r }));
@@ -671,23 +686,24 @@ async function loadTablePages(client, table, orderColumns, columns = '*') {
  *    - Nếu bảng trống, trả về mảng rỗng `[]` và object rỗng `{}` (Tuyệt đối không Auto-Seed).
  */
 export async function loadAllDataFromSupabase(unitId = 'daidoi460') {
-  if (inFlightLoads.has(unitId)) {
-    return inFlightLoads.get(unitId);
-  }
+  const sessionKey = `${unitId}:${authenticatedIdentity()?.id || 'none'}:${authenticationGeneration()}`;
+  if (inFlightLoads.has(sessionKey)) return inFlightLoads.get(sessionKey);
 
   const loadPromise = (async () => {
     const client = getSupabaseClient();
-    const [studentsRes, subjectsRes, gradesRes, languagesRes, settingsRes] = await Promise.all([
+    const [studentsRes, subjectsRes, gradesRes, languagesRes, settingsData, auditRes] = await Promise.all([
       loadTablePages(client, TABLES.STUDENTS, ['code']),
       loadTablePages(client, TABLES.SUBJECTS, ['semester', 'id']),
-      loadTablePages(client, TABLES.GRADES, ['student_id', 'subject_id'], 'student_id,subject_id,score'),
+      loadTablePages(client, TABLES.GRADES, ['student_id', 'subject_id'], 'student_id,subject_id,score,revision'),
       loadTablePages(client, TABLES.LANGUAGES, ['student_id']),
-      executeWithRetry(() => client.from(TABLES.UNIT_SETTINGS).select('unit_id,required_lang_standard,locks,audit_logs').eq('unit_id', unitId).maybeSingle())
+      secureRpc('dd460_get_settings'),
+      executeWithRetry(() => client.from('audit_events').select('*').order('event_time', { ascending: false }).order('id', { ascending: false }).limit(200))
     ]);
 
-    if (settingsRes.error) {
-      throw new Error('Không thể tải cấu hình đơn vị', { cause: settingsRes.error });
-    }
+    if (auditRes.error) throw new Error('Không thể tải nhật ký từ máy chủ.', { cause: auditRes.error });
+    rememberServerRows('students', studentsRes.data); rememberServerRows('subjects', subjectsRes.data);
+    rememberServerRows('grades', gradesRes.data); rememberServerRows('languages', languagesRes.data);
+    rememberSettings(settingsData);
 
     let students = Array.isArray(studentsRes.data)
       ? studentsRes.data.map(mapDbRowToStudent).filter(Boolean)
@@ -716,7 +732,6 @@ export async function loadAllDataFromSupabase(unitId = 'daidoi460') {
       });
     }
 
-    const settingsData = settingsRes && settingsRes.data ? settingsRes.data : null;
     const rawLocks = (settingsData && settingsData.locks && typeof settingsData.locks === 'object')
       ? { ...settingsData.locks }
       : {};
@@ -730,15 +745,15 @@ export async function loadAllDataFromSupabase(unitId = 'daidoi460') {
       languages,
       locks: rawLocks,
       requiredLangStandard: (settingsData && settingsData.required_lang_standard) ? settingsData.required_lang_standard : 'A2',
-      auditLogs: (settingsData && Array.isArray(settingsData.audit_logs)) ? settingsData.audit_logs : []
+      auditLogs: (auditRes.data || []).map(event => ({ timestamp: new Date(event.event_time).toLocaleString('vi-VN'), actor: event.actor_name, student: students.find(student => student.id === event.student_id)?.name || event.record_id || '', class: event.class_code || 'Toàn đơn vị', subject: subjects.find(subject => subject.id === event.subject_id)?.name || event.table_name, oldVal: event.before_data?.score ?? (event.operation === 'INSERT' ? 'Chưa có' : 'Đã lưu'), newVal: event.after_data?.score ?? (event.operation === 'DELETE' ? 'Đã xóa' : 'Đã cập nhật'), reason: `${event.operation} • ${event.table_name}` }))
     };
   })();
 
-  inFlightLoads.set(unitId, loadPromise);
+  inFlightLoads.set(sessionKey, loadPromise);
   try {
     return await loadPromise;
   } finally {
-    inFlightLoads.delete(unitId);
+    inFlightLoads.delete(sessionKey);
   }
 }
 
@@ -799,32 +814,8 @@ export async function findStudentByCodeOnSupabase(studentCode, fallbackStudents 
 export async function upsertStudentToSupabase(student, langObj = null) {
   assertDatabaseWriteAllowed();
   const row = mapStudentToDbRow(student);
-  if (!row) return { error: 'Invalid student' };
-  const client = getSupabaseClient();
-  beginSupabaseWrite();
-  try {
-    const existingRes = await executeWithRetry(
-      () => client.from(TABLES.STUDENTS).select('id, code').eq('code', row.code).maybeSingle(),
-      { maxAttempts: 2, baseDelayMs: 120 }
-    );
-
-    if (existingRes && existingRes.data && existingRes.data.id) {
-      row.id = existingRes.data.id;
-      student.id = existingRes.data.id;
-    }
-
-    const res = await safeUpsertRows(client, TABLES.STUDENTS, [row], 'code', 'id');
-    if (res?.error) return res;
-
-    if (langObj && typeof langObj === 'object') {
-      const langRow = mapLanguageToDbRow(row.id, langObj);
-      const languageResult = await safeUpsertRows(client, TABLES.LANGUAGES, [langRow], 'student_id');
-      if (languageResult?.error) return languageResult;
-    }
-    return res;
-  } finally {
-    endSupabaseWrite();
-  }
+  if (!row) throw new Error('Hồ sơ không hợp lệ');
+  return writeAcademicTransaction({ students: [row], languages: langObj ? [mapLanguageToDbRow(row.id, langObj)] : [] });
 }
 
 /**
@@ -833,79 +824,17 @@ export async function upsertStudentToSupabase(student, langObj = null) {
  *    - Tự động đối chiếu `id` hiện có trên bảng `students` để không bao giờ bị lỗi trùng `code` (23505)
  *    - Chia lô tối đa 200 học viên/256 KiB; báo lỗi nếu schema thiếu cột
  */
-export async function upsertStudentsBulkToSupabase(studentsList = [], languagesMap = {}, { createOnly = false } = {}) {
+export async function upsertStudentsBulkToSupabase(studentsList = [], languagesMap = {}, options = {}) {
   assertDatabaseWriteAllowed();
-  if (!Array.isArray(studentsList) || studentsList.length === 0) return { data: [], error: null };
-  const client = getSupabaseClient();
-  beginSupabaseWrite();
-  try {
-    const existingCodeToId = new Map();
-    const codes = [...new Set(studentsList.filter(s => s && s.code)
-      .map(s => String(s.code).trim().toUpperCase()))];
-    // Only look up students in this import, avoiding full-roster reads per upload.
-    for (let offset = 0; offset < codes.length; offset += 100) {
-      const result = await executeWithRetry(() => client.from(TABLES.STUDENTS)
-        .select('id, code').in('code', codes.slice(offset, offset + 100)));
-      if (result.error) return result;
-      for (const row of result.data || []) {
-        existingCodeToId.set(String(row.code).trim().toUpperCase(), String(row.id));
-      }
-    }
+  const rows = studentsList.map(mapStudentToDbRow).filter(Boolean);
+  return writeAcademicTransaction({ students: rows });
+}
 
-    const dedupedByCode = new Map();
-    studentsList.forEach(s => {
-      if (!s || !s.code) return;
-      const cleanCode = String(s.code).trim().toUpperCase();
-      if (!cleanCode) return;
-
-      const matchedDbId = existingCodeToId.get(cleanCode) || buildDeterministicStudentId(cleanCode, s.id);
-      const oldId = s.id;
-      s.id = matchedDbId;
-      s.code = cleanCode;
-
-      if (oldId && oldId !== matchedDbId && languagesMap && languagesMap[oldId] && !languagesMap[matchedDbId]) {
-        languagesMap[matchedDbId] = languagesMap[oldId];
-      }
-
-      // Grade uploads must not overwrite a roster row created by another user.
-      if (createOnly && existingCodeToId.has(cleanCode)) return;
-      const dbRow = mapStudentToDbRow(s);
-      if (dbRow) {
-        dbRow.id = matchedDbId;
-        dedupedByCode.set(cleanCode, dbRow);
-      }
-    });
-
-    const studentRows = Array.from(dedupedByCode.values());
-    if (studentRows.length === 0) return { data: [], error: null };
-
-    const studentsResult = await upsertBatches(client, TABLES.STUDENTS, studentRows,
-      'code', createOnly ? null : 'id', createOnly, 200);
-    if (studentsResult.error) return studentsResult;
-
-    // Profile Excel files contain no language columns; preserve existing certificates.
-    const langRows = studentRows.filter(sr => !existingCodeToId.has(sr.code)).map(sr => {
-      const l = (languagesMap && languagesMap[sr.id]) || {
-        lang: 'Tiếng Nga',
-        currentLevel: sr.current_lang_level || 'Chưa đạt',
-
-        A1: 'Đ',
-        A21: 'Đ',
-        A22: 'Đ',
-        B11: 'CT',
-        B12: 'CT'
-      };
-      return mapLanguageToDbRow(sr.id, l);
-    });
-
-    const languagesResult = await upsertBatches(client, TABLES.LANGUAGES, langRows,
-      'student_id', null, true, 250);
-    if (languagesResult.error) return languagesResult;
-
-    return { data: studentRows, error: null };
-  } finally {
-    endSupabaseWrite();
-  }
+export async function importAcademicDataToSupabase(students, subjects, grades, languages = {}) {
+  assertDatabaseWriteAllowed();
+  return writeAcademicTransaction({ students: students.map(mapStudentToDbRow).filter(Boolean), subjects: subjects.map(mapSubjectToDbRow).filter(Boolean),
+    grades: grades.map(item => ({ student_id: String(item.studentId), subject_id: String(item.subjectId), score: Number(item.score) })),
+    languages: students.filter(student => languages[student.id]).map(student => mapLanguageToDbRow(student.id, languages[student.id])) });
 }
 
 /**
@@ -913,19 +842,7 @@ export async function upsertStudentsBulkToSupabase(studentsList = [], languagesM
  */
 export async function deleteStudentFromSupabase(studentId) {
   assertDatabaseWriteAllowed();
-  if (!studentId) return;
-  const client = getSupabaseClient();
-  const sid = String(studentId);
-  beginSupabaseWrite();
-  try {
-    await Promise.all([
-      executeWithRetry(() => client.from(TABLES.GRADES).delete().eq('student_id', sid)),
-      executeWithRetry(() => client.from(TABLES.LANGUAGES).delete().eq('student_id', sid))
-    ]);
-    return await executeWithRetry(() => client.from(TABLES.STUDENTS).delete().eq('id', sid));
-  } finally {
-    endSupabaseWrite();
-  }
+  return deleteAcademicRecord('student', studentId);
 }
 
 /**
@@ -933,17 +850,7 @@ export async function deleteStudentFromSupabase(studentId) {
  */
 export async function deleteAllStudentsFromSupabase() {
   assertDatabaseWriteAllowed();
-  const client = getSupabaseClient();
-  beginSupabaseWrite();
-  try {
-    await Promise.all([
-      executeWithRetry(() => client.from(TABLES.GRADES).delete().neq('id', '__none__')),
-      executeWithRetry(() => client.from(TABLES.LANGUAGES).delete().neq('student_id', '__none__'))
-    ]);
-    return await executeWithRetry(() => client.from(TABLES.STUDENTS).delete().neq('id', '__none__'));
-  } finally {
-    endSupabaseWrite();
-  }
+  return deleteAcademicRecord('all_students', null);
 }
 
 /**
@@ -968,16 +875,7 @@ export async function upsertSubjectToSupabase(subject) {
  */
 export async function upsertSubjectsBulkToSupabase(subjectsList = []) {
   assertDatabaseWriteAllowed();
-  if (!Array.isArray(subjectsList) || subjectsList.length === 0) return { data: [], error: null };
-  const rows = subjectsList.map(mapSubjectToDbRow).filter(Boolean);
-  if (rows.length === 0) return { data: [], error: null };
-  const client = getSupabaseClient();
-  beginSupabaseWrite();
-  try {
-    return await upsertBatches(client, TABLES.SUBJECTS, rows, 'id', null, false, 250);
-  } finally {
-    endSupabaseWrite();
-  }
+  return writeAcademicTransaction({ subjects: subjectsList.map(mapSubjectToDbRow).filter(Boolean) });
 }
 
 /**
@@ -985,16 +883,7 @@ export async function upsertSubjectsBulkToSupabase(subjectsList = []) {
  */
 export async function deleteSubjectFromSupabase(subjectId) {
   assertDatabaseWriteAllowed();
-  if (!subjectId) return;
-  const client = getSupabaseClient();
-  const subId = String(subjectId);
-  beginSupabaseWrite();
-  try {
-    await executeWithRetry(() => client.from(TABLES.GRADES).delete().eq('subject_id', subId));
-    return await executeWithRetry(() => client.from(TABLES.SUBJECTS).delete().eq('id', subId));
-  } finally {
-    endSupabaseWrite();
-  }
+  return deleteAcademicRecord('subject', subjectId);
 }
 
 /**
@@ -1002,15 +891,7 @@ export async function deleteSubjectFromSupabase(subjectId) {
  */
 export async function deleteSubjectsByIdsFromSupabase(subjectIds = []) {
   assertDatabaseWriteAllowed();
-  if (!Array.isArray(subjectIds) || subjectIds.length === 0) return;
-  const client = getSupabaseClient();
-  beginSupabaseWrite();
-  try {
-    await executeWithRetry(() => client.from(TABLES.GRADES).delete().in('subject_id', subjectIds));
-    return await executeWithRetry(() => client.from(TABLES.SUBJECTS).delete().in('id', subjectIds));
-  } finally {
-    endSupabaseWrite();
-  }
+  throw new Error('Dùng thao tác xóa từng môn hoặc xóa toàn bộ đã được xác nhận.');
 }
 
 /**
@@ -1018,14 +899,7 @@ export async function deleteSubjectsByIdsFromSupabase(subjectIds = []) {
  */
 export async function deleteAllSubjectsFromSupabase() {
   assertDatabaseWriteAllowed();
-  const client = getSupabaseClient();
-  beginSupabaseWrite();
-  try {
-    await executeWithRetry(() => client.from(TABLES.GRADES).delete().neq('id', '__none__'));
-    return await executeWithRetry(() => client.from(TABLES.SUBJECTS).delete().neq('id', '__none__'));
-  } finally {
-    endSupabaseWrite();
-  }
+  return deleteAcademicRecord('all_subjects', null);
 }
 
 /**
@@ -1034,21 +908,7 @@ export async function deleteAllSubjectsFromSupabase() {
  */
 export async function upsertGradeToSupabase(studentId, subjectId, score) {
   assertDatabaseWriteAllowed();
-  if (!studentId || !subjectId) return;
-  const client = getSupabaseClient();
-  const row = {
-    id: `${studentId}__${subjectId}`,
-    student_id: String(studentId),
-    subject_id: String(subjectId),
-    score: Number(score),
-    updated_at: new Date().toISOString()
-  };
-  beginSupabaseWrite();
-  try {
-    return await safeUpsertRows(client, TABLES.GRADES, [row], 'student_id,subject_id', 'id');
-  } finally {
-    endSupabaseWrite();
-  }
+  return writeAcademicTransaction({ grades: [{ student_id: String(studentId), subject_id: String(subjectId), score: Number(score) }] });
 }
 
 /**
@@ -1056,20 +916,7 @@ export async function upsertGradeToSupabase(studentId, subjectId, score) {
  */
 export async function deleteGradeFromSupabase(studentId, subjectId) {
   assertDatabaseWriteAllowed();
-  if (!studentId || !subjectId) return;
-  const client = getSupabaseClient();
-  beginSupabaseWrite();
-  try {
-    return await executeWithRetry(() =>
-      client
-        .from(TABLES.GRADES)
-        .delete()
-        .eq('student_id', String(studentId))
-        .eq('subject_id', String(subjectId))
-    );
-  } finally {
-    endSupabaseWrite();
-  }
+  return writeAcademicTransaction({ grades: [{ student_id: String(studentId), subject_id: String(subjectId), score: null }] });
 }
 
 /**
@@ -1077,32 +924,7 @@ export async function deleteGradeFromSupabase(studentId, subjectId) {
  */
 export async function upsertGradesBulkToSupabase(gradeEntries = []) {
   assertDatabaseWriteAllowed();
-  if (!Array.isArray(gradeEntries) || gradeEntries.length === 0) return { data: [], error: null };
-  const client = getSupabaseClient();
-  const nowIso = new Date().toISOString();
-
-  const deduped = new Map();
-  gradeEntries.forEach(item => {
-    if (!item || !item.studentId || !item.subjectId) return;
-    const key = `${item.studentId}__${item.subjectId}`;
-    deduped.set(key, {
-      id: key,
-      student_id: String(item.studentId),
-      subject_id: String(item.subjectId),
-      score: Number(item.score),
-      updated_at: nowIso
-    });
-  });
-
-  const rows = Array.from(deduped.values());
-  if (rows.length === 0) return { data: [], error: null };
-
-  beginSupabaseWrite();
-  try {
-    return await upsertBatches(client, TABLES.GRADES, rows, 'student_id,subject_id', 'id');
-  } finally {
-    endSupabaseWrite();
-  }
+  return writeAcademicTransaction({ grades: gradeEntries.map(item => ({ student_id: String(item.studentId), subject_id: String(item.subjectId), score: Number(item.score) })) });
 }
 
 /**
@@ -1128,26 +950,7 @@ export async function upsertLanguageToSupabase(studentId, langObj) {
  */
 export async function saveUnitSettingsToSupabase(appState, unitId = 'daidoi460') {
   assertDatabaseWriteAllowed();
-  if (!appState) return;
-  const client = getSupabaseClient();
-  const cleanLocks = { ...(appState.locks || {}) };
-  delete cleanLocks.__dd460_cloud_snapshot;
-
-  const row = {
-    unit_id: unitId || 'daidoi460',
-    required_lang_standard: appState.requiredLangStandard || 'A2',
-    locks: cleanLocks,
-    audit_logs: Array.isArray(appState.auditLogs) ? appState.auditLogs.slice(0, 100) : [],
-    updated_at: new Date().toISOString()
-  };
-
-  if (globalThis.AppState?.role && globalThis.AppState.role !== 'admin') delete row.required_lang_standard;
-  beginSupabaseWrite();
-  try {
-    return await safeUpsertRows(client, TABLES.UNIT_SETTINGS, [row], 'unit_id');
-  } finally {
-    endSupabaseWrite();
-  }
+  return writeUnitSettings(appState);
 }
 
 /**

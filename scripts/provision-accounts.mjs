@@ -1,0 +1,10 @@
+// Run locally with a service-role key, never in a browser or committed environment file.
+import { readFile } from 'node:fs/promises';
+const url=process.env.SUPABASE_URL?.replace(/\/+$/,''),key=process.env.SUPABASE_SERVICE_ROLE_KEY;
+if(!url||!key||!process.argv[2])throw new Error('Cần SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY và đường dẫn JSON tài khoản riêng tư.');
+const accounts=JSON.parse(await readFile(process.argv[2],'utf8'));
+if(!Array.isArray(accounts)||!accounts.length)throw new Error('Danh sách tài khoản không hợp lệ.');
+for(const a of accounts)if(!/^[a-z0-9_-]+$/i.test(a.username)||!['admin','company_officer','class_account','student'].includes(a.role)||String(a.password||'').length<14||String(a.password).startsWith('CHANGE_ME'))throw new Error('Kiểm tra username, vai trò và mật khẩu riêng tối thiểu 14 ký tự; không dùng giá trị mẫu.');
+async function request(path,method='GET',body){const r=await fetch(url+path,{method,headers:{apikey:key,Authorization:`Bearer ${key}`,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates'},body:body?JSON.stringify(body):undefined});if(!r.ok)throw new Error(`Không hoàn tất bước ${path.split('?')[0]} (HTTP ${r.status}). Không có khóa/mật khẩu nào được in ra.`);return r.status===204?null:r.json();}
+const existing=new Map();for(let page=1;;page++){const result=await request(`/auth/v1/admin/users?page=${page}&per_page=100`);for(const u of result.users||[])existing.set(u.email,u);if((result.users||[]).length<100)break;}
+for(const a of accounts){const email=`${a.username.toLowerCase()}@dd460.invalid`;let user=existing.get(email);if(!user)user=await request('/auth/v1/admin/users','POST',{email,password:a.password,email_confirm:true});else if(process.argv.includes('--reset-passwords'))await request(`/auth/v1/admin/users/${user.id}`,'PUT',{password:a.password});await request('/rest/v1/account_profiles?on_conflict=id','POST',{id:user.id,username:a.username.toLowerCase(),role:a.role,class_code:a.class_code||null,student_id:a.student_id||null,display_name:a.display_name||a.username,active:true});console.log(`Đã cấp quyền: ${a.username} (${a.role})`);}

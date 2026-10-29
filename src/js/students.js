@@ -1,3 +1,4 @@
+import { sanitizeHTML } from './safe-html.js';
 import { writeReportWorkbook } from './report-workbook.js';
 import { requestDestructiveConfirmation } from './components/destructive-confirm.js';
 import { calendarDate, parentBirthYear, displayParentYear, politicalDates } from './profile-rules.js';
@@ -124,9 +125,9 @@ export function renderStudentView() {
 
   const langSel = document.getElementById('studentSelfLangLevelSelect');
   if (langSel) {
-    langSel.innerHTML = LANGUAGE_LEVEL_OPTIONS.map(opt =>
+    langSel.innerHTML = sanitizeHTML(LANGUAGE_LEVEL_OPTIONS.map(opt =>
       `<option value="${opt}" ${opt === evaluateLangLevelStatus(student.currentLangLevel).actualLevel ? 'selected' : ''}>${opt}</option>`
-    ).join('');
+    ).join(''));
     langSel.disabled = (AppState.role === 'student');
   }
 
@@ -140,7 +141,7 @@ export function populateStudentPicker() {
   if (!picker) return;
   const scoped = getScopedStudents();
   if (scoped.length === 0) {
-    picker.innerHTML = '<option value="">(Chưa có học viên)</option>';
+    picker.innerHTML = sanitizeHTML('<option value="">(Chưa có học viên)</option>');
     return;
   }
 
@@ -148,18 +149,18 @@ export function populateStudentPicker() {
     const selfStudent = getLoggedInStudent();
     if (selfStudent) {
       AppState.studentViewingId = selfStudent.id;
-      picker.innerHTML = `<option value="${selfStudent.id}" selected>${selfStudent.name} (${selfStudent.code} - ${selfStudent.class})</option>`;
+      picker.innerHTML = sanitizeHTML(`<option value="${selfStudent.id}" selected>${selfStudent.name} (${selfStudent.code} - ${selfStudent.class})</option>`);
       picker.disabled = true;
       return;
     }
   }
 
   picker.disabled = false;
-  picker.innerHTML = scoped.map(s => `
+  picker.innerHTML = sanitizeHTML(scoped.map(s => `
     <option value="${s.id}" ${s.id === AppState.studentViewingId ? 'selected' : ''}>
       ${s.name} (${s.code} - ${s.class})
     </option>
-  `).join('');
+  `).join(''));
 }
 
 export function openCadetDetailPage(studentId) {
@@ -232,7 +233,7 @@ export function openCadetDetailPage(studentId) {
     `;
   }
 
-  detailSection.innerHTML = `
+  detailSection.innerHTML = sanitizeHTML(`
     <div class="space-y-5">
       <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center gap-3">
@@ -342,7 +343,7 @@ export function openCadetDetailPage(studentId) {
         </div>
       </div>
     </div>
-  `;
+  `);
 
   document.getElementById('btnBackFromCadetDetail')?.addEventListener('click', () => {
     closeCadetDetailPage();
@@ -394,7 +395,7 @@ export function renderStudentInlineProfile(options = {}) {
   const student = getLoggedInStudent() || AppState.students.find(s => s.id === AppState.studentViewingId) || AppState.students[0];
   if (!student) {
     container.dataset.inlineEditActive = 'false';
-    container.innerHTML = `<div class="p-8 text-center text-slate-400">Không tìm thấy hồ sơ quân nhân.</div>`;
+    container.innerHTML = sanitizeHTML(`<div class="p-8 text-center text-slate-400">Không tìm thấy hồ sơ quân nhân.</div>`);
     return;
   }
 
@@ -406,7 +407,7 @@ export function renderStudentInlineProfile(options = {}) {
 
   const achList = normalizeAchievements(student.achievements);
 
-  container.innerHTML = `
+  container.innerHTML = sanitizeHTML(`
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
       <div class="bg-gradient-to-r from-army-900 via-army-800 to-army-900 text-white p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-2 border-gold-500">
         <div class="flex items-center gap-3.5">
@@ -597,7 +598,7 @@ export function renderStudentInlineProfile(options = {}) {
         </div>
       </div>
     </div>
-  `;
+  `);
 
   const inlineStatus = document.getElementById('inlineProfPolitical');
   const syncInlineDates = () => updatePartyDatesDisplay(inlineStatus?.value || 'DOAN_VIEN', 'inlineProfPartyJoined', 'inlineProfPartyOfficial', !isEditing);
@@ -916,7 +917,7 @@ export function handleQuickImportFileUpload(file) {
   document.getElementById('quickImportPreviewHeader')?.classList.add('hidden');
   document.getElementById('quickImportPreviewContainer')?.classList.add('hidden');
   const previousPreview = document.getElementById('quickImportPreviewTbody');
-  if (previousPreview) previousPreview.innerHTML = '';
+  if (previousPreview) previousPreview.innerHTML = sanitizeHTML('');
   const confirmButton = document.getElementById('btnExecuteQuickImport');
   if (confirmButton) confirmButton.disabled = true;
   if (!file) return;
@@ -1036,7 +1037,7 @@ export function handleQuickImportFileUpload(file) {
 
       const tbody = document.getElementById('quickImportPreviewTbody');
       if (tbody) {
-        tbody.innerHTML = quickImportParsedRows.map((r, i) => `
+        tbody.innerHTML = sanitizeHTML(quickImportParsedRows.map((r, i) => `
           <tr>
             <td class="py-2 px-2 text-center">${i + 1}</td>
             <td class="py-2 px-3 font-mono font-bold">${r.code}</td>
@@ -1053,7 +1054,7 @@ export function handleQuickImportFileUpload(file) {
             <td class="py-2 px-3">${r.mother_name || '-'} (${formatVN(r.mother_birth_date)})</td>
             <td class="py-2 px-3 text-center">${r.isUpdate ? 'Cập nhật' : 'Thêm mới'}</td>
           </tr>
-        `).join('');
+        `).join(''));
       }
 
       document.getElementById('quickImportBadgeTotal').textContent = `${quickImportParsedRows.length} dòng`;
@@ -1222,7 +1223,7 @@ export function renderProfilesTable(options = {}) {
   const profClassSelect = document.getElementById('profileFilterClass');
   if (profClassSelect) {
     if (classScope) {
-      profClassSelect.innerHTML = `<option value="${classScope}">Lớp ${classScope}</option>`;
+      profClassSelect.innerHTML = sanitizeHTML(`<option value="${classScope}">Lớp ${classScope}</option>`);
       profClassSelect.value = classScope;
       profClassSelect.disabled = true;
     } else {
@@ -1342,13 +1343,13 @@ export function renderProfilesTable(options = {}) {
   if (filtered.length === 0) {
     rowsHtml = `<tr><td colspan="16" class="p-8 text-center text-slate-400 font-medium">Không tìm thấy quân nhân nào phù hợp với bộ lọc.</td></tr>`;
   }
-  tbody.innerHTML = rowsHtml;
+  tbody.innerHTML = sanitizeHTML(rowsHtml);
 
   if (footer) {
-    footer.innerHTML = `
+    footer.innerHTML = sanitizeHTML(`
       <span>Hiển thị <strong>${filtered.length}</strong> / ${scopedStudents.length} quân nhân</span>
       <span class="text-[11px] text-slate-500">Nhấp trực tiếp vào Họ và Tên để mở trang Xem chi tiết quân nhân</span>
-    `;
+    `);
   }
 
   // Event Delegation xử lý .btn-open-profile, .btn-trigger-delete & .btn-view-cadet-detail tại document
@@ -1460,7 +1461,7 @@ export function openStudentProfileModal(studentId, options = {}) {
     document.getElementById('profFormMotherHometown').value = '';
     document.getElementById('profFormMotherJob').value = '';
 
-    document.getElementById('profAcademicSummaryBox').innerHTML = '<div class="p-4 text-center text-slate-500 italic">Quân nhân mới thêm.</div>';
+    document.getElementById('profAcademicSummaryBox').innerHTML = sanitizeHTML('<div class="p-4 text-center text-slate-500 italic">Quân nhân mới thêm.</div>');
   } else {
     const pos = student.position || student.role || 'Học viên';
     document.getElementById('profileModalTitle').textContent = `Hồ Sơ Quân Nhân: ${student.name} (${student.code})`;
@@ -1509,7 +1510,7 @@ export function openStudentProfileModal(studentId, options = {}) {
     const yearGpa = calculateYearGPA(student.id);
     const debts = getDebtSubjects(student.id);
 
-    document.getElementById('profAcademicSummaryBox').innerHTML = `
+    document.getElementById('profAcademicSummaryBox').innerHTML = sanitizeHTML(`
       <div class="grid grid-cols-3 gap-3 text-center mb-3">
         <div class="bg-white p-2.5 rounded-lg border border-slate-200">
           <div class="text-[10px] text-slate-500 uppercase">DTB HK1 (10)</div>
@@ -1531,7 +1532,7 @@ export function openStudentProfileModal(studentId, options = {}) {
         <div>Trình độ ngoại ngữ: <strong>${student.currentLangLevel || 'Chưa đạt'}</strong></div>
         <div>Học phần rớt (&lt; 4.0): ${debts.length > 0 ? `<span class="text-rose-600 font-bold">⚠️ ${debts.map(d => formatFailedSubjectItem(d.subject)).join(', ')}</span>` : '<span class="text-emerald-600 font-bold">✅ Đạt 100% học phần</span>'}</div>
       </div>
-    `;
+    `);
   }
 
   switchProfileSubtab('subtab-personal');

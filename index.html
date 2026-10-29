@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="app-release" content="0fdd679de37d">
+  <meta name="app-release" content="28592882e91c">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Quản lý đơn vị</title>
   <link rel="icon" type="image/svg+xml" href="./src/assets/favicon.svg?v=43c991ef71f6">
@@ -1154,7 +1154,6 @@ body {
         <div class="settings-danger-actions">
           <button type="button" id="btnClearAllStudentsSettings" class="btn-clear-all-students admin-only">Xóa tất cả học viên</button>
           <button type="button" id="btnClearAllSubjectsBtn" class="btn-clear-all-subjects admin-only">Xóa tất cả môn học</button>
-          <button type="button" id="btnClearLog" class="admin-only">Xóa toàn bộ nhật ký</button>
         </div>
       </details>
     </section>
@@ -1257,7 +1256,7 @@ body {
 
         <div id="loginAdminError" class="hidden text-rose-700 font-bold text-xs bg-rose-50 border border-rose-300 p-3 rounded-xl flex items-center gap-2">
           <span>⚠️</span>
-          <span id="loginAdminErrorMsg">Sai thông tin đăng nhập hoặc mã học viên không tồn tại</span>
+          <span id="loginAdminErrorMsg">Không đăng nhập được. Kiểm tra tài khoản và mật khẩu.</span>
         </div>
 
         <button type="button" id="btnSubmitAdminLogin" onclick="if(window.handleMockLogin)window.handleMockLogin(event)" class="w-full py-3 px-4 rounded-xl bg-army-800 hover:bg-army-900 text-gold-300 font-black text-xs uppercase tracking-wider transition shadow-md flex items-center justify-center gap-2 cursor-pointer">
@@ -1289,9 +1288,11 @@ body {
           </div>
         </div>
 
+        <div><label for="loginCadetPassword" class="block text-xs font-bold text-slate-700 mb-2">Mật khẩu</label><input id="loginCadetPassword" type="password" autocomplete="current-password" required class="w-full border border-slate-300 rounded-xl px-4 py-3" placeholder="Mật khẩu được cấp"></div>
+
         <div id="loginCadetError" class="hidden text-rose-700 font-bold text-xs bg-rose-50 border border-rose-300 p-3 rounded-xl flex items-center gap-2">
           <span>⚠️</span>
-          <span id="loginCadetErrorMsg">Sai thông tin đăng nhập hoặc mã học viên không tồn tại</span>
+          <span id="loginCadetErrorMsg">Không đăng nhập được. Kiểm tra tài khoản và mật khẩu.</span>
         </div>
 
         <button type="button" id="btnSubmitCadetLogin" onclick="if(window.handleCadetSubmit)window.handleCadetSubmit(event)" class="w-full py-3 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs uppercase tracking-wider transition shadow-md cursor-pointer">
@@ -2215,26 +2216,30 @@ body {
   "imports": {
     "./src/js/academic-ranking.js": "./src/js/academic-ranking.js?v=66ec69192690",
     "./src/js/access-controls.js": "./src/js/access-controls.js?v=0c31f2921589",
-    "./src/js/auth.js": "./src/js/auth.js?v=4c59c28f16cf",
+    "./src/js/auth-session.js": "./src/js/auth-session.js?v=32a4514f7d8b",
+    "./src/js/auth.js": "./src/js/auth.js?v=ca9122745693",
     "./src/js/class-transcript.js": "./src/js/class-transcript.js?v=245c6912b492",
-    "./src/js/components/bento-dashboard.js": "./src/js/components/bento-dashboard.js?v=86c9eec93026",
-    "./src/js/components/destructive-confirm.js": "./src/js/components/destructive-confirm.js?v=d3493f707a09",
-    "./src/js/components/expanding-rail.js": "./src/js/components/expanding-rail.js?v=30e2d9c62544",
+    "./src/js/components/bento-dashboard.js": "./src/js/components/bento-dashboard.js?v=c76ec853266e",
+    "./src/js/components/destructive-confirm.js": "./src/js/components/destructive-confirm.js?v=18940fb51c76",
+    "./src/js/components/expanding-rail.js": "./src/js/components/expanding-rail.js?v=5c4f74608e33",
     "./src/js/components/notched-field.js": "./src/js/components/notched-field.js?v=553608c192ae",
     "./src/js/components/report-center.js": "./src/js/components/report-center.js?v=6c26e21009dd",
     "./src/js/dashboard-statistics.js": "./src/js/dashboard-statistics.js?v=6e42e8415b31",
-    "./src/js/grades.js": "./src/js/grades.js?v=cc8e4f61e7f9",
-    "./src/js/main.js": "./src/js/main.js?v=0fdd679de37d",
+    "./src/js/grades.js": "./src/js/grades.js?v=f622c0dcb27e",
+    "./src/js/main.js": "./src/js/main.js?v=28592882e91c",
     "./src/js/profile-rules.js": "./src/js/profile-rules.js?v=3a3bbf350b00",
     "./src/js/report-workbook.js": "./src/js/report-workbook.js?v=1cd3836da746",
-    "./src/js/students.js": "./src/js/students.js?v=0099d83f79db",
-    "./src/js/supabase.js": "./src/js/supabase.js?v=2e9f5cfd5ca9"
+    "./src/js/safe-html.js": "./src/js/safe-html.js?v=805d694995bb",
+    "./src/js/secure-data.js": "./src/js/secure-data.js?v=d564140b1bc4",
+    "./src/js/students.js": "./src/js/students.js?v=3f8e76a1536b",
+    "./src/js/supabase.js": "./src/js/supabase.js?v=285128916778",
+    "./src/js/vendor/dompurify.js": "./src/js/vendor/dompurify.js?v=60c5d5ccbb46"
   }
 }
   </script>
-  <script type="module" src="./src/js/main.js?v=0fdd679de37d"></script>
-  <script type="module" src="./src/js/components/expanding-rail.js?v=30e2d9c62544"></script>
+  <script type="module" src="./src/js/main.js?v=28592882e91c"></script>
+  <script type="module" src="./src/js/components/expanding-rail.js?v=5c4f74608e33"></script>
   <script type="module" src="./src/js/components/notched-field.js?v=553608c192ae"></script>
-  <script type="module" src="./src/js/components/bento-dashboard.js?v=86c9eec93026"></script>
+  <script type="module" src="./src/js/components/bento-dashboard.js?v=c76ec853266e"></script>
 </body>
 </html>

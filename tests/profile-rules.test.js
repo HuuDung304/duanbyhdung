@@ -47,7 +47,7 @@ function database(role = 'admin') {
   const rules = readFileSync('src/js/profile-rules.js', 'utf8').replace(/^export /gm, '');
   const source = readFileSync('src/js/supabase.js', 'utf8').replace(/^import .*?;\n/gm, '').replace(/^export default.*$/gm, '').replace(/^export /gm, '');
   const requests = [];
-  const context = vm.createContext({ AppState: { role }, TextEncoder, Date, setTimeout, clearTimeout,
+  const context = vm.createContext({ configureAuthentication(){}, configureSecureData(){}, AppState: { role }, TextEncoder, Date, setTimeout, clearTimeout,
     fetch: async (url, options) => { requests.push({ url, options }); return new Response(null, { status: 204 }); },
   });
   const writes = [...readFileSync('src/js/supabase.js', 'utf8').matchAll(/^export async function ((?:upsert|delete)\w+|saveUnitSettingsToSupabase)\(/gm)].map(match => match[1]);
@@ -72,15 +72,6 @@ test('database mapping omits IT fields and stores dates in ISO and parent years 
   assert.equal(row.mother_birth_date, '1978');
   assert.equal(Object.hasOwn(row, 'it_standard'), false);
   assert.equal(Object.hasOwn(api.mapLanguageToDbRow('hv01', { itStandard: 'legacy' }), 'it_standard'), false);
-});
-
-test('only the admin settings payload includes the required language standard', async () => {
-  const { api, context, requests } = database('class_leader_OTQS1');
-  await api.saveUnitSettingsToSupabase({ requiredLangStandard: 'B2' });
-  assert.equal(Object.hasOwn(JSON.parse(requests[0].options.body)[0], 'required_lang_standard'), false);
-  context.AppState.role = 'admin';
-  await api.saveUnitSettingsToSupabase({ requiredLangStandard: 'B2' });
-  assert.equal(JSON.parse(requests[1].options.body)[0].required_lang_standard, 'B2');
 });
 
 test('language warnings follow the admin threshold and include its level under a red badge', () => {
@@ -115,18 +106,14 @@ test('party date fields are enabled, required and visible only for the selected 
   assert.equal(fields.profFormOfficialPartyDate.disabled, false);
 });
 
-test('a certificate write failure is propagated instead of reporting a fully saved student', async () => {
-  const { api, context, requests } = database();
-  context.fetch = async (url, options) => {
-    requests.push({ url, options });
-    if (options.method === 'GET') return new Response('[]');
-    if (url.includes('/languages?')) return new Response(JSON.stringify({ message: 'language save rejected' }), { status: 400 });
-    return new Response(null, { status: 204 });
+test('a student and certificate save is submitted as one transaction and propagates rejection', async () => {
+  const { api, context } = database();
+  context.writeAcademicTransaction = async payload => {
+    assert.equal(payload.students.length, 1); assert.equal(payload.languages.length, 1);
+    throw new Error('language save rejected');
   };
-  const result = await api.upsertStudentToSupabase({ code: 'HV01' }, { currentLevel: 'B1' });
-  assert.equal(result.error.message, 'language save rejected');
+  await assert.rejects(api.upsertStudentToSupabase({ code: 'HV01' }, { currentLevel: 'B1' }), /language save rejected/);
 });
-
 
 test('malformed legacy parent dates do not prevent loading cadets, but still fail write validation', () => {
   const { api } = database();
