@@ -1,3 +1,4 @@
+import { renderYearBreakdown } from './year-breakdown.js';
 // Dependencies are injected by grades.js; this module does not import the application shell.
 export function createDashboardReports(context) {
   function renderDashboard() {
@@ -156,131 +157,9 @@ export function createDashboardReports(context) {
 
     // =========================================================================
     // BẢNG 2: TỶ LỆ THEO TỪNG NĂM & TỪNG HỌC KỲ
-    // Cấu trúc tuần tự: Năm 1 (HK1, HK2, Cả năm, Số học viên rớt môn, Số lượt rớt) -> Năm 2 -> Năm 3 -> Năm 4 -> Năm 5
+    // Single-year presentation reuses all existing semester/year statistics.
     // =========================================================================
-    const matrixThead = document.getElementById('reportYearSemesterMatrixThead');
-    const matrixTbody = document.getElementById('reportYearSemesterMatrixBody');
-    const matrixTfoot = document.getElementById('reportYearSemesterMatrixFooter');
-
-    if (matrixThead && matrixTbody) {
-      const yearColors = [
-        { headerBg: 'bg-army-900 text-gold-300', subBg: 'bg-army-800 text-white' },
-        { headerBg: 'bg-slate-900 text-emerald-300', subBg: 'bg-slate-800 text-white' },
-        { headerBg: 'bg-army-900 text-amber-300', subBg: 'bg-army-800 text-white' },
-        { headerBg: 'bg-slate-900 text-cyan-300', subBg: 'bg-slate-800 text-white' },
-        { headerBg: 'bg-army-950 text-gold-400', subBg: 'bg-army-900 text-white' }
-      ];
-
-      const topYearHeaders = yearsBreakdown.map((yb, idx) => {
-        const colStyle = yearColors[idx] || yearColors[0];
-        return `
-          <th colspan="5" class="py-2.5 px-3 text-center font-black uppercase border-b border-slate-600 ${colStyle.headerBg}">
-            NĂM ${yb.year} (HK1, HK2, Cả năm, Số học viên rớt môn, Số lượt rớt)
-            <div class="text-[10px] font-normal text-slate-200 mt-0.5">Học kỳ ${yb.sem1Num} &amp; Học kỳ ${yb.sem2Num}</div>
-          </th>
-        `;
-      }).join('');
-
-      const subYearHeaders = yearsBreakdown.map((yb, idx) => {
-        const colStyle = yearColors[idx] || yearColors[0];
-        return `
-          <th class="py-2 px-2.5 text-center min-w-[95px] ${colStyle.subBg}">HK1<br><span class="text-[9px] font-normal text-slate-300">(Kỳ ${yb.sem1Num}: SL / %)</span></th>
-          <th class="py-2 px-2.5 text-center min-w-[95px] ${colStyle.subBg}">HK2<br><span class="text-[9px] font-normal text-slate-300">(Kỳ ${yb.sem2Num}: SL / %)</span></th>
-          <th class="py-2 px-2.5 text-center min-w-[100px] bg-amber-900/90 text-gold-200 font-bold">Cả năm<br><span class="text-[9px] font-normal text-amber-100">(Năm ${yb.year}: SL / %)</span></th>
-          <th class="py-2 px-2.5 text-center min-w-[115px] bg-rose-900 text-white font-bold">Số học viên rớt môn<br><span class="text-[9px] font-normal text-rose-200">(Năm ${yb.year})</span></th>
-          <th class="py-2 px-2.5 text-center min-w-[95px] bg-rose-950 text-gold-300 font-black">Số lượt rớt<br><span class="text-[9px] font-normal text-rose-200">(Năm ${yb.year})</span></th>
-        `;
-      }).join('');
-
-      matrixThead.innerHTML = context.sanitizeHTML(`
-        <tr class="divide-x divide-slate-600 bg-army-950 text-white text-xs">
-          <th rowspan="2" class="py-2.5 px-2 text-center w-10 sticky left-0 z-20 bg-army-950">STT</th>
-          <th rowspan="2" class="py-2.5 px-3 min-w-[155px] sticky left-10 z-20 bg-army-950">Xếp Loại Học Lực / Chỉ Tiêu</th>
-          <th rowspan="2" class="py-2.5 px-2 text-center min-w-[115px]">Tiêu Chuẩn</th>
-          ${topYearHeaders}
-        </tr>
-        <tr class="divide-x divide-slate-600 text-[11px]">
-          ${subYearHeaders}
-        </tr>
-      `);
-
-      // 7 hàng xếp loại học lực
-      const rankMatrixRows = context.REPORT_RANK_META.map((item, rIdx) => {
-        const yearCells = yearsBreakdown.map(yb => {
-          const c1 = yb.hk1.rankCounts[item.name] || 0;
-          const r1 = yb.hk1.rankRates[item.name] || '0.0';
-          const c2 = yb.hk2.rankCounts[item.name] || 0;
-          const r2 = yb.hk2.rankRates[item.name] || '0.0';
-          const cy = yb.fullYear.rankCounts[item.name] || 0;
-          const ry = yb.fullYear.rankRates[item.name] || '0.0';
-          const debtInRank = yb.fullYear.rankDebtStudents[item.name] || 0;
-          const failsInRank = yb.fullYear.rankFailInstances[item.name] || 0;
-
-          return `
-            <td class="py-2 px-2 text-center border-l border-slate-200">
-              <span class="font-bold text-slate-900">${c1}</span>
-              <span class="text-[10px] text-slate-500">(${r1}%)</span>
-            </td>
-            <td class="py-2 px-2 text-center">
-              <span class="font-bold text-slate-900">${c2}</span>
-              <span class="text-[10px] text-slate-500">(${r2}%)</span>
-            </td>
-            <td class="py-2 px-2 text-center bg-amber-50/50 font-bold">
-              <span class="text-army-950">${cy}</span>
-              <span class="text-[10px] text-army-700 font-extrabold">(${ry}%)</span>
-            </td>
-            <td class="py-2 px-2 text-center ${debtInRank > 0 ? 'text-rose-700 font-bold bg-rose-50/40' : 'text-slate-400'}">
-              ${debtInRank > 0 ? `${debtInRank} HV` : '0'}
-            </td>
-            <td class="py-2 px-2 text-center ${failsInRank > 0 ? 'text-rose-800 font-black bg-rose-50/60' : 'text-slate-400'}">
-              ${failsInRank > 0 ? `${failsInRank} lượt` : '0'}
-            </td>
-          `;
-        }).join('');
-
-        return `
-          <tr class="divide-x divide-slate-200 hover:bg-slate-50 transition">
-            <td class="py-2.5 px-2 text-center text-slate-500 font-medium sticky left-0 bg-white z-10">${rIdx + 1}</td>
-            <td class="py-2.5 px-3 font-bold text-slate-900 sticky left-10 bg-white z-10">
-              <span class="inline-block px-2 py-0.5 rounded text-[11px] font-bold border ${item.badge}">${context.escapeHTML(item.name)}</span>
-            </td>
-            <td class="py-2.5 px-2 text-center font-mono text-[11px] text-slate-600">${item.standard}</td>
-            ${yearCells}
-          </tr>
-        `;
-      }).join('');
-
-      matrixTbody.innerHTML = context.sanitizeHTML(rankMatrixRows);
-
-      if (matrixTfoot) {
-        const footCells = yearsBreakdown.map(yb => `
-          <td class="py-3 px-2 text-center border-l border-slate-300 font-bold text-army-900">
-            ĐTB HK1: ${yb.hk1.avgGpa}
-          </td>
-          <td class="py-3 px-2 text-center font-bold text-army-900">
-            ĐTB HK2: ${yb.hk2.avgGpa}
-          </td>
-          <td class="py-3 px-2 text-center bg-amber-100/80 font-black text-army-950">
-            ĐTB Năm ${yb.year}: ${yb.fullYear.avgGpa}
-          </td>
-          <td class="py-3 px-2 text-center bg-rose-100 font-black text-rose-800">
-            ${yb.fullYear.debtStudentCount} HV rớt (${yb.fullYear.debtStudentRate}%)
-          </td>
-          <td class="py-3 px-2 text-center bg-rose-200 font-black text-rose-950">
-            ${yb.fullYear.totalDebtFailsCount} lượt rớt
-          </td>
-        `).join('');
-
-        matrixTfoot.innerHTML = context.sanitizeHTML(`
-          <tr class="divide-x divide-slate-300 bg-slate-100 border-t-2 border-slate-300 text-xs">
-            <td colspan="3" class="py-3 px-3 uppercase text-army-900 font-black sticky left-0 bg-slate-100 z-10">
-              TỔNG HỢP ĐTB &amp; RỚT MÔN THEO TỪNG NĂM (QUÂN SỐ: ${courseStats.totalCadets} Đ/C):
-            </td>
-            ${footCells}
-          </tr>
-        `);
-      }
-    }
+    renderYearBreakdown({ years: yearsBreakdown, ranks: context.REPORT_RANK_META, onYearChange: renderDashboard });
 
     // =========================================================================
     // BẢNG 3: DANH SÁCH HỌC VIÊN RỚT MÔN (THI LẠI / NỢ HỌC PHẦN) CẦN BỒI DƯỠNG
