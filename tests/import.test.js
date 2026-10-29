@@ -534,3 +534,14 @@ test('atomic grade import uses one transaction and never falls back after transa
   assert.equal(context.AppState.students.length, 0);
   assert.match(messages.at(-1).message, /0 dòng thành công; 1 dòng thất bại/);
 });
+
+test('a configured subject named Ngoại ngữ is imported as a course, not discarded as certificate metadata', async () => {
+  const { context, writes } = importContext('src/js/grades.js', {
+    resolveSubjectByCompositeKey: () => ({id:'nn'}),
+  });
+  context.AppState.subjects.push({id:'nn',name:'Ngoại ngữ cơ bản 1',semester:1,credits:3,category:'common'});
+  context.parsedImportData.headers[3]='Ngoại ngữ cơ bản 1';
+  await context.executeExcelImport();
+  assert.equal(writes.at(-1)[0].subjectId,'nn');
+  assert.equal(writes.at(-1)[0].score,7.5);
+});

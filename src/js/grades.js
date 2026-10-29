@@ -1,3 +1,5 @@
+import { renderSubjectCatalog } from './subjects/catalog-view.js';
+import { subjectHasGrades, stableOfferingId } from './subjects/offerings.js';
 import { trackImportRead } from './components/upload-state.js';
 import { createGradeCalculations } from './academic/calculations.js';
 import { createTranscript } from './academic/transcript.js';
@@ -424,7 +426,7 @@ export function doesSubjectApplyToClass(sub, className) {
 }
 
 /**
- * Từ điển chuẩn hóa Tên môn học đầy đủ (chống hiển thị tên viết tắt hoặc mã môn học khi hiển thị và xuất file Excel)
+ * Từ điển đối chiếu tên/mã từ các file cũ; không tự thay tên hiển thị hoặc tên xuất file.
  */
 export const ABBREVIATION_TO_FULL_COURSE_NAME = {
   'TTQS': 'Thể thao quân sự',
@@ -536,16 +538,12 @@ export function expandCourseAbbreviation(rawText, fallbackCode = '') {
 }
 
 /**
- * Luôn trả về Tên môn học đầy đủ (course_name), tuyệt đối không trả về mã môn học hoặc từ viết tắt
+ * Giữ nguyên tên trong danh mục/thời khóa biểu; chỉ dùng mã khi bản ghi không có tên.
  */
 export function getFullSubjectName(sub) {
   if (!sub) return 'Môn học';
-  if (typeof sub === 'string') {
-    return expandCourseAbbreviation(sub);
-  }
-  const rawName = sub.course_name || sub.name || '';
-  const rawCode = sub.code || '';
-  return expandCourseAbbreviation(rawName, rawCode);
+  if (typeof sub === 'string') return sub.trim() || 'Môn học';
+  return String(sub.name || sub.course_name || sub.code || 'Môn học').trim();
 }
 
 export function normalizeSubjectsCatalog(subjects) {
@@ -620,16 +618,8 @@ export function buildSubjectCompositeKey(courseName, classCode = 'ALL', semester
 /**
  * Tạo ID tất định (Deterministic ID) cho môn học dựa trên khóa kết hợp (course_name + class_code + semester)
  */
-export function buildDeterministicSubjectId({ code = '', name = '', category = 'common', targetClasses = [], semester = 1 }) {
-  const sem = Number(semester) || 1;
-  const isSpec = category === 'specialized';
-  const clsPart = isSpec && Array.isArray(targetClasses) && targetClasses.length > 0
-    ? targetClasses.map(c => String(c || '').trim().toLowerCase()).filter(Boolean).sort().join('_')
-    : 'all';
-  const nameSlug = slugifyCourseText(name || code) || 'mon_hoc';
-  const codeSlug = slugifyCourseText(code);
-  const tail = codeSlug && codeSlug !== nameSlug ? `${codeSlug}_${nameSlug}` : nameSlug;
-  return `sub_hk${sem}_${isSpec ? 'spec_' + clsPart : 'common'}_${tail}`.slice(0, 96);
+export function buildDeterministicSubjectId(options) {
+  return stableOfferingId(options);
 }
 
 /**
@@ -684,13 +674,13 @@ export function parseExcelSubjectHeader(rawHeader, defaultSemester = null) {
   let nameCandidate = cleanTitle;
   if (cleanTitle.includes(' - ')) {
     const parts = cleanTitle.split(' - ').map(p => p.trim()).filter(Boolean);
-    if (parts.length >= 2 && parts[0].length <= 15) {
+    if (parts.length >= 2 && /^[A-Z0-9_]{2,12}$/.test(parts[0]) && (ABBREVIATION_TO_FULL_COURSE_NAME[parts[0]] || AppState.subjects.some(subject => normalizeCourseText(subject.code) === parts[0]))) {
       codeCandidate = parts[0].toUpperCase();
       nameCandidate = parts.slice(1).join(' - ');
     }
   }
 
-  const fullExpandedCourseName = expandCourseAbbreviation(nameCandidate || cleanTitle, codeCandidate);
+  const fullExpandedCourseName = cleanTitle;
   return {
     original,
     cleanTitle,
@@ -701,7 +691,8 @@ export function parseExcelSubjectHeader(rawHeader, defaultSemester = null) {
     normCode: normalizeCourseText(codeCandidate),
     semesterHint,
     creditsHint,
-    classHint
+    classHint,
+    metadataDetected: Boolean(semMatch || credMatch || /[\[(]\s*CN\s/i.test(original))
   };
 }
 
@@ -725,64 +716,33 @@ export function resolveSubjectByCompositeKey({
     : (headerInfo.classHint || 'OTQS1');
 
   const effectiveSem = Number(headerInfo.semesterHint || semesterHint || (2 * (Number(yearHint) || 1) - 1)) || 1;
-  const sem1 = 2 * (Number(yearHint) || 1) - 1;
-  const sem2 = 2 * (Number(yearHint) || 1);
 
-  const matchesTitleOrCode = (sub) => {
-    const subFullName = normalizeCourseText(getFullSubjectName(sub));
-    const subName = normalizeCourseText(sub.name);
-    const subCode = normalizeCourseText(sub.code);
-    if (subFullName && (subFullName === headerInfo.normCourseName || subFullName === headerInfo.normTitle)) return true;
-    if (subName && (subName === headerInfo.normCourseName || subName === headerInfo.normTitle)) return true;
-    if (subCode && (subCode === headerInfo.normTitle || subCode === headerInfo.normCourseName || (headerInfo.normCode && subCode === headerInfo.normCode))) return true;
-    return false;
+  // A configured timetable name is literal, including parentheses that look like import metadata.
+  const literalSemester = Number(semesterHint) || effectiveSem;
+  const literal = AppState.subjects.filter(sub => doesSubjectApplyToClass(sub,targetCls) && Number(sub.semester) === literalSemester && normalizeCourseText(getFullSubjectName(sub)) === normalizeCourseText(headerInfo.original));
+  if (literal.length > 1) throw new Error(`Môn "${headerInfo.original}" trùng tên trong lớp và học kỳ. Dùng mã môn để phân biệt.`);
+  if (literal.length === 1) return literal[0];
+  const applicable = AppState.subjects.filter(sub => doesSubjectApplyToClass(sub, targetCls) && Number(sub.semester) === effectiveSem);
+  const findCode = key => {
+    const exact = applicable.filter(sub => normalizeCourseText(sub.code) === key);
+    return exact.length ? exact : applicable.filter(sub => normalizeCourseText(sub.code).replace(/_(OTQS1|OTQS2|TTG1|TTG2|XMCB)$/, '') === key);
   };
-
-  // Danh sách các môn áp dụng cho lớp của học viên này
-  const classApplicable = AppState.subjects.filter(sub => doesSubjectApplyToClass(sub, targetCls));
-
-  // Ưu tiên 1: Khớp chính xác theo Khóa kết hợp (course_name + class_code + effectiveSem)
-  // Ưu tiên môn chuyên ngành riêng của lớp trước, sau đó đến môn chung trong cùng học kỳ
-  const exactSemMatches = classApplicable.filter(
-    sub => Number(sub.semester) === effectiveSem && matchesTitleOrCode(sub)
-  );
-  if (exactSemMatches.length > 0) {
-    const specMatch = exactSemMatches.find(sub => sub.category === 'specialized');
-    return specMatch || exactSemMatches[0];
+  const codeKey = headerInfo.normCode || '';
+  let matches = codeKey ? findCode(codeKey) : [];
+  if (!matches.length) matches = applicable.filter(sub => [headerInfo.normCourseName, headerInfo.normTitle].includes(normalizeCourseText(getFullSubjectName(sub))));
+  if (!matches.length) matches = findCode(headerInfo.normTitle);
+  if (!matches.length) matches = applicable.filter(sub => normalizeCourseText(expandCourseAbbreviation(sub.name,sub.code)) === headerInfo.normCourseName);
+  if (matches.length > 1) throw new Error(`Môn "${headerInfo.cleanTitle}" trùng tên tại lớp ${targetCls}, HK${effectiveSem}. Dùng mã môn trong tiêu đề Excel để phân biệt.`);
+  if (matches.length === 1) {
+    if (headerInfo.creditsHint && Number(matches[0].credits) !== Number(headerInfo.creditsHint)) throw new Error('Tín chỉ trong Excel khác danh mục. Hãy kiểm tra môn trước khi nhập điểm.');
+    return matches[0];
   }
-
-  // Ưu tiên 2: Nếu không có gợi ý kỳ cố định từ tiêu đề, tìm trong 2 học kỳ của Năm học đang chọn (sem1, sem2) cho đúng lớp đó
-  if (!headerInfo.semesterHint) {
-    const yearMatches = classApplicable.filter(
-      sub => (Number(sub.semester) === sem1 || Number(sub.semester) === sem2) && matchesTitleOrCode(sub)
-    );
-    if (yearMatches.length > 0) {
-      const specMatch = yearMatches.find(sub => sub.category === 'specialized');
-      return specMatch || yearMatches[0];
-    }
-  }
-
-  // Ưu tiên 3: Nếu môn học đã tồn tại ở kỳ đúng nhưng đang là môn chuyên ngành của lớp khác -> Mở rộng hoặc tách riêng theo lớp
-  const sameSemOtherClass = AppState.subjects.filter(
-    sub => Number(sub.semester) === effectiveSem && matchesTitleOrCode(sub)
-  );
-  if (sameSemOtherClass.length > 0 && !autoCreate) {
-    return sameSemOtherClass[0];
-  }
-
-  // Ưu tiên 4: Tìm trong toàn khóa của lớp đó nếu môn chỉ xuất hiện duy nhất 1 lần
-  if (!headerInfo.semesterHint && !semesterHint) {
-    const anySemMatches = classApplicable.filter(matchesTitleOrCode);
-    if (anySemMatches.length === 1) {
-      return anySemMatches[0];
-    }
-  }
-
   if (!autoCreate) return null;
+  if (headerInfo.metadataDetected) throw new Error(`Chưa xác định được tên gốc của môn "${headerInfo.original}". Hãy thêm đúng tên và tín chỉ trong Môn học cho lớp ${targetCls}, HK${effectiveSem} trước khi nhập điểm.`);
 
   // Tự động khởi tạo môn học mới theo Khóa kết hợp (course_name + class_code + effectiveSem)
   // nếu trong DB chưa có môn đó cho lớp & kỳ tương ứng để không bị rớt dữ liệu điểm khi đẩy Excel lên!
-  const courseName = headerInfo.courseName || headerInfo.cleanTitle;
+  const courseName = headerInfo.original || headerInfo.courseName || headerInfo.cleanTitle;
   const generatedCode = headerInfo.codeCandidate ||
     slugifyCourseText(courseName)
       .split('_')
@@ -792,12 +752,12 @@ export function resolveSubjectByCompositeKey({
       .slice(0, 8) ||
     'MH';
 
-  const isClassSpecific = sameSemOtherClass.length > 0 || Boolean(headerInfo.classHint);
-  const category = isClassSpecific ? 'specialized' : 'common';
-  const targetClasses = isClassSpecific ? [targetCls] : [];
-  const targetClass = isClassSpecific ? targetCls : 'all';
-  const credits = headerInfo.creditsHint || (sameSemOtherClass[0]?.credits) || 3;
-  const code = isClassSpecific ? `${generatedCode}_${targetCls}` : generatedCode;
+  // An Excel row never assigns a new subject to other classes implicitly.
+  const category = 'specialized';
+  const targetClasses = [targetCls];
+  const targetClass = targetCls;
+  const credits = headerInfo.creditsHint || 3;
+  const code = `${generatedCode}_${targetCls}`;
 
   const newSubId = buildDeterministicSubjectId({
     code,
@@ -807,16 +767,8 @@ export function resolveSubjectByCompositeKey({
     semester: effectiveSem
   });
 
-  let existingById = AppState.subjects.find(s => s.id === newSubId);
-  if (existingById) {
-    if (existingById.category === 'specialized' && !getSubjectTargetClasses(existingById).includes(targetCls)) {
-      const merged = Array.from(new Set([...getSubjectTargetClasses(existingById), targetCls]));
-      existingById.targetClasses = merged;
-      existingById.targetClass = merged.join(', ');
-      if (newSubjectsMap) newSubjectsMap.set(existingById.id, existingById);
-    }
-    return existingById;
-  }
+  const existingById = AppState.subjects.find(s => s.id === newSubId);
+  if (existingById) throw new Error('Mã định danh môn đã tồn tại với dữ liệu khác. Hãy kiểm tra danh mục trước khi nhập.');
 
   const newSubj = {
     id: newSubId,
@@ -1271,7 +1223,7 @@ export function renderSpreadsheet() {
       <th class="py-2 px-2 text-center min-w-[125px] max-w-[180px] ${isSpec ? 'bg-amber-50/80' : ''} group relative" title="${fullName} (${s.credits} TC • ${isSpec ? 'Môn chuyên ngành ' + s.targetClass : 'Môn chung'})">
         <div class="flex items-center justify-center gap-1">
           <span class="font-bold ${isSpec ? 'text-amber-900' : 'text-slate-800'} truncate text-[11px]">${fullName}</span>
-          ${isSpec ? `<span class="px-1 py-0.2 rounded text-[9px] font-black bg-amber-200 text-amber-900 shrink-0">CN</span>` : ''}
+          ${isSpec ? `<span class="px-1 py-0.2 rounded text-[9px] font-black bg-amber-200 text-amber-900 shrink-0">Lớp</span>` : ''}
         </div>
         <div class="text-[9px] text-slate-500 font-normal">(${s.credits} TC${isSpec ? ' • ' + s.targetClass : ''})</div>
       </th>
@@ -2082,214 +2034,7 @@ export async function deleteAllSubjectsAllSemesters(triggerBtn = null) {
 }
 
 export function renderSubjectsSettings() {
-  if (!AppState.settingsSelectedYear) AppState.settingsSelectedYear = 1;
-  const y = AppState.settingsSelectedYear;
-  const semA = 2 * y - 1;
-  const semB = 2 * y;
-
-  const classScope = getCurrentUserClassScope();
-  const visibleSubjects = classScope
-    ? getSubjectsForClass(classScope)
-    : AppState.subjects;
-
-  const yearMeta = {
-    1: { title: 'Năm Thứ 1', s1Label: 'Kỳ 1', s2Label: 'Kỳ 2', note: 'Giai đoạn Đại cương & Quân sự cơ bản' },
-    2: { title: 'Năm Thứ 2', s1Label: 'Kỳ 3', s2Label: 'Kỳ 4', note: 'Cơ sở Khối ngành & Kỹ thuật cơ sở' },
-    3: { title: 'Năm Thứ 3', s1Label: 'Kỳ 5', s2Label: 'Kỳ 6', note: 'Cơ sở Chuyên ngành Khí tài' },
-    4: { title: 'Năm Thứ 4', s1Label: 'Kỳ 7', s2Label: 'Kỳ 8', note: 'Chuyên ngành Khí tài Quân sự' },
-    5: { title: 'Năm Thứ 5', s1Label: 'Kỳ 9', s2Label: 'Kỳ 10', note: 'Chuyên đề, Thực tập & Đồ án tốt nghiệp' }
-  };
-
-  const currentMeta = yearMeta[y] || yearMeta[1];
-
-  const classCards = document.getElementById('settingsClassSummaries');
-  if (classCards) {
-    classCards.replaceChildren(...(classScope ? [classScope] : DEFAULT_CLASSES).map(className => {
-      const subjects = getSubjectsForClass(className);
-      const card = document.createElement('article');
-      card.className = 'settings-class-card';
-      const title = document.createElement('h4'); title.textContent = `Lớp ${className}`;
-      const count = document.createElement('strong'); count.textContent = `${subjects.length} môn`;
-      const credits = document.createElement('p'); credits.textContent = `${subjects.reduce((sum, subject) => sum + (Number(subject.credits) || 0), 0)} tín chỉ`;
-      card.append(title, count, credits); return card;
-    }));
-  }
-
-  const elYearTitle = document.getElementById('statSettingsSelectedYearTitle');
-  if (elYearTitle) elYearTitle.textContent = currentMeta.title;
-  const elYearSub = document.getElementById('statSettingsSelectedYearSub');
-  if (elYearSub) elYearSub.textContent = `Học kỳ ${semA} & Học kỳ ${semB} • ${currentMeta.note}`;
-
-  const listA = visibleSubjects.filter(s => Number(s.semester) === semA);
-  const listB = visibleSubjects.filter(s => Number(s.semester) === semB);
-  const credsA = listA.reduce((sum, s) => sum + s.credits, 0);
-  const credsB = listB.reduce((sum, s) => sum + s.credits, 0);
-
-  const elYearCredits = document.getElementById('statSettingsSelectedYearCredits');
-  if (elYearCredits) elYearCredits.textContent = `${listA.length + listB.length} môn`;
-  const elYearBreakdown = document.getElementById('statSettingsSelectedYearBreakdown');
-  if (elYearBreakdown) elYearBreakdown.textContent = `Kỳ ${semA}: ${listA.length} môn (${credsA} TC) • Kỳ ${semB}: ${listB.length} môn (${credsB} TC)`;
-
-  const tabsContainer = document.getElementById('settingsYearTabsContainer');
-  if (tabsContainer) {
-    let tabsHtml = '';
-    for (let yearNum = 1; yearNum <= 5; yearNum++) {
-      const s1 = 2 * yearNum - 1;
-      const s2 = 2 * yearNum;
-      const ySubjs = visibleSubjects.filter(s => Number(s.semester) === s1 || Number(s.semester) === s2);
-      const yCommon = ySubjs.filter(s => !s.category || s.category === 'common' || s.targetClass === 'all').length;
-      const ySpec = ySubjs.filter(s => s.category === 'specialized').length;
-      const isActive = (yearNum === y);
-
-      tabsHtml += `
-        <button type="button" class="btn-setting-year-tab p-3 rounded-xl border text-left transition ${
-          isActive ?
-            'bg-army-800 text-white border-army-900 shadow-md ring-2 ring-gold-400' :
-            'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
-        }" data-year="${yearNum}">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-black uppercase ${isActive ? 'text-gold-300' : 'text-slate-900'}">NĂM THỨ ${yearNum}</span>
-            <span class="text-[10px] font-bold px-1.5 py-0.2 rounded ${isActive ? 'bg-gold-500 text-slate-950' : 'bg-slate-200 text-slate-700'}">Kỳ ${s1}-${s2}</span>
-          </div>
-          <div class="text-[11px] ${isActive ? 'text-slate-200' : 'text-slate-500'} mt-1 font-medium">${ySubjs.length} môn • ${ySubjs.reduce((sum, subject) => sum + (Number(subject.credits) || 0), 0)} tín chỉ</div>
-        </button>
-      `;
-    }
-    tabsContainer.innerHTML = sanitizeHTML(tabsHtml);
-
-    tabsContainer.querySelectorAll('.btn-setting-year-tab').forEach(b => {
-      b.addEventListener('click', function() {
-        AppState.settingsSelectedYear = Number(this.dataset.year);
-        renderSubjectsSettings();
-      });
-    });
-  }
-
-  const semContainer = document.getElementById('settingsSemestersContainer');
-  if (!semContainer) return;
-
-  const renderSubjectRows = (arr, emptyMsg) => {
-    if (arr.length === 0) {
-      return `<tr><td colspan="6" class="py-5 text-center text-slate-400 italic">${emptyMsg}</td></tr>`;
-    }
-    return arr.map((s, idx) => {
-      const isSpec = s.category === 'specialized';
-      const targetClasses = getSubjectTargetClasses(s);
-      const targetClassesLabel = targetClasses.join(', ');
-      const canModify = AppState.role === 'admin' ||
-        (classScope && isSpec && targetClasses.includes(classScope));
-      return `
-        <tr class="hover:bg-slate-50 transition">
-          <td class="py-2 px-2 text-center text-slate-400 font-medium">${idx + 1}</td>
-          <td class="py-2 px-3 font-mono font-bold text-army-800">${escapeHTML(s.code)}</td>
-          <td class="py-2 px-3 font-semibold text-slate-900">${escapeHTML(getFullSubjectName(s))}</td>
-          <td class="py-2 px-2 text-center">
-            ${isSpec
-              ? `<span class="px-2 py-0.5 rounded text-[10px] font-black bg-amber-100 text-amber-900 border border-amber-300">Chuyên ngành: Lớp ${targetClassesLabel}</span>`
-              : `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">Môn học chung (Toàn ĐĐ)</span>`
-            }
-          </td>
-          <td class="py-2 px-2 text-center">
-            ${canModify ? `
-              <div class="inline-flex items-center gap-1">
-                <input type="number" min="1" max="15" value="${s.credits}" data-id="${s.id}" class="input-subj-credits w-14 text-center py-1 px-1 border border-slate-300 rounded-lg font-black text-army-900 bg-slate-50 text-xs">
-                <span class="text-[10px] text-slate-500 font-semibold">TC</span>
-              </div>
-            ` : `<span class="font-bold text-army-800 text-xs">${s.credits} TC</span>`}
-          </td>
-          <td class="py-2 px-2 text-center">
-            ${canModify ? `
-              <div class="inline-flex items-center gap-1">
-                <button type="button" class="btn-edit-subj text-army-700 hover:text-army-900 font-bold text-xs px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 transition" data-id="${s.id}">
-                  ✏️ Sửa
-                </button>
-                <button type="button" class="btn-del-subj text-rose-600 hover:text-rose-800 font-bold text-xs px-2 py-1 rounded hover:bg-rose-50 transition" data-id="${s.id}">
-                  🗑️ Xóa
-                </button>
-              </div>
-            ` : '-'}
-          </td>
-        </tr>
-      `;
-    }).join('');
-  };
-
-  const renderSemesterCard = (semNumber, semList, label) => {
-    const commonInSem = semList.filter(s => !s.category || s.category === 'common' || s.targetClass === 'all');
-    const specInSem = semList.filter(s => s.category === 'specialized');
-    return `
-      <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col space-y-0">
-        <div class="bg-slate-50 p-4 border-b border-slate-200 flex items-center justify-between gap-3">
-          <div>
-            <h4 class="font-extrabold text-sm text-army-900 uppercase">Học Kỳ ${semNumber} (${label})</h4>
-            <div class="text-[11px] text-slate-500 mt-0.5">${commonInSem.length} môn học chung &bull; ${specInSem.length} môn học chuyên ngành</div>
-          </div>
-          <div class="flex flex-wrap items-center gap-2">
-            ${!classScope ? `
-              <button type="button" class="btn-add-to-sem inline-flex items-center gap-1 text-[11px] font-bold bg-army-700 hover:bg-army-800 text-white px-2.5 py-1.5 rounded-lg shadow-sm transition cursor-pointer" data-sem="${semNumber}" data-cat="common">
-                + Môn Chung
-              </button>
-            ` : ''}
-            <button type="button" class="btn-add-to-sem inline-flex items-center gap-1 text-[11px] font-bold bg-amber-600 hover:bg-amber-700 text-white px-2.5 py-1.5 rounded-lg shadow-sm transition cursor-pointer" data-sem="${semNumber}" data-cat="specialized">
-              + Môn Chuyên Ngành
-            </button>
-
-          </div>
-        </div>
-
-        <div class="bg-emerald-50/60 px-4 py-2 border-b border-emerald-200 text-[11px] font-extrabold text-emerald-950 uppercase flex items-center justify-between">
-          <span>1. Môn Học Chung (Áp dụng tự động cho tất cả các lớp)</span>
-          <span>${commonInSem.reduce((sum, s) => sum + s.credits, 0)} TC</span>
-        </div>
-        <div class="overflow-x-auto custom-scrollbar">
-          <table class="w-full text-xs text-left border-collapse whitespace-nowrap">
-            <thead class="bg-slate-100 text-slate-700 font-semibold border-b border-slate-200">
-              <tr>
-                <th class="py-2 px-2 text-center w-10">STT</th>
-                <th class="py-2 px-3 w-20">Mã môn</th>
-                <th class="py-2 px-3">Tên môn học</th>
-                <th class="py-2 px-2 text-center">Phân loại</th>
-                <th class="py-2 px-2 text-center w-24">Tín chỉ</th>
-                <th class="py-2 px-2 text-center w-16">Xóa</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100 bg-white">
-              ${renderSubjectRows(commonInSem, 'Chưa có môn học chung trong kỳ này.')}
-            </tbody>
-          </table>
-        </div>
-
-        <div class="bg-amber-50/80 px-4 py-2 border-y border-amber-200 text-[11px] font-extrabold text-amber-950 uppercase flex items-center justify-between">
-          <span>2. Môn Học Chuyên Ngành (${classScope ? 'Lớp ' + classScope : 'Chỉ định riêng theo từng lớp: OTQS1, OTQS2, TTG1, TTG2, XMCB'})</span>
-          <span>${specInSem.length} môn</span>
-        </div>
-        <div class="overflow-x-auto custom-scrollbar">
-          <table class="w-full text-xs text-left border-collapse whitespace-nowrap">
-            <thead class="bg-slate-100 text-slate-700 font-semibold border-b border-slate-200">
-              <tr>
-                <th class="py-2 px-2 text-center w-10">STT</th>
-                <th class="py-2 px-3 w-20">Mã môn</th>
-                <th class="py-2 px-3">Tên môn học</th>
-                <th class="py-2 px-2 text-center">Thuộc Lớp</th>
-                <th class="py-2 px-2 text-center w-24">Tín chỉ</th>
-                <th class="py-2 px-2 text-center w-16">Xóa</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100 bg-white">
-              ${renderSubjectRows(specInSem, 'Chưa có môn chuyên ngành trong kỳ này.')}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    `;
-  };
-
-  semContainer.innerHTML = sanitizeHTML(`
-    ${renderSemesterCard(semA, listA, currentMeta.s1Label)}
-    ${renderSemesterCard(semB, listB, currentMeta.s2Label)}
-  `);
-
-  // Event Delegation xử lý .btn-add-to-sem, .btn-edit-subj, .btn-del-subj & .input-subj-credits tại document
+  renderSubjectCatalog({state:AppState,scope:getCurrentUserClassScope(),classes:DEFAULT_CLASSES,getSubjects:getSubjectsForClass,getName:getFullSubjectName,getClasses:getSubjectTargetClasses,hasGrades:subjectHasGrades,refresh:renderSubjectsSettings});
 }
 
 export function updateAllViews(options = {}) {
@@ -2555,6 +2300,9 @@ export async function executeExcelImport() {
     headers.forEach((h, colIdx) => {
       if (!h || reservedCols.has(colIdx)) return;
       const lowerH = String(h).toLowerCase().trim();
+      const languageLike = lowerH.includes('ngoại ngữ') || lowerH.includes('cntt');
+      const candidateTitle = languageLike ? (parseExcelSubjectHeader(h)?.cleanTitle || h) : '';
+      const configuredSubject = languageLike && AppState.subjects.some(subject => [h,candidateTitle].some(title => String(subject.name || subject.course_name || subject.code || '').normalize('NFC').trim().toLowerCase() === String(title).normalize('NFC').trim().toLowerCase()));
       if (
         lowerH === 'stt' ||
         lowerH === 'tt' ||
@@ -2565,8 +2313,7 @@ export async function executeExcelImport() {
         lowerH.includes('tín chỉ tích lũy') ||
         lowerH.includes('học phần rớt') ||
         lowerH.includes('số học phần') ||
-        lowerH.includes('ngoại ngữ') ||
-        lowerH.includes('cntt') ||
+        (languageLike && !configuredSubject) ||
         lowerH.includes('biện pháp') ||
         lowerH.includes('ghi chú') ||
         lowerH.includes('thao tác')

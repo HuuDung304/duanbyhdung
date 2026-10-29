@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="app-release" content="3cf3eee4519e">
+  <meta name="app-release" content="d5310779d340">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Quản lý đơn vị</title>
   <link rel="icon" type="image/svg+xml" href="./src/assets/favicon.svg?v=43c991ef71f6">
@@ -119,6 +119,7 @@ body {
   </style>
   <link rel="stylesheet" href="./src/css/bento-dashboard.css?v=9a8963f8e223">
   <link rel="stylesheet" href="./src/css/drop-upload.css?v=e5fc8fbc05b4">
+  <link rel="stylesheet" href="./src/css/subject-catalog.css?v=868d4cdc4623">
   <link rel="stylesheet" href="./src/css/year-breakdown.css?v=cc2db57d179f">
   <link rel="stylesheet" href="./src/css/workspace-reports.css?v=eea659069579">
   <link rel="stylesheet" href="./src/css/readability.css?v=50a2957fee30">
@@ -1124,7 +1125,7 @@ body {
     <!-- TAB 7: CÀI ĐẶT MÔN HỌC & TÍN CHỈ (5 NĂM - 10 HỌC KỲ) -->
     <!-- ========================================== -->
     <section id="tab-settings" class="tab-content hidden space-y-4">
-      <div class="settings-intro"><h3>Môn học &amp; tín chỉ theo lớp</h3><p>Số môn và tổng tín chỉ trong danh mục hiện có của từng lớp.</p></div>
+      <div class="settings-intro"><h3>Môn học theo thời khóa biểu</h3><p>Chọn năm, học kỳ và lớp học. Tên môn giữ nguyên như bạn nhập; cùng tên ở kỳ khác là môn riêng.</p></div>
       <div id="settingsClassSummaries" class="settings-class-summaries"></div>
 
       <!-- Year Filter Tabs (Năm 1 -> Năm 5) -->
@@ -1588,18 +1589,20 @@ body {
       </div>
       <form id="formAddSubject" class="p-5 space-y-3.5 text-xs" autocomplete="off">
         <input type="hidden" id="editSubjId" value="">
+        <p id="subjectFormError" role="alert" hidden></p>
+        <p id="subjectIntegrityNote" hidden>Môn đã có điểm: giữ nguyên học kỳ và các lớp có điểm. Đổi tín chỉ sẽ tính lại ĐTB; điểm gốc được giữ nguyên.</p>
         <div>
-          <label class="block font-bold text-slate-700 mb-1">Phân loại môn học:</label>
+          <label for="newSubjCategory" class="block font-bold text-slate-700 mb-1">Lớp học môn này:</label>
           <select id="newSubjCategory" class="w-full border border-slate-300 rounded-lg p-2.5 font-bold bg-slate-50 text-army-900">
-            <option value="common">1. Môn học chung (Áp dụng tất cả 5 lớp trong Đại đội)</option>
-            <option value="specialized">2. Môn học chuyên ngành (Tích chọn 1 hoặc nhiều lớp)</option>
+            <option value="common">TH1 · Cả 5 lớp cùng học</option>
+            <option value="specialized">TH2 · Chọn lớp hoặc nhóm lớp</option>
           </select>
         </div>
 
         <div id="newSubjTargetClassWrapper" class="hidden p-3.5 rounded-xl bg-amber-50 border border-amber-300 space-y-2.5">
           <div class="flex items-center justify-between">
             <label class="block font-extrabold text-amber-950 text-xs">
-              Tích chọn các Lớp học môn chuyên ngành này (Chọn 1 hoặc nhiều lớp):
+              Chọn các lớp học môn này trong học kỳ đã chọn:
             </label>
             <div class="flex items-center gap-1.5">
               <button type="button" id="btnSelectAllTargetClasses" class="px-2 py-0.5 rounded bg-amber-200 hover:bg-amber-300 text-amber-950 font-bold text-[10px] transition">
@@ -1635,16 +1638,16 @@ body {
         </div>
 
         <div>
-          <label class="block font-semibold text-slate-700 mb-1">Mã môn học (Nhập tự do):</label>
-          <input type="text" id="newSubjCode" autocomplete="off" placeholder="Nhập mã môn (VD: THDC, LTOT, VKTTG...)" required class="w-full border rounded-lg p-2.5 font-mono font-bold uppercase focus:ring-1 focus:ring-army-600 focus:outline-none">
+          <label for="newSubjCode" class="block font-semibold text-slate-700 mb-1">Mã môn (có thể để trống):</label>
+          <input type="text" id="newSubjCode" autocomplete="off" placeholder="Tự tạo nếu để trống" class="w-full border rounded-lg p-2.5 font-mono font-bold focus:ring-1 focus:ring-army-600 focus:outline-none">
         </div>
         <div>
-          <label class="block font-semibold text-slate-700 mb-1">Tên môn học (Nhập tự do):</label>
-          <input type="text" id="newSubjName" autocomplete="off" placeholder="Nhập tên môn học..." required class="w-full border rounded-lg p-2.5 font-semibold focus:ring-1 focus:ring-army-600 focus:outline-none">
+          <label for="newSubjName" class="block font-semibold text-slate-700 mb-1">Tên môn trên thời khóa biểu:</label>
+          <input type="text" id="newSubjName" autocomplete="off" placeholder="Dán hoặc nhập nguyên văn tên môn..." required class="w-full border rounded-lg p-2.5 font-semibold focus:ring-1 focus:ring-army-600 focus:outline-none">
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label class="block font-semibold text-slate-700 mb-1">Học kỳ / Năm học:</label>
+            <label for="newSubjSemester" class="block font-semibold text-slate-700 mb-1">Học kỳ / Năm học:</label>
             <select id="newSubjSemester" class="w-full border border-slate-300 rounded-lg p-2.5 font-semibold bg-slate-50 text-xs">
               <optgroup label="NĂM 1">
                 <option value="1">Học kỳ 1 (Năm 1)</option>
@@ -1669,7 +1672,7 @@ body {
             </select>
           </div>
           <div>
-            <label class="block font-semibold text-slate-700 mb-1">Số tín chỉ (1 - 15 TC):</label>
+            <label for="newSubjCredits" class="block font-semibold text-slate-700 mb-1">Số tín chỉ (1 - 15 TC):</label>
             <input type="number" id="newSubjCredits" min="1" max="15" value="3" required class="w-full border border-slate-300 rounded-lg p-2.5 font-bold text-army-900 bg-white text-xs">
           </div>
         </div>
@@ -2212,7 +2215,7 @@ body {
   "imports": {
     "./src/js/academic-ranking.js": "./src/js/academic-ranking.js?v=66ec69192690",
     "./src/js/academic/calculations.js": "./src/js/academic/calculations.js?v=f3b3bc53d91f",
-    "./src/js/academic/transcript.js": "./src/js/academic/transcript.js?v=c4e5497ecbac",
+    "./src/js/academic/transcript.js": "./src/js/academic/transcript.js?v=d532fc5fd546",
     "./src/js/access-controls.js": "./src/js/access-controls.js?v=0c31f2921589",
     "./src/js/auth.js": "./src/js/auth.js?v=f93543a9c4b8",
     "./src/js/class-transcript.js": "./src/js/class-transcript.js?v=245c6912b492",
@@ -2233,8 +2236,8 @@ body {
     "./src/js/database/mappers.js": "./src/js/database/mappers.js?v=f2762b9cfdf7",
     "./src/js/database/realtime.js": "./src/js/database/realtime.js?v=08238ad1e200",
     "./src/js/database/repository.js": "./src/js/database/repository.js?v=7d0c39435b2e",
-    "./src/js/grades.js": "./src/js/grades.js?v=3d155126fe5d",
-    "./src/js/main.js": "./src/js/main.js?v=3cf3eee4519e",
+    "./src/js/grades.js": "./src/js/grades.js?v=0d27774870ce",
+    "./src/js/main.js": "./src/js/main.js?v=d5310779d340",
     "./src/js/profile-rules.js": "./src/js/profile-rules.js?v=3a3bbf350b00",
     "./src/js/report-workbook.js": "./src/js/report-workbook.js?v=1cd3836da746",
     "./src/js/reports/dashboard.js": "./src/js/reports/dashboard.js?v=ecacb5e5a926",
@@ -2243,12 +2246,14 @@ body {
     "./src/js/reports/year-breakdown.js": "./src/js/reports/year-breakdown.js?v=599b847f964a",
     "./src/js/safe-html.js": "./src/js/safe-html.js?v=07b6fe69e868",
     "./src/js/students.js": "./src/js/students.js?v=3bd9d9cbb737",
+    "./src/js/subjects/catalog-view.js": "./src/js/subjects/catalog-view.js?v=0dfc729a1b3b",
+    "./src/js/subjects/offerings.js": "./src/js/subjects/offerings.js?v=14cd4ed86c7e",
     "./src/js/supabase.js": "./src/js/supabase.js?v=9189692d9884",
     "./src/js/vendor/dompurify.js": "./src/js/vendor/dompurify.js?v=60c5d5ccbb46"
   }
 }
   </script>
-  <script type="module" src="./src/js/main.js?v=3cf3eee4519e"></script>
+  <script type="module" src="./src/js/main.js?v=d5310779d340"></script>
   <script type="module" src="./src/js/components/expanding-rail.js?v=75a8090525a1"></script>
   <script type="module" src="./src/js/components/notched-field.js?v=553608c192ae"></script>
   <script type="module" src="./src/js/components/bento-dashboard.js?v=c76ec853266e"></script>

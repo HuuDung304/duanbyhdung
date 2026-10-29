@@ -53,7 +53,7 @@ export function createTranscript(context) {
         <tr class="hover:bg-slate-50 ${isFail ? 'bg-rose-50/50' : ''}">
           <td class="p-2 text-center text-slate-500">${idx + 1}</td>
           <td class="p-2 font-mono font-bold text-slate-700">${escape(sub.code)}</td>
-          <td class="p-2 font-medium text-slate-900">${escape(context.getFullSubjectName(sub))} ${sub.category === 'specialized' ? `<span class="text-[10px] font-bold text-amber-800">(CN ${escape(sub.targetClass)})</span>` : ''}</td>
+          <td class="p-2 font-medium text-slate-900">${escape(context.getFullSubjectName(sub))} ${sub.category === 'specialized' ? `<span class="text-[10px] font-bold text-amber-800">(Lớp ${escape(sub.targetClass)})</span>` : ''}</td>
           <td class="p-2 text-center font-bold text-gold-600">${Number(sub.credits) || 0}</td>
           <td class="p-2 text-center font-bold ${isFail ? 'text-rose-700 font-black' : 'text-slate-800'}">${hasScore ? Number(sc10).toFixed(2) : '-'}</td>
           <td class="p-2 text-center font-black ${isFail ? 'text-rose-700' : 'text-army-800'}">${letter}</td>

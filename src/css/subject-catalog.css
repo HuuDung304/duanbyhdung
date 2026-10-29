@@ -1,0 +1,42 @@
+/* Explicit class/semester offerings; preserve existing forms and delegated events. */
+.subject-catalog .subject-catalog-filter{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:18px 22px;background:#fff;border:1px solid #e2e8f0;border-radius:18px}
+.subject-catalog-filter label{font-size:14px;font-weight:700;color:#334155}
+.subject-catalog-filter select{min-height:44px;padding:10px 14px;background:#f8fafc;border:1px solid #cbd5e1;border-radius:12px;font-size:14px}
+.subject-catalog #settingsClassSummaries button{text-align:left;cursor:pointer}
+.subject-catalog #settingsClassSummaries button[aria-pressed="true"]{border-color:#93c5fd;box-shadow:0 0 0 1px #bfdbfe;background:#eff6ff}
+.subject-catalog .catalog-year-button{padding:12px 16px;border:1px solid #e2e8f0;border-radius:12px;background:#f8fafc;color:#334155;text-align:left;cursor:pointer}
+.subject-catalog .catalog-year-button strong{display:block;font-size:15px;font-weight:750}
+.subject-catalog .catalog-year-button small{display:block;font-size:12px;margin-top:4px;color:#64748b}
+.subject-catalog .catalog-year-button[aria-pressed="true"]{background:#eff6ff;border-color:#93c5fd;color:#1d4ed8}
+body.bento-app .subject-catalog #settingsSemestersContainer{display:flex;flex-direction:column;gap:22px}
+.catalog-semester{background:#fff;border:1px solid #e2e8f0;border-radius:22px;overflow:hidden}
+.catalog-semester-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:22px;background:#f8fafc;border-bottom:1px solid #e2e8f0}
+.catalog-semester-heading h3{font-size:19px;font-weight:800;color:#0f172a}
+.catalog-semester-heading small{font-size:13px;color:#64748b}
+.catalog-semester-actions{display:flex;gap:10px;flex-wrap:wrap}
+.catalog-semester-actions button{min-height:44px;padding:10px 14px;border:1px solid #c7d2fe;border-radius:12px;background:#eff6ff;color:#1d4ed8;font-size:13px;font-weight:700}
+.catalog-table-scroll{overflow:auto;max-height:65dvh;-webkit-overflow-scrolling:touch}
+.catalog-table-scroll table{width:100%;min-width:750px;border-collapse:separate;border-spacing:0}
+.catalog-table-scroll thead{position:sticky;top:0;z-index:2}
+.catalog-table-scroll th,.catalog-table-scroll td{padding:14px 18px;border-bottom:1px solid #e2e8f0;text-align:left;vertical-align:middle;color:#334155}
+.catalog-table-scroll th{font-weight:750;background:#f1f5f9;font-size:13px}
+.catalog-table-scroll td{font-size:14px}
+.catalog-subject-name{width:40%;min-width:230px;white-space:normal}
+.catalog-subject-name strong{display:block;font-weight:700;color:#0f172a}
+.catalog-subject-name small{display:block;margin-top:4px;font-size:12px;color:#64748b}
+.catalog-table-scroll .catalog-has-grades{color:#047857;font-weight:650;white-space:nowrap}
+.catalog-table-scroll .catalog-credits{font-weight:750;font-variant-numeric:tabular-nums}
+.catalog-table-scroll .btn-edit-subj{padding:9px 14px;background:#f8fafc;border:1px solid #cbd5e1;border-radius:10px;font-size:13px;font-weight:700;min-height:40px}
+.catalog-table-scroll .catalog-empty{text-align:center;color:#64748b;padding:30px}
+body.bento-app #modalAddSubject>div{max-width:640px;max-height:92dvh;display:flex;flex-direction:column}
+#modalAddSubject #formAddSubject{overflow-y:auto;min-height:0}
+#subjectFormError,#subjectIntegrityNote{padding:12px;border:1px solid #cbd5e1;border-radius:12px;font-size:13px;line-height:1.6;background:#f8fafc;color:#475569}
+#subjectFormError{background:#fff1f2;border-color:#fecdd3;color:#be123c}
+#subjectFormError[hidden],#subjectIntegrityNote[hidden]{display:none!important}
+#modalAddSubject #newSubjTargetClassWrapper{background:#eff6ff;border-color:#bfdbfe}
+#modalAddSubject #newSubjTargetClassWrapper label{color:#1e293b}
+@media(max-width:640px){.catalog-semester-heading{padding:16px}.catalog-semester-actions{width:100%}.catalog-semester-actions button{flex:1;white-space:nowrap}.subject-catalog .subject-catalog-filter{padding:16px}.catalog-table-scroll th,.catalog-table-scroll td{padding:12px}.subject-catalog #settingsClassSummaries{grid-template-columns:repeat(2,minmax(0,1fr))}#modalAddSubject input,#modalAddSubject select{font-size:16px}}
+#modalAddSubject #newSubjTargetClassesCheckboxes label{border-color:#cbd5e1;background:#fff}
+#modalAddSubject #newSubjTargetClassesCheckboxes label:has(input:checked){border-color:#93c5fd;background:#eff6ff}
+#modalAddSubject #btnSelectAllTargetClasses,#modalAddSubject #btnClearAllTargetClasses{padding:7px 10px;min-height:36px;border:1px solid #bfdbfe;border-radius:10px;background:#fff;color:#1d4ed8;white-space:nowrap}
+@media(max-width:640px){#modalAddSubject #newSubjTargetClassWrapper>div:first-child{flex-direction:column;align-items:stretch;gap:10px}#modalAddSubject #newSubjTargetClassWrapper>div:first-child>div{gap:8px}}

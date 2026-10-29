@@ -1,3 +1,4 @@
+import { planOffering, subjectHasGrades, offeringClasses } from './subjects/offerings.js';
 import { sanitizeHTML } from './safe-html.js';
 import { syncReportExportScope, requestReportOptions } from './components/report-center.js';
 import { requestDestructiveConfirmation } from './components/destructive-confirm.js';
@@ -62,8 +63,6 @@ import {
   getSubjectTargetClasses,
   expandCourseAbbreviation,
   getFullSubjectName,
-  normalizeCourseText,
-  buildDeterministicSubjectId,
   normalizeAchievements,
   normalizeDateVN,
   normalizeSubjectsCatalog,
@@ -286,6 +285,9 @@ export function openCreateSubjectModal(defaultSem = '1', defaultCat = 'common') 
   if (AppState.role === 'company_officer') { showToast('Tài khoản cán bộ chỉ được xem.', 'error'); return; }
   const editIdInput = document.getElementById('editSubjId');
   if (editIdInput) editIdInput.value = '';
+  document.getElementById('formAddSubject').dataset.newOfferingId = crypto.randomUUID();
+  document.getElementById('subjectFormError').hidden = true;
+  document.getElementById('subjectIntegrityNote').hidden = true;
   const modalTitle = document.getElementById('modalAddSubjectTitle');
   if (modalTitle) modalTitle.textContent = 'Thêm Môn Học Mới';
 
@@ -298,12 +300,12 @@ export function openCreateSubjectModal(defaultSem = '1', defaultCat = 'common') 
   if (codeEl) codeEl.value = '';
   if (nameEl) nameEl.value = '';
   if (credEl) credEl.value = '3';
-  if (semSelect) semSelect.value = String(defaultSem);
+  if (semSelect) { semSelect.value = String(defaultSem); semSelect.disabled = false; }
   if (catSelect) catSelect.value = defaultCat;
 
   const defCls = getCurrentUserClassScope()
     ? [getCurrentUserClassScope()]
-    : (AppState.currentSheetClass && AppState.currentSheetClass !== 'all' ? [AppState.currentSheetClass] : ['OTQS1']);
+    : (DEFAULT_CLASSES.includes(AppState.settingsSelectedClass) ? [AppState.settingsSelectedClass] : ['OTQS1']);
   setSelectedTargetClassesInModal(defCls);
   syncModalAddSubjCategoryUI();
   showModal('modalAddSubject');
@@ -319,8 +321,8 @@ export function openEditSubjectModal(subjectId) {
 
   const classScope = getCurrentUserClassScope();
   const targetClasses = getSubjectTargetClasses(subj);
-  if (classScope && (subj.category !== 'specialized' || !targetClasses.includes(classScope))) {
-    showToast(`Tài khoản Lớp ${classScope} chỉ được phép chỉnh sửa môn chuyên ngành của lớp mình!`, 'error');
+  if (classScope && (targetClasses.length !== 1 || !targetClasses.includes(classScope))) {
+    showToast(`Tài khoản Lớp ${classScope} chỉ sửa môn gắn riêng cho lớp mình. Môn dùng chung do Admin quản lý.`, 'error');
     return;
   }
 
@@ -338,7 +340,9 @@ export function openEditSubjectModal(subjectId) {
 
   if (codeEl) codeEl.value = subj.code;
   if (nameEl) nameEl.value = subj.name;
-  if (semEl) semEl.value = String(subj.semester);
+  if (semEl) { semEl.value = String(subj.semester); semEl.disabled = subjectHasGrades(AppState.grades,subj.id); }
+  document.getElementById('subjectFormError').hidden = true;
+  document.getElementById('subjectIntegrityNote').hidden = !subjectHasGrades(AppState.grades,subj.id);
   if (credEl) credEl.value = String(subj.credits);
   if (catEl) {
     catEl.value = subj.category === 'specialized' ? 'specialized' : 'common';
@@ -504,113 +508,28 @@ async function submitUpdateLangForm(formEl) {
  * Xử lý Submit Form Thêm / Sửa Môn học (#formAddSubject)
  */
 async function submitAddSubjectForm(formEl) {
-  if (AppState.role === 'company_officer') { showToast('Tài khoản cán bộ chỉ được xem.', 'error'); return; }
-  const submitBtn = formEl ? formEl.querySelector('button[type="submit"]') : null;
-  await withButtonLock(submitBtn, '⏳ Đang xử lý...', async () => {
-    const editSubjId = document.getElementById('editSubjId')?.value.trim() || '';
-    const codeEl = document.getElementById('newSubjCode');
-    const nameEl = document.getElementById('newSubjName');
-    const semEl = document.getElementById('newSubjSemester');
-    const credEl = document.getElementById('newSubjCredits');
-
-    const code = codeEl ? codeEl.value.trim().toUpperCase() : '';
-    const name = nameEl ? nameEl.value.trim() : '';
-    const semester = parseInt(semEl ? semEl.value : '1', 10);
-    const credits = parseInt(credEl ? credEl.value : '3', 10);
-    const classScope = getCurrentUserClassScope();
-    const category = classScope ? 'specialized' : (document.getElementById('newSubjCategory')?.value || 'common');
-
-    let targetClasses = [];
-    let targetClass = 'all';
-
-    if (category === 'specialized') {
-      targetClasses = getSelectedTargetClassesFromModal();
-      if (targetClasses.length === 0) {
-        showToast('Vui lòng tích chọn ít nhất 1 lớp cho môn học chuyên ngành!', 'error');
-        return;
-      }
-      targetClass = targetClasses.join(', ');
-    }
-
-    if (!code || !name) {
-      showToast('Vui lòng điền đầy đủ mã môn và tên môn học!', 'error');
-      return;
-    }
-
-    if (isNaN(credits) || credits < 1 || credits > 15) {
-      showToast('Số tín chỉ không hợp lệ (nhập từ 1 đến 15 tín chỉ)!', 'error');
-      return;
-    }
-
-    if (editSubjId) {
-      const existingSubj = AppState.subjects.find(s => s.id === editSubjId);
-      if (existingSubj) {
-        existingSubj.code = code;
-        existingSubj.name = name;
-        existingSubj.semester = semester;
-        existingSubj.credits = credits;
-        existingSubj.category = category;
-        existingSubj.targetClasses = category === 'specialized' ? targetClasses : [];
-        existingSubj.targetClass = category === 'specialized' ? targetClass : 'all';
-
-        await upsertSubjectToSupabase(existingSubj);
-        logAuditTrail('', existingSubj.id, 'Cập nhật môn', `${name} (${code}) - ${category === 'specialized' ? 'Chuyên ngành ' + targetClass : 'Môn chung'}`, `HK${semester}`);
-      }
-    } else {
-      // Kiểm tra trùng theo Khóa Kết Hợp (course_name + class_code + semester)
-      const normNewName = normalizeCourseText(name);
-      const existingCompositeMatch = AppState.subjects.find(s => {
-        if (Number(s.semester) !== semester || s.category !== category) return false;
-        const sameNameOrCode = normalizeCourseText(s.name) === normNewName || s.code.toUpperCase() === code;
-        if (!sameNameOrCode) return false;
-        if (category === 'common') return true;
-        const existingClasses = getSubjectTargetClasses(s);
-        const hasClassOverlap = targetClasses.some(c => existingClasses.includes(c));
-        return hasClassOverlap || (normalizeCourseText(s.name) === normNewName && Number(s.credits) === credits && s.code.toUpperCase() === code);
-      });
-
-      if (existingCompositeMatch) {
-        if (category === 'common') {
-          showToast(`Môn học chung "${name}" (${code}) đã tồn tại trong Học kỳ ${semester}!`, 'error');
-          return;
-        }
-        const merged = Array.from(new Set([...getSubjectTargetClasses(existingCompositeMatch), ...targetClasses]));
-        existingCompositeMatch.name = name;
-        existingCompositeMatch.credits = credits;
-        existingCompositeMatch.targetClasses = merged;
-        existingCompositeMatch.targetClass = merged.join(', ');
-        await upsertSubjectToSupabase(existingCompositeMatch);
-        logAuditTrail('', existingCompositeMatch.id, 'Cập nhật môn CN', `${name} (${code}) -> Lớp ${existingCompositeMatch.targetClass}`, `HK${semester}`);
-      } else {
-        const newSubId = buildDeterministicSubjectId({
-          code,
-          name,
-          category,
-          targetClasses: category === 'specialized' ? targetClasses : [],
-          semester
-        });
-        const newSubjectObj = {
-          id: newSubId,
-          code,
-          name,
-          semester,
-          credits,
-          category,
-          targetClasses: category === 'specialized' ? targetClasses : [],
-          targetClass: category === 'specialized' ? targetClass : 'all'
-        };
-        AppState.subjects.push(newSubjectObj);
-        await upsertSubjectToSupabase(newSubjectObj);
-        logAuditTrail('', newSubId, 'Thêm môn', `${name} (${code}) - ${category === 'specialized' ? 'Chuyên ngành ' + targetClass : 'Môn chung'}`, `HK${semester}`);
-      }
-    }
-
-    const targetYear = Math.ceil(semester / 2);
-    AppState.settingsSelectedYear = targetYear;
-
-    hideModal('modalAddSubject');
-    updateAllViews({ force: true });
-    showToast(`Đã lưu môn học ${name} (${code}) lên Supabase!`, 'success');
+  const error = document.getElementById('subjectFormError');
+  error.hidden = true;
+  await withButtonLock(formEl.querySelector('button[type="submit"]'), 'Đang lưu...', async () => {
+    try {
+      const editId=document.getElementById('editSubjId').value;
+      if(!formEl.dataset.newOfferingId)formEl.dataset.newOfferingId=crypto.randomUUID();
+      const classScope=getCurrentUserClassScope();
+      const common=!classScope&&document.getElementById('newSubjCategory').value==='common';
+      const planned=planOffering({subjects:AppState.subjects,students:AppState.students,grades:AppState.grades,role:AppState.role,classScope,editId,
+        name:document.getElementById('newSubjName').value,code:document.getElementById('newSubjCode').value,
+        semester:document.getElementById('newSubjSemester').value,credits:document.getElementById('newSubjCredits').value,
+        classes:common?DEFAULT_CLASSES:getSelectedTargetClassesFromModal(),createId:()=>formEl.dataset.newOfferingId});
+      const saved=await upsertSubjectToSupabase(planned);
+      if(saved?.error)throw new Error(saved.error.message || 'Không lưu được môn học. Dữ liệu đang có được giữ nguyên.');
+      const index=AppState.subjects.findIndex(subject=>subject.id===planned.id);
+      if(index>=0)AppState.subjects[index]=planned;else AppState.subjects.push(planned);
+      logAuditTrail('',planned.id,editId?'Sửa môn':'Thêm môn',planned.name,`HK${planned.semester} · ${offeringClasses(planned).join(', ')}`);
+      AppState.settingsSelectedYear=Math.ceil(planned.semester/2);
+      const targetClasses=offeringClasses(planned);
+      if(AppState.settingsSelectedClass&&AppState.settingsSelectedClass!=='all'&&!targetClasses.includes(AppState.settingsSelectedClass))AppState.settingsSelectedClass=targetClasses[0];
+      hideModal('modalAddSubject');updateAllViews({force:true});
+    } catch(problem) { error.textContent=problem.message || 'Không lưu được môn học.';error.hidden=false; }
   });
 }
 
