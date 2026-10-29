@@ -1,0 +1,88 @@
+/* Shared motion: short, gentle transitions without rebuilding content or form state. */
+.bento-app {
+  --motion-ease:cubic-bezier(.22,1,.36,1);
+  --motion-settle:cubic-bezier(.2,.8,.2,1);
+}
+.bento-app .tab-content.active {
+  animation:app-page-enter .32s var(--motion-ease) backwards;
+}
+.bento-app .bento-shell {
+  transition:margin-left .45s var(--motion-settle);
+}
+.bento-app .bento-shell .u040-rail {
+  transition:width .45s var(--motion-settle),box-shadow .25s ease;
+}
+.bento-app .u040-hl {
+  transition:transform .38s var(--motion-ease);
+}
+.bento-app .u040-it {
+  transition:color .2s ease,background-color .2s ease,opacity .2s ease,box-shadow .25s ease;
+}
+.bento-app :is(button,summary) {
+  transition-timing-function:var(--motion-settle);
+}
+.bento-app .u040-content :is(input,select,textarea) {
+  transition:border-color .18s ease,background-color .18s ease,box-shadow .22s var(--motion-settle);
+}
+.bento-app .u040-content .grid-cell-input {
+  transition:background-color .16s ease,box-shadow .2s var(--motion-settle),transform .2s var(--motion-settle);
+}
+.bento-app .u040-content table tbody tr {
+  transition:background-color .18s ease;
+}
+.bento-app [id^="modal"].fixed:not(.hidden)>div,
+.bento-app :is(.report-export-dialog,.danger-confirm)[open] {
+  animation:app-dialog-enter .28s var(--motion-ease) backwards;
+}
+.bento-app :is(.report-export-dialog,.danger-confirm)[open]::backdrop {
+  animation:app-backdrop-enter .22s ease backwards;
+}
+.bento-app #sidebarAccountMenu:not([hidden]),
+.bento-app .bento-search-results:not([hidden]),
+.bento-app .bento-quick[open]>div {
+  animation:app-popover-enter .2s var(--motion-ease) backwards;
+}
+.bento-app #toastContainer>div {
+  transition-property:opacity,transform;
+  transition-duration:.25s;
+  transition-timing-function:var(--motion-ease);
+}
+.bento-app .report-download svg {
+  transition:transform .22s var(--motion-ease);
+}
+@media(hover:hover) and (pointer:fine) {
+  .bento-app .report-gallery .report-export-card,
+  .bento-app .settings-class-card {
+    transition:box-shadow .25s ease,border-color .25s ease;
+  }
+  .bento-app .report-gallery .report-export-card:hover {
+    box-shadow:0 8px 26px #4f46e511;
+    border-color:#c7d2fe;
+  }
+  .bento-app .report-download:hover svg { transform:translateY(1px); }
+}
+@keyframes app-page-enter {
+  from { opacity:0;transform:translateY(5px); }
+  to { opacity:1;transform:translateY(0); }
+}
+@keyframes app-dialog-enter {
+  from { opacity:0;transform:translateY(8px) scale(.985); }
+  to { opacity:1;transform:translateY(0) scale(1); }
+}
+@keyframes app-popover-enter {
+  from { opacity:0;transform:translateY(4px) scale(.99); }
+  to { opacity:1;transform:translateY(0) scale(1); }
+}
+@keyframes app-backdrop-enter { from { opacity:0; } to { opacity:1; } }
+@media(prefers-reduced-motion:reduce) {
+  .bento-app *,.bento-app *::before,.bento-app *::after,
+  .bento-app dialog::backdrop {
+    animation:none!important;
+    transition:none!important;
+    scroll-behavior:auto!important;
+  }
+  .bento-app .report-download:hover svg { transform:none; }
+}
+@media print {
+  .bento-app * { animation:none!important;transition:none!important; }
+}
