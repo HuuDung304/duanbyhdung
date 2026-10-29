@@ -1,3 +1,4 @@
+import { sanitizeHTML, escapeHTML } from './safe-html.js';
 import { RANKING_HEADERS, rankingTableRows } from './academic-ranking.js';
 import { buildClassTranscript } from './class-transcript.js';
 import { studentBirthYear, collectLanguageStatistics, failedStudentExportRows } from './dashboard-statistics.js';
@@ -1185,12 +1186,12 @@ export function showToast(message, type = 'error') {
   if (!container) return;
   const toast = document.createElement('div');
   toast.className = 'pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-xl text-xs font-bold text-white bg-rose-800 border border-rose-500 transition-all transform duration-300 translate-y-2 opacity-0';
-  toast.innerHTML = `
+  toast.innerHTML = sanitizeHTML(`
     <svg class="w-4 h-4 flex-shrink-0 text-rose-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
     </svg>
     <span></span>
-  `;
+  `);
   toast.querySelector('span').textContent = String(message);
   container.appendChild(toast);
   setTimeout(() => {
@@ -1274,14 +1275,14 @@ export function renderSpreadsheet() {
   const sheetClassSelect = document.getElementById('sheetClassSelect');
   if (sheetClassSelect) {
     if (classScope) {
-      sheetClassSelect.innerHTML = `<option value="${classScope}">Lớp ${classScope}</option>`;
+      sheetClassSelect.innerHTML = sanitizeHTML(`<option value="${classScope}">Lớp ${classScope}</option>`);
       sheetClassSelect.value = classScope;
       sheetClassSelect.disabled = true;
     } else {
       sheetClassSelect.disabled = false;
       sheetClassSelect.innerHTML =
-        `<option value="all" ${selectedClass === 'all' ? 'selected' : ''}>🏢 Toàn bộ Đại đội 460 (Tất cả 5 Lớp)</option>` +
-        DEFAULT_CLASSES.map(c => `<option value="${c}" ${c === selectedClass ? 'selected' : ''}>Lớp ${c}</option>`).join('');
+        sanitizeHTML(`<option value="all" ${selectedClass === 'all' ? 'selected' : ''}>🏢 Toàn bộ Đại đội 460 (Tất cả 5 Lớp)</option>` +
+        DEFAULT_CLASSES.map(c => `<option value="${c}" ${c === selectedClass ? 'selected' : ''}>Lớp ${c}</option>`).join(''));
     }
   }
 
@@ -1324,12 +1325,12 @@ export function renderSpreadsheet() {
   if (lockBadge && btnToggleLock) {
     if (isLocked) {
       lockBadge.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-100 text-rose-800 border border-rose-300';
-      lockBadge.innerHTML = `🔒 Sổ điểm Năm ${yearNum}: ĐÃ KHÓA`;
+      lockBadge.innerHTML = sanitizeHTML(`🔒 Sổ điểm Năm ${yearNum}: ĐÃ KHÓA`);
       btnToggleLock.textContent = 'Mở Khóa Sổ';
       btnToggleLock.className = 'text-xs bg-emerald-700 hover:bg-emerald-800 text-white font-medium py-1.5 px-3 rounded-lg transition';
     } else {
       lockBadge.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300';
-      lockBadge.innerHTML = `🔓 Sổ điểm Năm ${yearNum}: Mở`;
+      lockBadge.innerHTML = sanitizeHTML(`🔓 Sổ điểm Năm ${yearNum}: Mở`);
       btnToggleLock.textContent = 'Khóa Sổ Điểm';
       btnToggleLock.className = 'text-xs bg-rose-700 hover:bg-rose-800 text-white font-medium py-1.5 px-3 rounded-lg transition';
     }
@@ -1386,7 +1387,7 @@ export function renderSpreadsheet() {
       <th class="py-2 px-2 text-center bg-emerald-100 text-emerald-900 font-extrabold min-w-[78px]">ĐTB HK2</th>
     </tr>
   `;
-  thead.innerHTML = theadHtml;
+  thead.innerHTML = sanitizeHTML(theadHtml);
 
   let tbodyHtml = '';
   const subjectSums = {};
@@ -1474,10 +1475,10 @@ export function renderSpreadsheet() {
       tbodyHtml += `
         <tr class="divide-x divide-slate-200 hover:bg-slate-50 transition" data-student-id="${student.id}">
           <td class="py-2 px-2 text-center font-medium text-slate-500">${sIdx + 1}</td>
-          <td class="py-2 px-3 font-mono font-semibold text-slate-700">${student.code}</td>
+          <td class="py-2 px-3 font-mono font-semibold text-slate-700">${escapeHTML(student.code)}</td>
           <td class="py-2 px-4 font-semibold text-slate-900 flex items-center justify-between gap-2">
-            <button type="button" class="btn-view-cadet-detail text-army-800 hover:text-gold-600 hover:underline font-bold text-left" data-id="${student.id}" title="Nhấp để xem trang chi tiết quân nhân">${student.name}</button>
-            <span class="text-[10px] text-slate-400 font-normal whitespace-nowrap">${selectedClass === 'all' ? `<strong class="text-army-700">[${student.class}]</strong> ` : ''}${student.rank}</span>
+            <button type="button" class="btn-view-cadet-detail text-army-800 hover:text-gold-600 hover:underline font-bold text-left" data-id="${student.id}" title="Nhấp để xem trang chi tiết quân nhân">${escapeHTML(student.name)}</button>
+            <span class="text-[10px] text-slate-400 font-normal whitespace-nowrap">${selectedClass === 'all' ? `<strong class="text-army-700">[${escapeHTML(student.class)}]</strong> ` : ''}${escapeHTML(student.rank)}</span>
           </td>
           <td class="py-2 px-2 text-center text-slate-600 text-[11px] whitespace-nowrap">${formatVN(student.dob)}</td>
           ${subsHK1.length > 0 ? subsHK1.map(renderScoreCell).join('') : '<td class="text-center text-slate-300">-</td>'}
@@ -1501,11 +1502,11 @@ export function renderSpreadsheet() {
       }
     : null;
 
-  tbody.innerHTML = tbodyHtml;
+  tbody.innerHTML = sanitizeHTML(tbodyHtml);
   filterSheetStudents();
 
   if (classStudents.length === 0) {
-    tfoot.innerHTML = `<tr><td colspan="100%" class="py-2.5 px-3 text-center text-slate-400 text-xs italic">Quân số lớp ${selectedClass}: 0 đồng chí</td></tr>`;
+    tfoot.innerHTML = sanitizeHTML(`<tr><td colspan="100%" class="py-2.5 px-3 text-center text-slate-400 text-xs italic">Quân số lớp ${selectedClass}: 0 đồng chí</td></tr>`);
   } else {
     const avgHk1 = (totalHk1Sum / classStudents.length).toFixed(2);
     const avgHk2 = (totalHk2Sum / classStudents.length).toFixed(2);
@@ -1516,7 +1517,7 @@ export function renderSpreadsheet() {
       return `<td class="py-2.5 px-2 text-center text-slate-800 font-bold">${avg}</td>`;
     };
 
-    tfoot.innerHTML = `
+    tfoot.innerHTML = sanitizeHTML(`
       <tr class="divide-x divide-slate-300 bg-slate-100">
         <td colspan="4" class="py-2.5 px-4 text-right uppercase text-slate-700 font-bold tracking-wider">ĐIỂM TRUNG BÌNH ${selectedClass === 'all' ? 'TOÀN ĐẠI ĐỘI 460' : 'LỚP ' + selectedClass} (NĂM THỨ ${yearNum}):</td>
         ${subsHK1.length > 0 ? subsHK1.map(renderAvgTd).join('') : '<td>-</td>'}
@@ -1526,7 +1527,7 @@ export function renderSpreadsheet() {
         <td class="py-2.5 px-3 text-center font-black text-sm text-army-950 bg-gold-200/80">${avgYear}</td>
         <td class="py-2.5 px-3 text-center text-[11px] text-slate-600 font-semibold">Quân số: ${classStudents.length} đ/c</td>
       </tr>
-    `;
+    `);
   }
 
   if (canEdit) {
@@ -1555,7 +1556,7 @@ export function renderStudentVerticalGrades() {
 
   const student = getLoggedInStudent() || (AppState.role !== 'student' ? AppState.students.find(s => s.id === AppState.studentViewingId) || AppState.students[0] : null);
   if (!student) {
-    container.innerHTML = `<div class="p-8 text-center text-slate-400">Không tìm thấy thông tin bảng điểm học viên.</div>`;
+    container.innerHTML = sanitizeHTML(`<div class="p-8 text-center text-slate-400">Không tìm thấy thông tin bảng điểm học viên.</div>`);
     return;
   }
 
@@ -1587,13 +1588,13 @@ export function renderStudentVerticalGrades() {
         <div class="p-3 rounded-lg border ${isFail ? 'bg-rose-50 border-rose-300' : 'bg-white border-slate-200'} shadow-sm flex items-center justify-between gap-2">
           <div class="min-w-0">
             <div class="flex items-center gap-1.5">
-              <span class="font-mono font-bold text-[11px] text-army-800">${s.code}</span>
+              <span class="font-mono font-bold text-[11px] text-army-800">${escapeHTML(s.code)}</span>
               <span class="px-1.5 py-0.2 rounded text-[9px] font-bold ${isSpec ? 'bg-amber-100 text-amber-800 border border-amber-300' : 'bg-slate-100 text-slate-600'}">
                 ${isSpec ? 'Chuyên ngành ' + student.class : 'Môn chung'}
               </span>
               <span class="text-[10px] text-slate-400 font-semibold">(${s.credits} TC)</span>
             </div>
-            <div class="text-xs font-bold text-slate-900 truncate mt-0.5" title="${getFullSubjectName(s)}">${getFullSubjectName(s)}</div>
+            <div class="text-xs font-bold text-slate-900 truncate mt-0.5" title="${escapeHTML(getFullSubjectName(s))}">${escapeHTML(getFullSubjectName(s))}</div>
           </div>
           <div class="text-right shrink-0">
             <div class="text-sm font-black ${isFail ? 'text-rose-700' : isScale4 ? 'text-blue-800' : 'text-army-900'}">${dispScore}</div>
@@ -1638,7 +1639,7 @@ export function renderStudentVerticalGrades() {
             <span class="w-7 h-7 rounded-lg bg-gold-500 text-slate-950 font-black text-xs flex items-center justify-center">N${y}</span>
             <div>
               <h4 class="text-sm font-black uppercase tracking-wide text-gold-300">${yearNames[y]}</h4>
-              <p class="text-[11px] text-slate-300">Lớp ${student.class} • Gồm Học kỳ 1 (Kỳ ${sem1}) & Học kỳ 2 (Kỳ ${sem2})</p>
+              <p class="text-[11px] text-slate-300">Lớp ${escapeHTML(student.class)} • Gồm Học kỳ 1 (Kỳ ${sem1}) & Học kỳ 2 (Kỳ ${sem2})</p>
             </div>
           </div>
           <span class="text-xs font-bold px-3 py-1 rounded-full bg-army-950/60 text-gold-300 border border-gold-500/40">
@@ -1677,7 +1678,7 @@ export function renderStudentVerticalGrades() {
     `;
   }
 
-  container.innerHTML = `<div class="space-y-6">${blocksHtml}</div>`;
+  container.innerHTML = sanitizeHTML(`<div class="space-y-6">${blocksHtml}</div>`);
 }
 
 export function attachSpreadsheetGridEvents() {
@@ -1826,7 +1827,7 @@ export function renderMasterTable() {
   const masterClassSelect = document.getElementById('masterFilterClass');
   if (masterClassSelect) {
     if (classScope) {
-      masterClassSelect.innerHTML = `<option value="${classScope}">Lớp ${classScope}</option>`;
+      masterClassSelect.innerHTML = sanitizeHTML(`<option value="${classScope}">Lớp ${classScope}</option>`);
       masterClassSelect.value = classScope;
       masterClassSelect.disabled = true;
       filters.class = classScope;
@@ -1881,13 +1882,13 @@ export function renderMasterTable() {
       <tr class="hover:bg-slate-50 transition">
         <td class="py-2.5 px-3 text-center text-slate-500 font-medium">${idx + 1}</td>
         <td class="py-2.5 px-3 font-mono font-bold">
-          <button type="button" class="btn-view-cadet-detail text-army-800 hover:text-gold-600 hover:underline" data-id="${student.id}">${student.code}</button>
+          <button type="button" class="btn-view-cadet-detail text-army-800 hover:text-gold-600 hover:underline" data-id="${student.id}">${escapeHTML(student.code)}</button>
         </td>
         <td class="py-2.5 px-4 font-bold text-slate-900">
-          <button type="button" class="btn-view-cadet-detail hover:text-army-800 hover:underline text-left font-bold" data-id="${student.id}">${student.name}</button>
+          <button type="button" class="btn-view-cadet-detail hover:text-army-800 hover:underline text-left font-bold" data-id="${student.id}">${escapeHTML(student.name)}</button>
         </td>
-        <td class="py-2.5 px-2 text-center text-slate-600">${student.rank}</td>
-        <td class="py-2.5 px-3 text-center font-bold text-army-800">${student.class}</td>
+        <td class="py-2.5 px-2 text-center text-slate-600">${escapeHTML(student.rank)}</td>
+        <td class="py-2.5 px-3 text-center font-bold text-army-800">${escapeHTML(student.class)}</td>
         <td class="py-2.5 px-3 text-center text-slate-500 text-[11px]">${formatVN(student.dob)}</td>
         <td class="py-2.5 px-3 text-center font-semibold text-slate-700 bg-slate-50">${gpa1.toFixed(2)}</td>
         <td class="py-2.5 px-3 text-center font-semibold text-slate-700 bg-slate-50">${gpa2.toFixed(2)}</td>
@@ -1900,15 +1901,15 @@ export function renderMasterTable() {
   if (filtered.length === 0) {
     html = `<tr><td colspan="10" class="py-8 text-center text-slate-400">Không tìm thấy học viên nào phù hợp với bộ lọc hiện tại.</td></tr>`;
   }
-  tbody.innerHTML = html;
+  tbody.innerHTML = sanitizeHTML(html);
 
   if (footer) {
     const scopeTotal = getScopedStudents().length;
     const semLabel = `Năm ${year} (Học kỳ ${sem1} & ${sem2})`;
-    footer.innerHTML = `
+    footer.innerHTML = sanitizeHTML(`
       <span>Hiển thị <strong>${filtered.length}</strong> / ${scopeTotal} học viên • Năm học: <strong>${semLabel}</strong></span>
       <span class="text-[11px] text-slate-500">Đại đội 460 • Tiểu đoàn 4</span>
-    `;
+    `);
   }
 }
 
@@ -2193,7 +2194,7 @@ export function renderDashboard() {
   const dashClassSelect = document.getElementById('dashboardClassFilter');
   if (dashClassSelect) {
     if (classScope) {
-      dashClassSelect.innerHTML = `<option value="${classScope}">Lớp ${classScope}</option>`;
+      dashClassSelect.innerHTML = sanitizeHTML(`<option value="${classScope}">Lớp ${classScope}</option>`);
       dashClassSelect.value = classScope;
       dashClassSelect.disabled = true;
       AppState.dashboardFilters.class = classScope;
@@ -2297,7 +2298,7 @@ export function renderDashboard() {
         <tr class="hover:bg-slate-50 transition">
           <td class="py-2.5 px-3 text-center text-slate-500 font-medium">${idx + 1}</td>
           <td class="py-2.5 px-4 font-bold text-slate-900">
-            <span class="inline-block px-2.5 py-0.5 rounded text-[11px] font-bold border ${item.badge}">${item.name}</span>
+            <span class="inline-block px-2.5 py-0.5 rounded text-[11px] font-bold border ${item.badge}">${escapeHTML(item.name)}</span>
           </td>
           <td class="py-2.5 px-3 text-center font-mono font-semibold text-slate-700 bg-slate-50/60">${item.standard}</td>
           <td class="py-2.5 px-3 text-center font-extrabold text-slate-900 bg-amber-50/40">${cCourse} đồng chí</td>
@@ -2311,10 +2312,10 @@ export function renderDashboard() {
     }).join('');
 
     // Hai hàng sau các mức xếp loại trong Bảng 1: Tỷ lệ Đạt / Rớt tích lũy từ đầu khóa đến nay
-    companyTbody.innerHTML = rankRowsHtml;
+    companyTbody.innerHTML = sanitizeHTML(rankRowsHtml);
 
     if (companyTfoot) {
-      companyTfoot.innerHTML = `
+      companyTfoot.innerHTML = sanitizeHTML(`
         <tr class="bg-slate-100 border-t-2 border-slate-300 text-slate-900">
           <td colspan="3" class="py-3 px-4 uppercase text-army-900 font-black">TỔNG HỢP TÍCH LŨY TOÀN KHÓA (TỪ ĐẦU KHÓA ĐẾN NAY):</td>
           <td class="py-3 px-3 text-center font-black text-army-900 text-xs">${courseStats.totalCadets} đồng chí (100%)</td>
@@ -2329,7 +2330,7 @@ export function renderDashboard() {
             </div>
           </td>
         </tr>
-      `;
+      `);
     }
   }
 
@@ -2371,7 +2372,7 @@ export function renderDashboard() {
       `;
     }).join('');
 
-    matrixThead.innerHTML = `
+    matrixThead.innerHTML = sanitizeHTML(`
       <tr class="divide-x divide-slate-600 bg-army-950 text-white text-xs">
         <th rowspan="2" class="py-2.5 px-2 text-center w-10 sticky left-0 z-20 bg-army-950">STT</th>
         <th rowspan="2" class="py-2.5 px-3 min-w-[155px] sticky left-10 z-20 bg-army-950">Xếp Loại Học Lực / Chỉ Tiêu</th>
@@ -2381,7 +2382,7 @@ export function renderDashboard() {
       <tr class="divide-x divide-slate-600 text-[11px]">
         ${subYearHeaders}
       </tr>
-    `;
+    `);
 
     // 7 hàng xếp loại học lực
     const rankMatrixRows = REPORT_RANK_META.map((item, rIdx) => {
@@ -2421,7 +2422,7 @@ export function renderDashboard() {
         <tr class="divide-x divide-slate-200 hover:bg-slate-50 transition">
           <td class="py-2.5 px-2 text-center text-slate-500 font-medium sticky left-0 bg-white z-10">${rIdx + 1}</td>
           <td class="py-2.5 px-3 font-bold text-slate-900 sticky left-10 bg-white z-10">
-            <span class="inline-block px-2 py-0.5 rounded text-[11px] font-bold border ${item.badge}">${item.name}</span>
+            <span class="inline-block px-2 py-0.5 rounded text-[11px] font-bold border ${item.badge}">${escapeHTML(item.name)}</span>
           </td>
           <td class="py-2.5 px-2 text-center font-mono text-[11px] text-slate-600">${item.standard}</td>
           ${yearCells}
@@ -2429,7 +2430,7 @@ export function renderDashboard() {
       `;
     }).join('');
 
-    matrixTbody.innerHTML = rankMatrixRows;
+    matrixTbody.innerHTML = sanitizeHTML(rankMatrixRows);
 
     if (matrixTfoot) {
       const footCells = yearsBreakdown.map(yb => `
@@ -2450,14 +2451,14 @@ export function renderDashboard() {
         </td>
       `).join('');
 
-      matrixTfoot.innerHTML = `
+      matrixTfoot.innerHTML = sanitizeHTML(`
         <tr class="divide-x divide-slate-300 bg-slate-100 border-t-2 border-slate-300 text-xs">
           <td colspan="3" class="py-3 px-3 uppercase text-army-900 font-black sticky left-0 bg-slate-100 z-10">
             TỔNG HỢP ĐTB &amp; RỚT MÔN THEO TỪNG NĂM (QUÂN SỐ: ${courseStats.totalCadets} Đ/C):
           </td>
           ${footCells}
         </tr>
-      `;
+      `);
     }
   }
 
@@ -2477,7 +2478,7 @@ export function renderDebtCadetsSection(debtCadetsList = null, failedCourseDetai
   const filterSelect = document.getElementById('reportDebtFilterClass');
   if (filterSelect) {
     if (classScope) {
-      filterSelect.innerHTML = `<option value="${classScope}">Lớp ${classScope}</option>`;
+      filterSelect.innerHTML = sanitizeHTML(`<option value="${classScope}">Lớp ${classScope}</option>`);
       filterSelect.value = classScope;
       filterSelect.disabled = true;
     } else {
@@ -2531,22 +2532,22 @@ export function renderDebtCadetsSection(debtCadetsList = null, failedCourseDetai
           <td class="py-2.5 px-3 text-center text-slate-500 font-medium">${idx + 1}</td>
           <td class="py-2.5 px-3 font-mono font-bold">
             <button type="button" class="btn-view-cadet-detail text-army-800 hover:text-gold-600 hover:underline" data-id="${s.id}">
-              ${s.code}
+              ${escapeHTML(s.code)}
             </button>
           </td>
           <td class="py-2.5 px-4 font-bold text-slate-900">
             <button type="button" class="btn-view-cadet-detail hover:text-army-800 hover:underline text-left font-bold" data-id="${s.id}">
-              ${s.name}
+              ${escapeHTML(s.name)}
             </button>
           </td>
-          <td class="py-2.5 px-2 text-center text-slate-600">${s.rank}</td>
-          <td class="py-2.5 px-2 text-center font-bold text-army-800">${s.class}</td>
+          <td class="py-2.5 px-2 text-center text-slate-600">${escapeHTML(s.rank)}</td>
+          <td class="py-2.5 px-2 text-center font-bold text-army-800">${escapeHTML(s.class)}</td>
           <td class="py-2.5 px-4">${debtsBadges}</td>
           <td class="py-2.5 px-3 text-center font-black bg-rose-50 text-rose-700 text-sm">
             <span class="px-2.5 py-0.5 rounded-full bg-rose-200 text-rose-950 font-black">${item.failCount} học phần</span>
           </td>
           <td class="py-2.5 px-4 text-[11px] text-slate-700 leading-relaxed">
-            Phân công Cán sự lớp <strong>${s.class}</strong> kèm cặp; duy trì tự học tối; đăng ký ôn và thi lại học phần.
+            Phân công Cán sự lớp <strong>${escapeHTML(s.class)}</strong> kèm cặp; duy trì tự học tối; đăng ký ôn và thi lại học phần.
           </td>
           <td class="py-2.5 px-3 text-center">
             <button type="button" class="btn-open-transcript px-2.5 py-1 rounded bg-army-700 hover:bg-army-800 text-white font-semibold text-[11px] shadow-sm transition" data-id="${s.id}">
@@ -2557,14 +2558,14 @@ export function renderDebtCadetsSection(debtCadetsList = null, failedCourseDetai
       `;
     });
   }
-  tbody.innerHTML = rowsHtml;
+  tbody.innerHTML = sanitizeHTML(rowsHtml);
 
   if (footer) {
     const totalFailsInFilter = list.reduce((sum, item) => sum + item.failCount, 0);
-    footer.innerHTML = `
+    footer.innerHTML = sanitizeHTML(`
       <span>Tổng số học viên rớt môn: <strong class="text-rose-700">${list.length} học viên</strong> • Tổng số lượt rớt: <strong class="text-rose-800">${totalFailsInFilter} lượt học phần (&lt; 4.0)</strong></span>
       <span class="text-[11px] text-slate-500 italic">Hiển thị đầy đủ Tên môn học (không viết tắt) &amp; Điểm số cụ thể</span>
-    `;
+    `);
   }
 }
 
@@ -2873,7 +2874,7 @@ export function renderLanguages() {
   const langClassSelect = document.getElementById('cumulFilterClass');
   if (langClassSelect) {
     if (classScope) {
-      langClassSelect.innerHTML = `<option value="${classScope}">Lớp ${classScope}</option>`;
+      langClassSelect.innerHTML = sanitizeHTML(`<option value="${classScope}">Lớp ${classScope}</option>`);
       langClassSelect.value = classScope;
       langClassSelect.disabled = true;
     } else {
@@ -2901,7 +2902,7 @@ export function renderLanguages() {
       </div>
     `;
   });
-  summaryContainer.innerHTML = summaryHtml;
+  summaryContainer.innerHTML = sanitizeHTML(summaryHtml);
 
 }
 
@@ -2921,7 +2922,7 @@ export function openLangModal(studentId) {
   let activeId = studentId || scoped[0].id;
   const sel = document.getElementById('langStudentSelect');
   if (sel) {
-    sel.innerHTML = scoped.map(s => `<option value="${s.id}" ${s.id === activeId ? 'selected' : ''}>${s.name} (${s.code} - ${s.class})</option>`).join('');
+    sel.innerHTML = sanitizeHTML(scoped.map(s => `<option value="${s.id}" ${s.id === activeId ? 'selected' : ''}>${escapeHTML(s.name)} (${escapeHTML(s.code)} - ${escapeHTML(s.class)})</option>`).join(''));
     sel.onchange = function() {
       loadStudentLangData(this.value);
     };
@@ -2942,7 +2943,7 @@ export function loadStudentLangData(studentId) {
   document.getElementById('langChoice').value = l.lang || 'Tiếng Nga';
   const actualLevel = document.getElementById('langActualLevel');
   if (actualLevel) {
-    actualLevel.innerHTML = LANGUAGE_LEVEL_OPTIONS.map(level => `<option value="${level}">${level}</option>`).join('');
+    actualLevel.innerHTML = sanitizeHTML(LANGUAGE_LEVEL_OPTIONS.map(level => `<option value="${level}">${level}</option>`).join(''));
     actualLevel.value = evaluateLangLevelStatus(student.currentLangLevel || l.currentLevel).actualLevel;
   }
   document.getElementById('langLevelA1').value = l.A1 || 'Đ';
@@ -2969,22 +2970,22 @@ export function renderAuditLog() {
     : AppState.auditLogs;
 
   if (logs.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-slate-400">Chưa có bản ghi lịch sử chỉnh sửa nào.</td></tr>`;
+    tbody.innerHTML = sanitizeHTML(`<tr><td colspan="8" class="p-6 text-center text-slate-400">Chưa có bản ghi lịch sử chỉnh sửa nào.</td></tr>`);
     return;
   }
 
-  tbody.innerHTML = logs.map(log => `
+  tbody.innerHTML = sanitizeHTML(logs.map(log => `
     <tr class="hover:bg-slate-50 transition">
-      <td class="py-2 px-3 font-mono text-[11px] text-slate-500">${log.timestamp}</td>
-      <td class="py-2 px-3 font-semibold text-slate-800">${log.actor}</td>
-      <td class="py-2 px-3 font-medium text-slate-900">${log.student}</td>
-      <td class="py-2 px-3 text-slate-600 font-semibold">${log.class}</td>
-      <td class="py-2 px-3 text-army-800 font-bold">${log.subject}</td>
-      <td class="py-2 px-3 text-center text-slate-500">${log.oldVal}</td>
-      <td class="py-2 px-3 text-center font-bold text-emerald-700">${log.newVal}</td>
-      <td class="py-2 px-3 text-slate-600 italic text-[11px]">${log.reason}</td>
+      <td class="py-2 px-3 font-mono text-[11px] text-slate-500">${escapeHTML(log.timestamp)}</td>
+      <td class="py-2 px-3 font-semibold text-slate-800">${escapeHTML(log.actor)}</td>
+      <td class="py-2 px-3 font-medium text-slate-900">${escapeHTML(log.student)}</td>
+      <td class="py-2 px-3 text-slate-600 font-semibold">${escapeHTML(log.class)}</td>
+      <td class="py-2 px-3 text-army-800 font-bold">${escapeHTML(log.subject)}</td>
+      <td class="py-2 px-3 text-center text-slate-500">${escapeHTML(log.oldVal)}</td>
+      <td class="py-2 px-3 text-center font-bold text-emerald-700">${escapeHTML(log.newVal)}</td>
+      <td class="py-2 px-3 text-slate-600 italic text-[11px]">${escapeHTML(log.reason)}</td>
     </tr>
-  `).join('');
+  `).join(''));
 }
 
 // --- 10. QUẢN LÝ DANH MỤC MÔN HỌC: MÔN HỌC CHUNG & MÔN HỌC CHUYÊN NGÀNH ---
@@ -3215,7 +3216,7 @@ export function renderSubjectsSettings() {
         </button>
       `;
     }
-    tabsContainer.innerHTML = tabsHtml;
+    tabsContainer.innerHTML = sanitizeHTML(tabsHtml);
 
     tabsContainer.querySelectorAll('.btn-setting-year-tab').forEach(b => {
       b.addEventListener('click', function() {
@@ -3241,8 +3242,8 @@ export function renderSubjectsSettings() {
       return `
         <tr class="hover:bg-slate-50 transition">
           <td class="py-2 px-2 text-center text-slate-400 font-medium">${idx + 1}</td>
-          <td class="py-2 px-3 font-mono font-bold text-army-800">${s.code}</td>
-          <td class="py-2 px-3 font-semibold text-slate-900">${getFullSubjectName(s)}</td>
+          <td class="py-2 px-3 font-mono font-bold text-army-800">${escapeHTML(s.code)}</td>
+          <td class="py-2 px-3 font-semibold text-slate-900">${escapeHTML(getFullSubjectName(s))}</td>
           <td class="py-2 px-2 text-center">
             ${isSpec
               ? `<span class="px-2 py-0.5 rounded text-[10px] font-black bg-amber-100 text-amber-900 border border-amber-300">Chuyên ngành: Lớp ${targetClassesLabel}</span>`
@@ -3344,10 +3345,10 @@ export function renderSubjectsSettings() {
     `;
   };
 
-  semContainer.innerHTML = `
+  semContainer.innerHTML = sanitizeHTML(`
     ${renderSemesterCard(semA, listA, currentMeta.s1Label)}
     ${renderSemesterCard(semB, listB, currentMeta.s2Label)}
-  `;
+  `);
 
   // Event Delegation xử lý .btn-add-to-sem, .btn-edit-subj, .btn-del-subj & .input-subj-credits tại document
 }
@@ -4251,7 +4252,7 @@ export function renderCumulativeTable() {
   const cumulClassSelect = document.getElementById('cumulFilterClass');
   if (cumulClassSelect) {
     if (classScope) {
-      cumulClassSelect.innerHTML = `<option value="${classScope}">Lớp ${classScope}</option>`;
+      cumulClassSelect.innerHTML = sanitizeHTML(`<option value="${classScope}">Lớp ${classScope}</option>`);
       cumulClassSelect.value = classScope;
       cumulClassSelect.disabled = true;
     } else {
@@ -4339,16 +4340,16 @@ export function renderCumulativeTable() {
         <td class="py-2.5 px-2 text-center text-slate-500 font-medium">${idx + 1}</td>
         <td class="py-2.5 px-3 font-mono font-bold">
           <button type="button" class="btn-view-cadet-detail text-army-800 hover:text-gold-600 hover:underline" data-id="${s.id}">
-            ${s.code}
+            ${escapeHTML(s.code)}
           </button>
         </td>
         <td class="py-2.5 px-4 font-bold text-slate-900">
           <button type="button" class="btn-view-cadet-detail hover:text-army-800 hover:underline text-left font-bold" data-id="${s.id}" title="Nhấp để xem chi tiết quân nhân">
-            ${s.name}
+            ${escapeHTML(s.name)}
           </button>
         </td>
-        <td class="py-2.5 px-2 text-center text-slate-600">${s.rank}</td>
-        <td class="py-2.5 px-2 text-center font-bold text-army-800">${s.class}</td>
+        <td class="py-2.5 px-2 text-center text-slate-600">${escapeHTML(s.rank)}</td>
+        <td class="py-2.5 px-2 text-center font-bold text-army-800">${escapeHTML(s.class)}</td>
         <td class="py-2.5 px-2 text-center font-bold text-emerald-700">${passedTC} / ${totalCourseTC} TC</td>
         <td class="py-2.5 px-3 text-center font-black text-slate-950 bg-gold-200/80 text-sm">${gpa10.toFixed(2)}</td>
         <td class="py-2.5 px-3 text-center">${getClassificationBadge(rank)}</td>
@@ -4374,17 +4375,17 @@ export function renderCumulativeTable() {
   if (filtered.length === 0) {
     rowsHtml = `<tr><td colspan="11" class="p-8 text-center text-slate-400">Không tìm thấy quân nhân nào phù hợp với bộ lọc.</td></tr>`;
   }
-  tbody.innerHTML = rowsHtml;
+  tbody.innerHTML = sanitizeHTML(rowsHtml);
   // Leave missing proficiency unselected; never imply that an unrecorded level is A1.
   tbody.querySelectorAll('.select-cumul-lang').forEach(select => {
     if (!select.querySelector('option[selected]')) select.selectedIndex = -1;
   });
 
   if (footer) {
-    footer.innerHTML = `
+    footer.innerHTML = sanitizeHTML(`
       <span>Hiển thị <strong>${filtered.length}</strong> / ${scoped.length} quân nhân • Tích lũy toàn khóa</span>
       <span class="text-[11px] text-slate-500">Hỗ trợ chọn trực tiếp Trình độ ngoại ngữ hiện tại (A1, A21, A2, B11, B1) </span>
-    `;
+    `);
   }
 
   // Event Delegation xử lý .btn-open-transcript, .select-cumul-lang, .select-cumul-it tại document
@@ -4469,14 +4470,14 @@ export function openTranscriptModal(studentId) {
       section = document.getElementById(`tcHk${semester}TableBody`).closest('table').parentElement;
     } else if (subjects.length) {
       section = document.createElement('div'); section.className = 'space-y-2';
-      section.innerHTML = `<div class="flex flex-wrap items-center justify-between gap-2 border-b pb-1"><h4 class="font-bold text-army-900 uppercase"></h4><span id="tcHk${semester}Summary" class="text-[11px] font-semibold text-slate-600"></span></div><table class="w-full text-xs text-left border-collapse border border-slate-200">${tableHeader}<tbody id="tcHk${semester}TableBody" class="divide-y divide-slate-100"></tbody></table>`;
+      section.innerHTML = sanitizeHTML(`<div class="flex flex-wrap items-center justify-between gap-2 border-b pb-1"><h4 class="font-bold text-army-900 uppercase"></h4><span id="tcHk${semester}Summary" class="text-[11px] font-semibold text-slate-600"></span></div><table class="w-full text-xs text-left border-collapse border border-slate-200">${tableHeader}<tbody id="tcHk${semester}TableBody" class="divide-y divide-slate-100"></tbody></table>`);
       extra.append(section);
     }
     if (!section) continue;
     section.dataset.semester = String(semester);
     section.hidden = !subjects.length;
     const tbody = section.querySelector('tbody');
-    tbody.innerHTML = subjects.map(renderSubjRow).join('');
+    tbody.innerHTML = sanitizeHTML(subjects.map(renderSubjRow).join(''));
     if (!subjects.length) continue;
     visibleSemesters++; recordedCredits += credits;
     section.querySelector('h4').textContent = `Học kỳ ${semester} (${credits} tín chỉ đã có điểm)`;

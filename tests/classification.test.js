@@ -14,7 +14,7 @@ function fixture() {
   const scores = [9, 8, 7, 6.5, 5.5, 5, 4, 3.99];
   const students = scores.map((gpa, i) => ({ id: `hv${i}`, code: `HV${i}`, name: `Học viên ${i}`, class: 'OTQS1', gpa }));
   const subjects = [{ id: 'math', name: 'Toán', credits: 3, semester: 1 }];
-  const context = vm.createContext({
+  const context = vm.createContext({ escapeHTML: value => String(value),
     AppState: { students, grades: Object.fromEntries(students.map(student => [student.id, { math: student.gpa }])), dashboardFilters: {}, role: 'admin' },
     DEFAULT_CLASSES: ['OTQS1'],
     getCurrentUserClassScope: () => null,

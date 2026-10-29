@@ -1,3 +1,4 @@
+import { sanitizeHTML, escapeHTML } from './safe-html.js';
 import { writeReportWorkbook } from './report-workbook.js';
 import { requestDestructiveConfirmation } from './components/destructive-confirm.js';
 import { calendarDate, parentBirthYear, displayParentYear, politicalDates } from './profile-rules.js';
@@ -124,9 +125,9 @@ export function renderStudentView() {
 
   const langSel = document.getElementById('studentSelfLangLevelSelect');
   if (langSel) {
-    langSel.innerHTML = LANGUAGE_LEVEL_OPTIONS.map(opt =>
+    langSel.innerHTML = sanitizeHTML(LANGUAGE_LEVEL_OPTIONS.map(opt =>
       `<option value="${opt}" ${opt === evaluateLangLevelStatus(student.currentLangLevel).actualLevel ? 'selected' : ''}>${opt}</option>`
-    ).join('');
+    ).join(''));
     langSel.disabled = (AppState.role === 'student');
   }
 
@@ -140,7 +141,7 @@ export function populateStudentPicker() {
   if (!picker) return;
   const scoped = getScopedStudents();
   if (scoped.length === 0) {
-    picker.innerHTML = '<option value="">(Chưa có học viên)</option>';
+    picker.innerHTML = sanitizeHTML('<option value="">(Chưa có học viên)</option>');
     return;
   }
 
@@ -148,18 +149,18 @@ export function populateStudentPicker() {
     const selfStudent = getLoggedInStudent();
     if (selfStudent) {
       AppState.studentViewingId = selfStudent.id;
-      picker.innerHTML = `<option value="${selfStudent.id}" selected>${selfStudent.name} (${selfStudent.code} - ${selfStudent.class})</option>`;
+      picker.innerHTML = sanitizeHTML(`<option value="${selfStudent.id}" selected>${escapeHTML(selfStudent.name)} (${escapeHTML(selfStudent.code)} - ${escapeHTML(selfStudent.class)})</option>`);
       picker.disabled = true;
       return;
     }
   }
 
   picker.disabled = false;
-  picker.innerHTML = scoped.map(s => `
+  picker.innerHTML = sanitizeHTML(scoped.map(s => `
     <option value="${s.id}" ${s.id === AppState.studentViewingId ? 'selected' : ''}>
-      ${s.name} (${s.code} - ${s.class})
+      ${escapeHTML(s.name)} (${escapeHTML(s.code)} - ${escapeHTML(s.class)})
     </option>
-  `).join('');
+  `).join(''));
 }
 
 export function openCadetDetailPage(studentId) {
@@ -232,7 +233,7 @@ export function openCadetDetailPage(studentId) {
     `;
   }
 
-  detailSection.innerHTML = `
+  detailSection.innerHTML = sanitizeHTML(`
     <div class="space-y-5">
       <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center gap-3">
@@ -242,7 +243,7 @@ export function openCadetDetailPage(studentId) {
           </button>
           <div>
             <div class="text-[11px] font-bold text-slate-400 uppercase">Hồ Sơ & Kết Quả Học Tập Chi Tiết Quân Nhân</div>
-            <h3 class="text-base font-black text-slate-900 uppercase">${student.name} (${student.code})</h3>
+            <h3 class="text-base font-black text-slate-900 uppercase">${escapeHTML(student.name)} (${escapeHTML(student.code)})</h3>
           </div>
         </div>
         <div class="flex items-center gap-2">
@@ -259,19 +260,19 @@ export function openCadetDetailPage(studentId) {
             ${POLITICAL_BADGES[student.politicalStatus] || student.politicalStatus}
           </div>
           <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs">
-            <div><span class="text-slate-400 block">Họ và tên:</span><strong class="text-slate-900 text-sm">${student.name}</strong></div>
-            <div><span class="text-slate-400 block">Mã học viên:</span><strong class="font-mono text-army-800 text-sm">${student.code}</strong></div>
-            <div><span class="text-slate-400 block">Đơn vị Lớp:</span><strong class="text-army-800 text-sm">Lớp ${student.class}</strong></div>
-            <div><span class="text-slate-400 block">Cấp bậc:</span><strong class="text-slate-800">${student.rank}</strong></div>
+            <div><span class="text-slate-400 block">Họ và tên:</span><strong class="text-slate-900 text-sm">${escapeHTML(student.name)}</strong></div>
+            <div><span class="text-slate-400 block">Mã học viên:</span><strong class="font-mono text-army-800 text-sm">${escapeHTML(student.code)}</strong></div>
+            <div><span class="text-slate-400 block">Đơn vị Lớp:</span><strong class="text-army-800 text-sm">Lớp ${escapeHTML(student.class)}</strong></div>
+            <div><span class="text-slate-400 block">Cấp bậc:</span><strong class="text-slate-800">${escapeHTML(student.rank)}</strong></div>
             <div><span class="text-slate-400 block">Chức vụ:</span><strong class="text-slate-800">${student.position || student.role || 'Học viên'}</strong></div>
             <div><span class="text-slate-400 block">Ngày sinh:</span><strong class="text-slate-800">${formatVN(student.dob)}</strong></div>
             <div><span class="text-slate-400 block">Nhập ngũ:</span><strong class="text-slate-800">${student.enlistmentDate || '02/2022'}</strong></div>
-            <div><span class="text-slate-400 block">Số điện thoại:</span><strong class="font-mono text-slate-800">${student.phone || 'Chưa cập nhật'}</strong></div>
+            <div><span class="text-slate-400 block">Số điện thoại:</span><strong class="font-mono text-slate-800">${escapeHTML(student.phone || 'Chưa cập nhật')}</strong></div>
             <div><span class="text-slate-400 block">Vào Đảng (Dự bị):</span><strong class="text-rose-800">${formatVN(student.party_joined_date)}</strong></div>
             <div><span class="text-slate-400 block">Đảng chính thức:</span><strong class="text-rose-800">${formatVN(student.official_party_date)}</strong></div>
-            <div class="col-span-2"><span class="text-slate-400 block">Quê quán:</span><strong class="text-slate-800">${student.hometown || '-'}</strong></div>
-            <div class="col-span-3"><span class="text-slate-400 block">Hộ khẩu thường trú:</span><strong class="text-slate-800">${student.permanentAddress || '-'}</strong></div>
-            <div class="col-span-3"><span class="text-slate-400 block">Nơi ở hiện nay:</span><strong class="text-slate-800">${student.currentAddress || '-'}</strong></div>
+            <div class="col-span-2"><span class="text-slate-400 block">Quê quán:</span><strong class="text-slate-800">${escapeHTML(student.hometown || '-')}</strong></div>
+            <div class="col-span-3"><span class="text-slate-400 block">Hộ khẩu thường trú:</span><strong class="text-slate-800">${escapeHTML(student.permanentAddress || '-')}</strong></div>
+            <div class="col-span-3"><span class="text-slate-400 block">Nơi ở hiện nay:</span><strong class="text-slate-800">${escapeHTML(student.currentAddress || '-')}</strong></div>
           </div>
 
           <div class="pt-3 border-t border-slate-100">
@@ -289,17 +290,17 @@ export function openCadetDetailPage(studentId) {
           <h4 class="text-sm font-extrabold text-army-900 uppercase border-b border-slate-200 pb-3">2. Thông Tin Thân Nhân (Bố & Mẹ)</h4>
           <div class="p-3 rounded-lg bg-slate-50 border border-slate-200 space-y-1.5">
             <div class="font-bold text-army-800 uppercase">Thông tin Bố:</div>
-            <div>Họ và tên: <strong>${student.father_name || '-'}</strong></div>
+            <div>Họ và tên: <strong>${escapeHTML(student.father_name || '-')}</strong></div>
             <div>Năm sinh: <strong>${formatVN(student.father_birth_date)}</strong></div>
-            <div>Nghề nghiệp: <strong>${student.father_job || '-'}</strong></div>
-            <div>Quê quán: <strong>${student.father_hometown || '-'}</strong></div>
+            <div>Nghề nghiệp: <strong>${escapeHTML(student.father_job || '-')}</strong></div>
+            <div>Quê quán: <strong>${escapeHTML(student.father_hometown || '-')}</strong></div>
           </div>
           <div class="p-3 rounded-lg bg-slate-50 border border-slate-200 space-y-1.5">
             <div class="font-bold text-army-800 uppercase">Thông tin Mẹ:</div>
-            <div>Họ và tên: <strong>${student.mother_name || '-'}</strong></div>
+            <div>Họ và tên: <strong>${escapeHTML(student.mother_name || '-')}</strong></div>
             <div>Năm sinh: <strong>${formatVN(student.mother_birth_date)}</strong></div>
-            <div>Nghề nghiệp: <strong>${student.mother_job || '-'}</strong></div>
-            <div>Quê quán: <strong>${student.mother_hometown || '-'}</strong></div>
+            <div>Nghề nghiệp: <strong>${escapeHTML(student.mother_job || '-')}</strong></div>
+            <div>Quê quán: <strong>${escapeHTML(student.mother_hometown || '-')}</strong></div>
           </div>
           <div class="p-3 rounded-lg bg-emerald-50/60 border border-emerald-200 space-y-1.5">
             <div class="font-bold text-emerald-900 uppercase">Chuẩn Đầu Ra Hiện Tại:</div>
@@ -342,7 +343,7 @@ export function openCadetDetailPage(studentId) {
         </div>
       </div>
     </div>
-  `;
+  `);
 
   document.getElementById('btnBackFromCadetDetail')?.addEventListener('click', () => {
     closeCadetDetailPage();
@@ -394,7 +395,7 @@ export function renderStudentInlineProfile(options = {}) {
   const student = getLoggedInStudent() || AppState.students.find(s => s.id === AppState.studentViewingId) || AppState.students[0];
   if (!student) {
     container.dataset.inlineEditActive = 'false';
-    container.innerHTML = `<div class="p-8 text-center text-slate-400">Không tìm thấy hồ sơ quân nhân.</div>`;
+    container.innerHTML = sanitizeHTML(`<div class="p-8 text-center text-slate-400">Không tìm thấy hồ sơ quân nhân.</div>`);
     return;
   }
 
@@ -406,7 +407,7 @@ export function renderStudentInlineProfile(options = {}) {
 
   const achList = normalizeAchievements(student.achievements);
 
-  container.innerHTML = `
+  container.innerHTML = sanitizeHTML(`
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
       <div class="bg-gradient-to-r from-army-900 via-army-800 to-army-900 text-white p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-2 border-gold-500">
         <div class="flex items-center gap-3.5">
@@ -415,8 +416,8 @@ export function renderStudentInlineProfile(options = {}) {
           </div>
           <div>
             <div class="text-[11px] uppercase tracking-wider text-gold-300 font-bold">Hồ Sơ Lý Lịch Cá Nhân Quân Nhân</div>
-            <h3 class="text-lg font-black text-white">${student.name} <span class="text-sm font-mono text-gold-300">(${student.code})</span></h3>
-            <div class="text-xs text-slate-300 mt-0.5">Lớp ${student.class} • Cấp bậc: ${student.rank} • Chức vụ: ${student.position || student.role || 'Học viên'}</div>
+            <h3 class="text-lg font-black text-white">${escapeHTML(student.name)} <span class="text-sm font-mono text-gold-300">(${escapeHTML(student.code)})</span></h3>
+            <div class="text-xs text-slate-300 mt-0.5">Lớp ${escapeHTML(student.class)} • Cấp bậc: ${escapeHTML(student.rank)} • Chức vụ: ${student.position || student.role || 'Học viên'}</div>
           </div>
         </div>
 
@@ -445,11 +446,11 @@ export function renderStudentInlineProfile(options = {}) {
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label class="block font-bold text-slate-600 mb-1">Mã Học Viên (Cố định):</label>
-              <input type="text" value="${student.code}" disabled class="w-full border border-slate-200 rounded-lg p-2.5 font-mono font-bold bg-slate-100 text-slate-500 cursor-not-allowed">
+              <input type="text" value="${escapeHTML(student.code)}" disabled class="w-full border border-slate-200 rounded-lg p-2.5 font-mono font-bold bg-slate-100 text-slate-500 cursor-not-allowed">
             </div>
             <div>
               <label class="block font-bold text-slate-600 mb-1">Họ và Tên:</label>
-              <input type="text" id="inlineProfName" value="${student.name}" ${disAttr} class="w-full border rounded-lg p-2.5 font-bold ${inputBg}">
+              <input type="text" id="inlineProfName" value="${escapeHTML(student.name)}" ${disAttr} class="w-full border rounded-lg p-2.5 font-bold ${inputBg}">
             </div>
             <div>
               <label class="block font-bold text-slate-600 mb-1">Cấp bậc:</label>
@@ -459,7 +460,7 @@ export function renderStudentInlineProfile(options = {}) {
             </div>
             <div>
               <label class="block font-bold text-slate-600 mb-1">Lớp biên chế:</label>
-              <input type="text" value="${student.class}" disabled class="w-full border border-slate-200 rounded-lg p-2.5 font-bold bg-slate-100 text-army-800 cursor-not-allowed">
+              <input type="text" value="${escapeHTML(student.class)}" disabled class="w-full border border-slate-200 rounded-lg p-2.5 font-bold bg-slate-100 text-army-800 cursor-not-allowed">
             </div>
             <div>
               <label class="block font-bold text-slate-600 mb-1">Chức vụ:</label>
@@ -475,19 +476,19 @@ export function renderStudentInlineProfile(options = {}) {
             </div>
             <div>
               <label class="block font-bold text-slate-600 mb-1">Số điện thoại:</label>
-              <input type="text" id="inlineProfPhone" value="${student.phone || ''}" placeholder="0987..." ${disAttr} class="w-full border rounded-lg p-2.5 font-mono ${inputBg}">
+              <input type="text" id="inlineProfPhone" value="${escapeHTML(student.phone || '')}" placeholder="0987..." ${disAttr} class="w-full border rounded-lg p-2.5 font-mono ${inputBg}">
             </div>
             <div class="sm:col-span-2">
               <label class="block font-bold text-slate-600 mb-1">Quê quán (2 cấp):</label>
-              <input type="text" id="inlineProfHometown" value="${student.hometown || ''}" placeholder="VD: Quảng Xương, Thanh Hóa" autocomplete="off" ${disAttr} class="w-full border rounded-lg p-2.5 ${inputBg}">
+              <input type="text" id="inlineProfHometown" value="${escapeHTML(student.hometown || '')}" placeholder="VD: Quảng Xương, Thanh Hóa" autocomplete="off" ${disAttr} class="w-full border rounded-lg p-2.5 ${inputBg}">
             </div>
             <div class="sm:col-span-2">
               <label class="block font-bold text-slate-600 mb-1">Hộ khẩu thường trú (2 cấp):</label>
-              <input type="text" id="inlineProfPermAddr" value="${student.permanentAddress || ''}" placeholder="VD: Quảng Xương, Thanh Hóa" autocomplete="off" ${disAttr} class="w-full border rounded-lg p-2.5 ${inputBg}">
+              <input type="text" id="inlineProfPermAddr" value="${escapeHTML(student.permanentAddress || '')}" placeholder="VD: Quảng Xương, Thanh Hóa" autocomplete="off" ${disAttr} class="w-full border rounded-lg p-2.5 ${inputBg}">
             </div>
             <div class="sm:col-span-2">
               <label class="block font-bold text-slate-600 mb-1">Nơi ở hiện nay (2 cấp):</label>
-              <input type="text" id="inlineProfCurrAddr" value="${student.currentAddress || ''}" placeholder="VD: Quảng Xương, Thanh Hóa" autocomplete="off" ${disAttr} class="w-full border rounded-lg p-2.5 ${inputBg}">
+              <input type="text" id="inlineProfCurrAddr" value="${escapeHTML(student.currentAddress || '')}" placeholder="VD: Quảng Xương, Thanh Hóa" autocomplete="off" ${disAttr} class="w-full border rounded-lg p-2.5 ${inputBg}">
             </div>
             <div>
               <label class="block font-bold text-slate-600 mb-1 flex items-center justify-between">
@@ -533,7 +534,7 @@ export function renderStudentInlineProfile(options = {}) {
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label class="block font-semibold text-slate-600 mb-1">Họ và tên Bố:</label>
-                  <input type="text" id="inlineFatherName" value="${student.father_name || ''}" ${disAttr} class="w-full border rounded-lg p-2 ${inputBg}">
+                  <input type="text" id="inlineFatherName" value="${escapeHTML(student.father_name || '')}" ${disAttr} class="w-full border rounded-lg p-2 ${inputBg}">
                 </div>
 
                 <div>
@@ -543,11 +544,11 @@ export function renderStudentInlineProfile(options = {}) {
                 </div>
                 <div>
                   <label class="block font-semibold text-slate-600 mb-1">Nghề nghiệp Bố:</label>
-                  <input type="text" id="inlineFatherJob" value="${student.father_job || ''}" ${disAttr} class="w-full border rounded-lg p-2 ${inputBg}">
+                  <input type="text" id="inlineFatherJob" value="${escapeHTML(student.father_job || '')}" ${disAttr} class="w-full border rounded-lg p-2 ${inputBg}">
                 </div>
                 <div class="sm:col-span-2">
                   <label class="block font-semibold text-slate-600 mb-1">Quê quán Bố (2 cấp):</label>
-                  <input type="text" id="inlineFatherHometown" value="${student.father_hometown || ''}" placeholder="VD: Quảng Xương, Thanh Hóa" autocomplete="off" ${disAttr} class="w-full border rounded-lg p-2 ${inputBg}">
+                  <input type="text" id="inlineFatherHometown" value="${escapeHTML(student.father_hometown || '')}" placeholder="VD: Quảng Xương, Thanh Hóa" autocomplete="off" ${disAttr} class="w-full border rounded-lg p-2 ${inputBg}">
                 </div>
               </div>
             </div>
@@ -557,7 +558,7 @@ export function renderStudentInlineProfile(options = {}) {
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label class="block font-semibold text-slate-600 mb-1">Họ và tên Mẹ:</label>
-                  <input type="text" id="inlineMotherName" value="${student.mother_name || ''}" ${disAttr} class="w-full border rounded-lg p-2 ${inputBg}">
+                  <input type="text" id="inlineMotherName" value="${escapeHTML(student.mother_name || '')}" ${disAttr} class="w-full border rounded-lg p-2 ${inputBg}">
                 </div>
 
                 <div>
@@ -567,11 +568,11 @@ export function renderStudentInlineProfile(options = {}) {
                 </div>
                 <div>
                   <label class="block font-semibold text-slate-600 mb-1">Nghề nghiệp Mẹ:</label>
-                  <input type="text" id="inlineMotherJob" value="${student.mother_job || ''}" ${disAttr} class="w-full border rounded-lg p-2 ${inputBg}">
+                  <input type="text" id="inlineMotherJob" value="${escapeHTML(student.mother_job || '')}" ${disAttr} class="w-full border rounded-lg p-2 ${inputBg}">
                 </div>
                 <div class="sm:col-span-2">
                   <label class="block font-semibold text-slate-600 mb-1">Quê quán Mẹ (2 cấp):</label>
-                  <input type="text" id="inlineMotherHometown" value="${student.mother_hometown || ''}" placeholder="VD: Quảng Xương, Thanh Hóa" autocomplete="off" ${disAttr} class="w-full border rounded-lg p-2 ${inputBg}">
+                  <input type="text" id="inlineMotherHometown" value="${escapeHTML(student.mother_hometown || '')}" placeholder="VD: Quảng Xương, Thanh Hóa" autocomplete="off" ${disAttr} class="w-full border rounded-lg p-2 ${inputBg}">
                 </div>
               </div>
             </div>
@@ -597,7 +598,7 @@ export function renderStudentInlineProfile(options = {}) {
         </div>
       </div>
     </div>
-  `;
+  `);
 
   const inlineStatus = document.getElementById('inlineProfPolitical');
   const syncInlineDates = () => updatePartyDatesDisplay(inlineStatus?.value || 'DOAN_VIEN', 'inlineProfPartyJoined', 'inlineProfPartyOfficial', !isEditing);
@@ -916,7 +917,7 @@ export function handleQuickImportFileUpload(file) {
   document.getElementById('quickImportPreviewHeader')?.classList.add('hidden');
   document.getElementById('quickImportPreviewContainer')?.classList.add('hidden');
   const previousPreview = document.getElementById('quickImportPreviewTbody');
-  if (previousPreview) previousPreview.innerHTML = '';
+  if (previousPreview) previousPreview.innerHTML = sanitizeHTML('');
   const confirmButton = document.getElementById('btnExecuteQuickImport');
   if (confirmButton) confirmButton.disabled = true;
   if (!file) return;
@@ -1036,24 +1037,24 @@ export function handleQuickImportFileUpload(file) {
 
       const tbody = document.getElementById('quickImportPreviewTbody');
       if (tbody) {
-        tbody.innerHTML = quickImportParsedRows.map((r, i) => `
+        tbody.innerHTML = sanitizeHTML(quickImportParsedRows.map((r, i) => `
           <tr>
             <td class="py-2 px-2 text-center">${i + 1}</td>
-            <td class="py-2 px-3 font-mono font-bold">${r.code}</td>
-            <td class="py-2 px-3 font-bold">${r.name}</td>
-            <td class="py-2 px-2 text-center font-bold">${r.class}</td>
-            <td class="py-2 px-2 text-center">${r.rank}</td>
-            <td class="py-2 px-2 text-center">${r.position}</td>
+            <td class="py-2 px-3 font-mono font-bold">${escapeHTML(r.code)}</td>
+            <td class="py-2 px-3 font-bold">${escapeHTML(r.name)}</td>
+            <td class="py-2 px-2 text-center font-bold">${escapeHTML(r.class)}</td>
+            <td class="py-2 px-2 text-center">${escapeHTML(r.rank)}</td>
+            <td class="py-2 px-2 text-center">${escapeHTML(r.position)}</td>
             <td class="py-2 px-2 text-center">${formatVN(r.dob)}</td>
             <td class="py-2 px-2 text-center">${r.enlistmentDate}</td>
-            <td class="py-2 px-2 text-center">${r.phone || '-'}</td>
-            <td class="py-2 px-3">${r.hometown || '-'}</td>
+            <td class="py-2 px-2 text-center">${escapeHTML(r.phone || '-')}</td>
+            <td class="py-2 px-3">${escapeHTML(r.hometown || '-')}</td>
             <td class="py-2 px-2 text-center">${POLITICAL_BADGES[r.politicalStatus] || r.politicalStatus}</td>
-            <td class="py-2 px-3">${r.father_name || '-'} (${formatVN(r.father_birth_date)})</td>
-            <td class="py-2 px-3">${r.mother_name || '-'} (${formatVN(r.mother_birth_date)})</td>
+            <td class="py-2 px-3">${escapeHTML(r.father_name || '-')} (${formatVN(r.father_birth_date)})</td>
+            <td class="py-2 px-3">${escapeHTML(r.mother_name || '-')} (${formatVN(r.mother_birth_date)})</td>
             <td class="py-2 px-3 text-center">${r.isUpdate ? 'Cập nhật' : 'Thêm mới'}</td>
           </tr>
-        `).join('');
+        `).join(''));
       }
 
       document.getElementById('quickImportBadgeTotal').textContent = `${quickImportParsedRows.length} dòng`;
@@ -1222,7 +1223,7 @@ export function renderProfilesTable(options = {}) {
   const profClassSelect = document.getElementById('profileFilterClass');
   if (profClassSelect) {
     if (classScope) {
-      profClassSelect.innerHTML = `<option value="${classScope}">Lớp ${classScope}</option>`;
+      profClassSelect.innerHTML = sanitizeHTML(`<option value="${classScope}">Lớp ${classScope}</option>`);
       profClassSelect.value = classScope;
       profClassSelect.disabled = true;
     } else {
@@ -1292,16 +1293,16 @@ export function renderProfilesTable(options = {}) {
         <td class="py-2.5 px-2 text-center w-12 text-slate-500 font-medium">${idx + 1}</td>
         <td class="py-2.5 px-3 text-center font-mono font-bold">
           <button type="button" class="btn-view-cadet-detail text-army-800 hover:text-gold-600 hover:underline font-bold" data-id="${s.id}">
-            ${s.code}
+            ${escapeHTML(s.code)}
           </button>
         </td>
         <td class="py-2.5 px-4 text-left font-bold text-slate-900">
           <button type="button" class="btn-view-cadet-detail hover:text-army-800 hover:underline text-left font-bold" data-id="${s.id}" title="Nhấp vào Họ và Tên để xem trang chi tiết quân nhân">
-            ${s.name}
+            ${escapeHTML(s.name)}
           </button>
         </td>
-        <td class="py-2.5 px-2 text-center text-slate-600">${s.rank}</td>
-        <td class="py-2.5 px-2 text-center font-bold text-army-800">${s.class}</td>
+        <td class="py-2.5 px-2 text-center text-slate-600">${escapeHTML(s.rank)}</td>
+        <td class="py-2.5 px-2 text-center font-bold text-army-800">${escapeHTML(s.class)}</td>
         <td class="py-2.5 px-3 text-center">
           <span class="inline-block px-2.5 py-0.5 rounded font-semibold text-[11px] bg-slate-100 text-slate-700 border border-slate-200">
             ${pos}
@@ -1309,15 +1310,15 @@ export function renderProfilesTable(options = {}) {
         </td>
         <td class="py-2.5 px-2 text-center text-slate-500 text-[11px]">${formatVN(s.dob)}</td>
         <td class="py-2.5 px-2 text-center text-slate-600 font-mono text-[11px]">${s.enlistmentDate || '02/2022'}</td>
-        <td class="py-2.5 px-3 text-left text-slate-700">${s.hometown || '-'}</td>
+        <td class="py-2.5 px-3 text-left text-slate-700">${escapeHTML(s.hometown || '-')}</td>
         <td class="py-2.5 px-3 text-center">${badge}</td>
         <td class="py-2.5 px-3 text-center font-mono font-semibold text-rose-800">${formatVN(s.party_joined_date)}</td>
         <td class="py-2.5 px-3 text-center font-mono font-semibold text-rose-800">${formatVN(s.official_party_date)}</td>
         <td class="py-2.5 px-3 text-left text-[11px] text-slate-700">
-          <span class="font-bold text-slate-900">${s.father_name || '-'}</span> (${formatVN(s.father_birth_date)}) &bull; <span class="text-slate-500">${s.father_job || ''}</span>
+          <span class="font-bold text-slate-900">${escapeHTML(s.father_name || '-')}</span> (${formatVN(s.father_birth_date)}) &bull; <span class="text-slate-500">${escapeHTML(s.father_job || '')}</span>
         </td>
         <td class="py-2.5 px-3 text-left text-[11px] text-slate-700">
-          <span class="font-bold text-slate-900">${s.mother_name || '-'}</span> (${formatVN(s.mother_birth_date)}) &bull; <span class="text-slate-500">${s.mother_job || ''}</span>
+          <span class="font-bold text-slate-900">${escapeHTML(s.mother_name || '-')}</span> (${formatVN(s.mother_birth_date)}) &bull; <span class="text-slate-500">${escapeHTML(s.mother_job || '')}</span>
         </td>
         <td class="py-2.5 px-2 text-center font-extrabold text-army-800 bg-gold-50/50">${yearGpa.toFixed(2)}</td>
         <td class="py-2.5 px-3 text-center">
@@ -1342,13 +1343,13 @@ export function renderProfilesTable(options = {}) {
   if (filtered.length === 0) {
     rowsHtml = `<tr><td colspan="16" class="p-8 text-center text-slate-400 font-medium">Không tìm thấy quân nhân nào phù hợp với bộ lọc.</td></tr>`;
   }
-  tbody.innerHTML = rowsHtml;
+  tbody.innerHTML = sanitizeHTML(rowsHtml);
 
   if (footer) {
-    footer.innerHTML = `
+    footer.innerHTML = sanitizeHTML(`
       <span>Hiển thị <strong>${filtered.length}</strong> / ${scopedStudents.length} quân nhân</span>
       <span class="text-[11px] text-slate-500">Nhấp trực tiếp vào Họ và Tên để mở trang Xem chi tiết quân nhân</span>
-    `;
+    `);
   }
 
   // Event Delegation xử lý .btn-open-profile, .btn-trigger-delete & .btn-view-cadet-detail tại document
@@ -1460,7 +1461,7 @@ export function openStudentProfileModal(studentId, options = {}) {
     document.getElementById('profFormMotherHometown').value = '';
     document.getElementById('profFormMotherJob').value = '';
 
-    document.getElementById('profAcademicSummaryBox').innerHTML = '<div class="p-4 text-center text-slate-500 italic">Quân nhân mới thêm.</div>';
+    document.getElementById('profAcademicSummaryBox').innerHTML = sanitizeHTML('<div class="p-4 text-center text-slate-500 italic">Quân nhân mới thêm.</div>');
   } else {
     const pos = student.position || student.role || 'Học viên';
     document.getElementById('profileModalTitle').textContent = `Hồ Sơ Quân Nhân: ${student.name} (${student.code})`;
@@ -1509,7 +1510,7 @@ export function openStudentProfileModal(studentId, options = {}) {
     const yearGpa = calculateYearGPA(student.id);
     const debts = getDebtSubjects(student.id);
 
-    document.getElementById('profAcademicSummaryBox').innerHTML = `
+    document.getElementById('profAcademicSummaryBox').innerHTML = sanitizeHTML(`
       <div class="grid grid-cols-3 gap-3 text-center mb-3">
         <div class="bg-white p-2.5 rounded-lg border border-slate-200">
           <div class="text-[10px] text-slate-500 uppercase">DTB HK1 (10)</div>
@@ -1531,7 +1532,7 @@ export function openStudentProfileModal(studentId, options = {}) {
         <div>Trình độ ngoại ngữ: <strong>${student.currentLangLevel || 'Chưa đạt'}</strong></div>
         <div>Học phần rớt (&lt; 4.0): ${debts.length > 0 ? `<span class="text-rose-600 font-bold">⚠️ ${debts.map(d => formatFailedSubjectItem(d.subject)).join(', ')}</span>` : '<span class="text-emerald-600 font-bold">✅ Đạt 100% học phần</span>'}</div>
       </div>
-    `;
+    `);
   }
 
   switchProfileSubtab('subtab-personal');

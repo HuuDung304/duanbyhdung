@@ -1,3 +1,4 @@
+import { sanitizeHTML } from '../safe-html.js';
 /** Bento dashboard: presentation only. All academic rules and persistence stay in grades.js. */
 import './expanding-rail.js';
 import {
@@ -37,11 +38,11 @@ if (grid) {
 const arrowSvg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 18 18 6M6 6h12v12"/></svg>';
 document.querySelectorAll('.bento-text-button,.bento-outline-button,.bento-round-icon').forEach(element => {
   element.textContent = element.textContent.replace('↗', '').trim();
-  element.insertAdjacentHTML('beforeend', arrowSvg);
+  element.insertAdjacentHTML('beforeend', sanitizeHTML(arrowSvg));
 });
 const metrics = document.querySelectorAll('.bento-metric-icon');
-if (metrics[0]) metrics[0].innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3"/><path d="M5 21v-3a7 7 0 0 1 14 0v3M18 4a3 3 0 0 1 0 6"/></svg>';
-if (metrics[1]) metrics[1].innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h16M7 16v-4m5 4V8m5 8V4"/></svg>';
+if (metrics[0]) metrics[0].innerHTML = sanitizeHTML('<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3"/><path d="M5 21v-3a7 7 0 0 1 14 0v3M18 4a3 3 0 0 1 0 6"/></svg>');
+if (metrics[1]) metrics[1].innerHTML = sanitizeHTML('<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h16M7 16v-4m5 4V8m5 8V4"/></svg>');
 const root = document.querySelector('.u040');
 if (root) {
   root.classList.add('bento-shell');
@@ -60,7 +61,7 @@ if (root) {
   root.querySelector('nav')?.append(footer);
   const heading = root.querySelector('.u040-page-heading');
   const toolbar = node('div', 'bento-toolbar');
-  toolbar.innerHTML = '<div class="bento-search-wrap"><label class="bento-search"><span aria-hidden="true">⌕</span><input id="bentoSearch" type="search" placeholder="Tìm quân nhân, mã HV, môn học…" autocomplete="off" aria-label="Tìm kiếm quân nhân, mã học viên, môn học" aria-controls="bentoSearchResults" aria-expanded="false"></label><div id="bentoSearchResults" class="bento-search-results" hidden></div></div><details class="bento-quick"><summary>＋ Thao tác nhanh</summary><div id="bentoQuickMenu"></div></details><button type="button" class="bento-icon-button" data-bento-tab="tab-audit" aria-label="Xem nhật ký hoạt động" title="Nhật ký hoạt động"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg></button>';
+  toolbar.innerHTML = sanitizeHTML('<div class="bento-search-wrap"><label class="bento-search"><span aria-hidden="true">⌕</span><input id="bentoSearch" type="search" placeholder="Tìm quân nhân, mã HV, môn học…" autocomplete="off" aria-label="Tìm kiếm quân nhân, mã học viên, môn học" aria-controls="bentoSearchResults" aria-expanded="false"></label><div id="bentoSearchResults" class="bento-search-results" hidden></div></div><details class="bento-quick"><summary>＋ Thao tác nhanh</summary><div id="bentoQuickMenu"></div></details><button type="button" class="bento-icon-button" data-bento-tab="tab-audit" aria-label="Xem nhật ký hoạt động" title="Nhật ký hoạt động"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg></button>');
   heading?.append(toolbar);
   const auth = $('authStatusPill')?.parentElement;
   if (auth) { auth.classList.add('bento-account'); toolbar.append(auth); }
@@ -173,7 +174,7 @@ export function renderBentoDashboard() {
   $('bentoActivity').replaceChildren(...logs.map(log => {
     const row = node('div', 'bento-log'); const info = node('div', '');
     info.append(node('strong', '', log.actor || 'Người dùng hệ thống'), node('p', '', `${log.student || ''} · ${log.subject || log.reason || 'Cập nhật dữ liệu'}`), node('small', '', `${log.timestamp || ''} · ${log.oldVal ?? ''} → ${log.newVal ?? ''}`));
-    const mark = node('span', 'bento-log-dot'); mark.innerHTML = arrowSvg; row.append(mark, info); return row;
+    const mark = node('span', 'bento-log-dot'); mark.innerHTML = sanitizeHTML(arrowSvg); row.append(mark, info); return row;
   }));
   if (!logs.length) $('bentoActivity').append(node('div', 'bento-empty', 'Chưa có hoạt động được ghi nhận trong phạm vi này.'));
   const values = semesterData(students);

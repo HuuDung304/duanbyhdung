@@ -1,3 +1,4 @@
+import { sanitizeHTML } from './safe-html.js';
 import { calendarDate, parentBirthYear, readParentYear, politicalDates, assertDatabaseWriteAllowed } from './profile-rules.js';
 
 /**
@@ -78,7 +79,7 @@ export async function withButtonLock(btnOrId, loadingText = '⏳ Đang xử lý.
       btn.disabled = wasDisabled;
       btn.removeAttribute('aria-busy');
       btn.classList.remove('opacity-70', 'cursor-not-allowed');
-      btn.innerHTML = originalHtml;
+      btn.innerHTML = sanitizeHTML(originalHtml);
     }
   }
 }

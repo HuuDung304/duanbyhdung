@@ -1,3 +1,4 @@
+import { sanitizeHTML } from '../safe-html.js';
 // Lucian UX/UI Prompt #040 · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/#040
 
 /** Enhance the existing navigation without replacing application buttons or handlers. */
@@ -18,13 +19,13 @@ export function mountExpandingRail(nav, main) {
 
   const top = document.createElement('div');
   top.className = 'u040-top';
-  top.innerHTML = '<span class="u040-logo" aria-hidden="true"></span><span class="u040-name">Đại đội 460</span>';
+  top.innerHTML = sanitizeHTML('<span class="u040-logo" aria-hidden="true"></span><span class="u040-name">Đại đội 460</span>');
   const toggle = document.createElement('button');
   toggle.className = 'u040-tog';
   toggle.type = 'button';
   toggle.setAttribute('aria-expanded', 'false');
   toggle.setAttribute('aria-label', 'Mở rộng menu');
-  toggle.innerHTML = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5L10.5 8 6 12.5"/></svg>';
+  toggle.innerHTML = sanitizeHTML('<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5L10.5 8 6 12.5"/></svg>');
 
   const buttons = [...nav.querySelectorAll('.nav-tab')];
   const oldContainer = buttons[0]?.parentElement;
@@ -58,11 +59,11 @@ export function mountExpandingRail(nav, main) {
 
   const profile = document.createElement('div');
   profile.className = 'u040-me';
-  profile.innerHTML = '<i aria-hidden="true"></i><span><b></b><small></small></span>';
+  profile.innerHTML = sanitizeHTML('<i aria-hidden="true"></i><span><b></b><small></small></span>');
   nav.prepend(top, toggle, list, profile);
   const heading = document.createElement('div');
   heading.className = 'u040-page-heading';
-  heading.innerHTML = '<small>Đại đội 460</small><h2 aria-live="polite" aria-atomic="true"></h2>';
+  heading.innerHTML = sanitizeHTML('<small>Đại đội 460</small><h2 aria-live="polite" aria-atomic="true"></h2>');
   main.prepend(heading);
   const title = heading.querySelector('h2');
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');

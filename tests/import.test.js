@@ -13,7 +13,7 @@ function supabase(file, handler = () => new Response('[]')) {
   source = source.replace(/^export default .*;$/gm, '').replace(/^export /gm, '');
   const timers = new Set();
   const requests = [];
-  const context = vm.createContext({
+  const context = vm.createContext({ sanitizeHTML: value => String(value), escapeHTML: value => String(value),
     console: { warn() {}, error() {} }, URL, Date, TextEncoder,
     fetch: async (url, options) => {
       const request = { url: new URL(url), options };
@@ -104,7 +104,7 @@ function importContext(file = 'src/js/grades.js', overrides = {}) {
   const button = { disabled: false, textContent: 'Nhập', attributes: {}, setAttribute(key,value) { this.attributes[key]=value; }, removeAttribute(key) { delete this.attributes[key]; } };
   const messages = [];
   const writes = [];
-  const context = vm.createContext({
+  const context = vm.createContext({ sanitizeHTML: value => String(value), escapeHTML: value => String(value),
     structuredClone, console: { error() {} },
     document: { getElementById: () => button },
     AppState: { role: 'admin', currentSheetClass: 'OTQS1', currentSheetSemester: 1, students: [], subjects: [], grades: {}, languages: {} },
@@ -163,7 +163,7 @@ for (const variant of ['src/js/students.js']) {
     const start = source.indexOf('function detectExcelColumnMapping(');
     const end = source.indexOf('function handleQuickImportFileUpload(', start);
     const code = source.slice(start, end).replace(/export\s*$/, '');
-    const context = vm.createContext({});
+    const context = vm.createContext({ sanitizeHTML: value => String(value), escapeHTML: value => String(value),});
     vm.runInContext(code, context);
     const map = context.detectExcelColumnMapping(['Mã HV', 'Họ và Tên', 'SĐT']);
     assert.equal(map.phone, 2);
@@ -239,7 +239,7 @@ for (const variant of ['src/js/grades.js']) {
     let finishRead;
     let reads = 0;
     const applied = [];
-    const context = vm.createContext({
+    const context = vm.createContext({ sanitizeHTML: value => String(value), escapeHTML: value => String(value),
       document: { getElementById: () => null },
       console, CloudSync: {}, AppState: {},
       SUPABASE_URL: 'fixture', SUPABASE_KEY: 'fixture', initSupabaseClient() {},
@@ -267,7 +267,7 @@ for (const variant of ['src/js/grades.js']) {
     const end = source.indexOf('// --- 4.', start);
     const span = {};
     const toast = { querySelector: () => span };
-    const context = vm.createContext({
+    const context = vm.createContext({ sanitizeHTML: value => String(value), escapeHTML: value => String(value),
       document: { getElementById: () => ({ appendChild() {} }), createElement: () => toast },
       setTimeout() {},
     });
@@ -394,7 +394,7 @@ function profileContext(rows, setupState) {
     { id: 'hv_b', code: 'HV02', name: 'Trùng tên', class: 'OTQS2', phone: 'old2' },
   ] };
   if (setupState) setupState(state);
-  const context = vm.createContext({
+  const context = vm.createContext({ sanitizeHTML: value => String(value), escapeHTML: value => String(value),
     structuredClone, console, calendarDate, parentBirthYear, politicalDates, AppState: state, DEFAULT_CLASSES: ['OTQS1', 'OTQS2'], POLITICAL_BADGES: {},
     document: { getElementById(id) {
       if (!elements.has(id)) elements.set(id, { disabled: false, classList: { add() {}, remove() {} }, setAttribute() {}, removeAttribute() {} });

@@ -1,3 +1,4 @@
+import { sanitizeHTML } from './safe-html.js';
 /**
  * MODULE: src/js/auth.js
  * Quản lý Xác thực, Trang đăng nhập riêng biệt (No Autocomplete) & Phân quyền RBAC
@@ -133,7 +134,7 @@ export function enforceClassIsolationOnSelectors() {
     if (!el) return;
 
     if (classScope) {
-      el.innerHTML = `<option value="${classScope}">Lớp ${classScope}</option>`;
+      el.innerHTML = sanitizeHTML(`<option value="${classScope}">Lớp ${classScope}</option>`);
       el.value = classScope;
       el.disabled = true;
     } else {
@@ -144,7 +145,7 @@ export function enforceClassIsolationOnSelectors() {
         html += `<option value="all">${cfg.allLabel}</option>`;
       }
       html += DEFAULT_CLASSES.map(c => `<option value="${c}">Lớp ${c}</option>`).join('');
-      el.innerHTML = html;
+      el.innerHTML = sanitizeHTML(html);
       if (currentVal && (currentVal === 'all' || DEFAULT_CLASSES.includes(currentVal))) {
         el.value = currentVal;
       } else if (cfg.id === 'sheetClassSelect') {

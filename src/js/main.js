@@ -1,3 +1,4 @@
+import { sanitizeHTML } from './safe-html.js';
 import { syncReportExportScope, requestReportOptions } from './components/report-center.js';
 import { requestDestructiveConfirmation } from './components/destructive-confirm.js';
 import { installOfficerReadOnlyGuard } from './access-controls.js';
@@ -367,7 +368,7 @@ export function openAddCadetModal() {
   const classScope = getCurrentUserClassScope();
   const clsSelect = document.getElementById('newCadetClass');
   if (clsSelect && classScope) {
-    clsSelect.innerHTML = `<option value="${classScope}">Lớp ${classScope}</option>`;
+    clsSelect.innerHTML = sanitizeHTML(`<option value="${classScope}">Lớp ${classScope}</option>`);
     clsSelect.value = classScope;
     clsSelect.disabled = true;
   } else if (clsSelect) {
