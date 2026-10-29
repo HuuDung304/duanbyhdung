@@ -75,7 +75,7 @@ export function mountExpandingRail(nav, main) {
   function syncNavigation() {
     root.hidden = nav.classList.contains('hidden') || nav.style.display === 'none';
     const visible = visibleButtons();
-    const active = visible.find(button => button.classList.contains('active')) || visible[0];
+    const active = visible.find(button => button.classList.contains('active')) || (document.querySelector('.nav-tab[data-tab="tab-preferences"].active') ? null : visible[0]);
     buttons.forEach(button => {
       const label = button.querySelector('span').textContent.trim();
       button.setAttribute('aria-label', label);

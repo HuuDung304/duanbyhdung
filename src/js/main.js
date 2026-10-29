@@ -817,11 +817,11 @@ function openQuickImportModal() {
 }
 
 /**
- * Mở Modal Cấu hình Đồng bộ Đám mây Supabase
+ * Mở phần kết nối trong Cài đặt tài khoản
  */
 function openCloudModal() {
   updateShareLinksInModal();
-  showModal('modalCloudSync');
+  switchTab('tab-preferences');
 }
 
 /**

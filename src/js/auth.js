@@ -182,7 +182,7 @@ export function handleRoleChange(newRole) {
   const leaderAllowedElements = document.querySelectorAll('.leader-allowed');
 
   // Mở khóa mục "Báo cáo giao ban" (tab-dashboard) cho 5 Tài khoản Lớp
-  const restrictedTabsForStudent = ['tab-master', 'tab-dashboard', 'tab-languages', 'tab-audit', 'tab-settings', 'tab-cumulative'];
+  const restrictedTabsForStudent = ['tab-master', 'tab-dashboard', 'tab-languages', 'tab-audit', 'tab-settings', 'tab-preferences', 'tab-cumulative'];
   const restrictedTabsForClassAccount = ['tab-master'];
 
   syncNavigationTabLabels(newRole);
@@ -336,7 +336,7 @@ export function switchTab(targetTabId) {
   if (!targetTabId) targetTabId = 'tab-sheet';
   closeCadetDetailPage(true);
 
-  const restrictedTabsForStudent = ['tab-master', 'tab-dashboard', 'tab-languages', 'tab-audit', 'tab-settings', 'tab-cumulative'];
+  const restrictedTabsForStudent = ['tab-master', 'tab-dashboard', 'tab-languages', 'tab-audit', 'tab-settings', 'tab-preferences', 'tab-cumulative'];
   const restrictedTabsForClassAccount = ['tab-master'];
 
   if (AppState.role === 'student' && restrictedTabsForStudent.includes(targetTabId)) {

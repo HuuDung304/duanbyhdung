@@ -2,7 +2,7 @@
 export function createDashboardReports(context) {
   function renderDashboard() {
     const elTotal = document.getElementById('statTotalCadets');
-    if (!elTotal) return;
+    if (!document.getElementById('tab-dashboard')) return;
 
     if (!context.AppState.dashboardFilters) {
       context.AppState.dashboardFilters = { mode: 'course', semester: 1, year: 1, class: 'all' };
@@ -46,7 +46,7 @@ export function createDashboardReports(context) {
     context.renderDashboardLanguageSummary();
 
     // Cập nhật 4 thẻ KPI tổng quan trên đầu Báo cáo giao ban
-    elTotal.textContent = overviewStats.totalCadets;
+    if (elTotal) elTotal.textContent = overviewStats.totalCadets;
     const elScopeSub = document.getElementById('statScopeSubtitle');
     if (elScopeSub) {
       elScopeSub.textContent = `${classScope ? 'Lớp ' + classScope : 'Toàn Đại đội 460 (5 lớp)'} • Tích lũy từ đầu khóa đến nay`;
@@ -83,7 +83,9 @@ export function createDashboardReports(context) {
     }
 
     const elDebtCount = document.getElementById('statDebtCount');
-    if (elDebtCount) elDebtCount.textContent = `${overviewStats.debtStudentCount} (${overviewStats.debtStudentRate}%)`;
+    if (elDebtCount) elDebtCount.textContent = overviewStats.debtStudentCount;
+    const debtRate = document.getElementById('statDebtRate');
+    if (debtRate) debtRate.textContent = `${overviewStats.debtStudentRate}% quân số`;
     const elDebtFails = document.getElementById('statDebtTotalFails');
     if (elDebtFails) elDebtFails.textContent = overviewStats.totalDebtFailsCount;
 
@@ -284,6 +286,7 @@ export function createDashboardReports(context) {
     // BẢNG 3: DANH SÁCH HỌC VIÊN RỚT MÔN (THI LẠI / NỢ HỌC PHẦN) CẦN BỒI DƯỠNG
     // =========================================================================
     renderDebtCadetsSection();
+    context.ExternalHooks?.renderWorkspaceReports?.();
   }
 
   function renderDebtCadetsSection(debtCadetsList = null, failedCourseDetailsList = null) {

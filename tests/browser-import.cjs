@@ -61,6 +61,7 @@ const assert=require('node:assert/strict');
  assert.deepEqual(tables.grades.map(g=>g.score).sort(),[3.99,4]);assert.deepEqual(errors,[]);
  for(const page of pages){
   await page.evaluate(()=>window.switchTab('tab-dashboard'));
+  await page.getByRole('tab',{name:'Xếp loại điểm tích lũy',exact:true}).click();
   assert.match(await page.locator('#reportCompanyTableBody').innerText(),/Trung bình khá/);
   assert.match(await page.locator('#reportCompanyTableBody').innerText(),/Yếu/);
   assert.equal(await page.locator('#masterFilterRank option').count(),8);

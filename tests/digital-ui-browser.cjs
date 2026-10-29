@@ -47,7 +47,7 @@ const {chromium}=require('playwright');const fs=require('node:fs');const assert=
    await page.evaluate(async()=>{window.digitalInput=document.getElementById('profFormName');const {updateAllViews}=await import(new URL('./src/js/grades.js',document.baseURI).href);updateAllViews();});
    assert.equal(await page.locator('#profFormName').inputValue(),'Giữ nguyên nội dung đang nhập');assert.equal(await page.evaluate(()=>window.digitalInput===document.getElementById('profFormName')),true);
    await page.locator('#modalStudentProfile .modal-close').first().click();
-   await page.evaluate(()=>window.switchTab('tab-settings'));await page.locator('#settingsDangerZone summary').click();
+   await page.evaluate(()=>window.switchTab('tab-preferences'));await page.locator('#settingsDangerZone summary').click();
    assert.equal(await page.locator('#btnClearAllSubjectsBtn').evaluate(e=>getComputedStyle(e).backgroundColor),'rgb(255, 241, 242)');
    assert.equal(await page.locator('#btnClearAllSubjectsBtn').evaluate(e=>getComputedStyle(e).color),'rgb(190, 18, 60)');
    await page.locator('#btnClearAllSubjectsBtn').click();assert.equal(await page.locator('.danger-confirm [data-confirm]').isDisabled(),true);await page.keyboard.press('Escape');

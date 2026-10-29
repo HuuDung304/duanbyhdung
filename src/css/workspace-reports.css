@@ -1,0 +1,54 @@
+/* Report workspace: concise sections, aligned metrics and independent account settings. */
+body.workspace-reports .u040-page-heading,body.workspace-reports #bentoDashboard{display:none!important}
+body.workspace-reports .bento-shell .u040-main{padding-top:26px}
+body.workspace-reports #tab-dashboard .digital-report-banner .report-intro,body.workspace-reports #tab-dashboard .digital-report-banner .report-policy,body.workspace-reports #tab-dashboard .digital-report-banner .text-gold-600{display:none}
+body.workspace-reports #tab-dashboard .digital-report-banner h3{text-transform:none;font-size:23px}
+body.workspace-reports #dashboardKpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+body.workspace-reports #dashboardKpis>div{min-height:205px;padding:24px;display:flex;flex-direction:column;align-items:stretch;gap:10px;background:#fff;border:1px solid #e2e8f0;border-radius:22px}
+body.workspace-reports #dashboardKpis>div>div:first-child{font-size:13px;font-weight:750;line-height:1.5;min-height:40px;text-transform:none;letter-spacing:0;color:#475569}
+body.workspace-reports #dashboardKpis #statGoodRate{font-size:36px;line-height:1.2;margin:0;font-variant-numeric:tabular-nums}
+body.workspace-reports #dashboardKpis .language-kpi-values{margin:0;gap:16px}
+body.workspace-reports #dashboardKpis .language-kpi-values>div>span:first-child{display:block;font-size:32px;font-weight:800;line-height:1.35;font-variant-numeric:tabular-nums}
+body.workspace-reports #dashboardKpis :is(#statGoodCount,#statLanguageDetail){margin-top:auto;font-size:13px;color:#475569;line-height:1.6}
+body.workspace-reports .workspace-debt-values{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+body.workspace-reports .workspace-debt-values>div>span:first-child{display:block;font-size:32px;line-height:1.35;font-weight:800;font-variant-numeric:tabular-nums;color:#be123c}
+body.workspace-reports .workspace-stat-label{display:block;font-size:13px;color:#475569;font-weight:650}
+body.workspace-reports #statDebtRate{font-size:13px;margin-top:auto;color:#475569}
+.workspace-report-tabs{position:relative;isolation:isolate;display:flex;gap:6px;overflow-x:auto;scroll-behavior:smooth;padding:6px;background:#eaf0f8;border:1px solid #dce4f0;border-radius:16px;scrollbar-width:thin;-webkit-overflow-scrolling:touch}
+.workspace-report-tab{position:relative;z-index:1;flex:1;white-space:nowrap;min-height:46px;padding:10px 18px;border:0;border-radius:12px;background:transparent;color:#475569;font-size:14px;font-weight:700;cursor:pointer}
+.workspace-report-tab[aria-selected="true"]{color:#1d4ed8}
+.workspace-tab-indicator{position:absolute;top:6px;bottom:6px;left:0;border:1px solid #dbeafe;border-radius:12px;background:#fff;box-shadow:0 2px 8px #1e40af0a;transition:transform .32s cubic-bezier(.22,1,.36,1),width .32s cubic-bezier(.22,1,.36,1);pointer-events:none}
+.workspace-report-panel[hidden]{display:none!important}
+.workspace-report-panel:not([hidden]){display:flex;flex-direction:column;gap:20px;animation:workspace-panel-in .24s cubic-bezier(.22,1,.36,1)}
+.workspace-report-panel>article,.workspace-report-panel>div{background:#fff;border:1px solid #e2e8f0;border-radius:22px;overflow:hidden}
+.workspace-report-panel .overflow-x-auto,.workspace-table-scroll{overflow:auto;max-height:70dvh;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.workspace-report-panel :is(h3,h4){font-size:18px!important;line-height:1.5;font-weight:800;text-transform:none!important;color:#1e293b}
+.workspace-report-panel .language-summary-head,.workspace-table-heading{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;padding:20px 22px}
+body.workspace-reports #dashboardLanguageSummary{padding:0}
+body.workspace-reports #dashboardLanguageSummary .language-summary-head p,body.workspace-reports #dashboardOverviewScope{display:none}
+body.workspace-reports .workspace-report-panel>div>div:first-child{padding:20px 22px;background:#f8fafc}
+.workspace-report-panel table{width:100%;border-collapse:separate;border-spacing:0;font-size:14px}
+.workspace-report-panel th,.workspace-report-panel td{padding:13px 16px;border-bottom:1px solid #e2e8f0;border-right:1px solid #eef2f7;vertical-align:middle}
+.workspace-report-panel thead{position:sticky;top:0;z-index:10}
+.workspace-report-panel th{background:#f1f5f9;font-weight:750;color:#1e293b;white-space:nowrap}
+.workspace-report-panel td{font-variant-numeric:tabular-nums}
+.workspace-table-heading label{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:650}
+.workspace-table-heading select{padding:10px 12px;border:1px solid #cbd5e1;border-radius:12px;background:#fff}
+.workspace-table-count{font-size:13px;color:#64748b}
+.workspace-empty{text-align:center;padding:32px!important;color:#64748b}
+.workspace-page-title{font-size:26px;font-weight:800;color:#0f172a;margin-bottom:20px}
+.workspace-settings-card{background:#fff;border:1px solid #e2e8f0;border-radius:22px;overflow:hidden}
+.workspace-settings-card>h3{font-size:18px;font-weight:800;padding:22px}
+body.workspace-reports #sidebarAccountMenu .account-settings{display:block;width:100%;text-align:left;padding:12px;border:1px solid #dbeafe;border-radius:12px;margin-bottom:8px;background:#eff6ff;color:#1d4ed8;font-size:14px;font-weight:700}
+.workspace-report-tab:focus-visible{outline:2px solid #2563eb;outline-offset:-3px}
+@keyframes workspace-panel-in{from{opacity:0;transform:translateX(8px)}to{opacity:1;transform:translateX(0)}}
+@media(max-width:900px){body.workspace-reports #dashboardKpis{gap:12px}body.workspace-reports #dashboardKpis>div{padding:18px}}
+@media(max-width:640px){body.workspace-reports .bento-shell .u040-main{padding-top:14px}body.workspace-reports #dashboardKpis{grid-template-columns:1fr}body.workspace-reports #dashboardKpis>div{min-height:0;gap:10px}body.workspace-reports #dashboardKpis>div>div:first-child{min-height:0}.workspace-report-tab{flex:none;padding:10px 14px;font-size:13px}.workspace-report-panel :is(h3,h4){font-size:17px!important}.workspace-report-panel th,.workspace-report-panel td{padding:12px;white-space:nowrap}.workspace-report-panel table{min-width:620px}.workspace-table-heading,.workspace-report-panel .language-summary-head{padding:16px}.workspace-settings-card>h3{padding:18px}}
+@media(prefers-reduced-motion:reduce){.workspace-tab-indicator{transition:none}.workspace-report-tabs{scroll-behavior:auto}.workspace-report-panel:not([hidden]){animation:none}}
+@media print{.workspace-report-tabs{display:none}.workspace-report-panel[hidden]{display:block!important}.workspace-report-panel{animation:none!important}.workspace-report-panel .overflow-x-auto,.workspace-table-scroll{max-height:none;overflow:visible}}
+body.workspace-reports #tab-preferences .cloud-subtab{font-size:14px;white-space:nowrap;min-height:44px}
+body.workspace-reports #tab-preferences .cloud-subtab[aria-selected="true"]{background:#eff6ff;color:#1d4ed8;border-bottom-color:#2563eb}
+body.workspace-reports #tab-preferences #cloudtab-manual input{display:block;width:100%;margin-top:10px;padding:12px;border:1px solid #cbd5e1;border-radius:12px;color:#334155;background:#f8fafc}
+body.workspace-reports #tab-preferences #cloudtab-config>.pt-3{flex-wrap:wrap;gap:12px}
+body.workspace-reports #tab-preferences #cloudtab-config>.pt-3>div{flex-wrap:wrap}
+@media(max-width:640px){body.workspace-reports #tab-preferences #cloudtab-config>.grid{grid-template-columns:1fr}}

@@ -14,16 +14,11 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
    await page.emulateMedia({reducedMotion:'reduce'});
    await page.locator('.u040-it[data-tab="tab-sheet"]').click();
    await page.waitForFunction(()=>document.querySelector('.readable-data-table'));
-   const options=page.locator('#toolbarOptions');
-   assert.equal(await options.evaluate(e=>e.open),width>640);
+   assert.equal(await page.locator('.u040-page-heading').isVisible(),false);
    assert.equal(await page.locator('.u040-page-heading').evaluate(e=>e.getBoundingClientRect().height<150),true);
    if(width<640){
     assert.equal(await page.locator('#sheetAdvancedControls').evaluate(e=>e.open),false);
     assert.ok((await page.locator('#classSpreadsheetWrapper').boundingBox()).y<650);
-    await options.locator('summary').first().click();
-    assert.equal(await page.locator('.bento-quick').isVisible(),true);
-    await page.keyboard.press('Escape');
-    assert.equal(await options.evaluate(e=>e.open),false);
     await page.locator('#sheetAdvancedControls>summary').click();
    }
    assert.equal(await page.locator('#btnSheetScale4').isVisible(),true);
@@ -37,23 +32,10 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
    await page.locator('#sheetInstructionBanner>summary').click();
    assert.match(await page.locator('#sheetInstructionBanner').innerText(),/Enter/);
    await page.locator('.u040-it[data-tab="tab-dashboard"]').click();
-   assert.equal(await page.locator('.report-policy').evaluate(e=>e.open),false);
-   assert.match(await page.locator('#statAvgGPASub').innerText(),/N2: —/);
-   await page.locator('.report-policy>summary').click();
-   assert.equal(await page.locator('#reportClassificationPolicy').isVisible(),true);
-   await page.evaluate(async()=>{
-    const {renderDashboard}=await import(new URL('./src/js/grades.js',document.baseURI).href);
-    window.AppState.grades={};renderDashboard();
-   });
-   assert.equal(await page.locator('#statAvgGPA').innerText(),'—');
-   await page.evaluate(async()=>{
-    const {renderDashboard}=await import(new URL('./src/js/grades.js',document.baseURI).href);
-    window.AppState.grades={s1:{math:0}};renderDashboard();
-   });
-   assert.equal(await page.locator('#statAvgGPA').innerText(),'0.00');
+   assert.equal(await page.locator('#dashboardKpis>div').count(),3);
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
    assert.deepEqual(errors,[]);
-   console.log(`PASS: ${width}px compact controls, keyboard disclosures, pinned identity, grade absence versus zero, responsive layout`);
+   console.log(`PASS: ${width}px compact controls, keyboard disclosures, pinned identity, responsive layout`);
    await context.close();
   }
  } finally {await browser.close();}
