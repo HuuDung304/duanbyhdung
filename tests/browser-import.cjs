@@ -16,6 +16,7 @@ const assert=require('node:assert/strict');
    if(url.hostname==='cdn.tailwindcss.com')return route.fulfill({contentType:'text/javascript',body:'window.tailwind={};'});
    if(url.hostname==='cdn.jsdelivr.net'&&url.pathname.includes('/xlsx@'))return route.fulfill({contentType:'text/javascript',body:fs.readFileSync(require.resolve('xlsx/dist/xlsx.full.min.js'))});
    if(url.hostname.endsWith('.supabase.co')){
+    if(url.pathname.includes('/rpc/')) return route.fulfill({status:404,json:{code:'PGRST202',message:'RPC not installed in this legacy fixture'},headers:{'access-control-allow-origin':'*'}});
     const table=url.pathname.split('/').pop();let rows=tables[table]||[];
     if(request.method()==='POST'){
      let incoming=request.postDataJSON();incoming=Array.isArray(incoming)?incoming:[incoming];
@@ -37,6 +38,14 @@ const assert=require('node:assert/strict');
   await page.waitForFunction(()=>window.AppState?.role==='admin');
   return page;
  }
+ async function confirmImport(page) {
+  await page.getByRole('button',{name:'Xác nhận nhập',exact:true}).click();
+  await page.getByRole('dialog',{name:'Chưa cài giao dịch Supabase'}).getByRole('button',{name:'Xác nhận nhập',exact:true}).click();
+  const result=page.getByRole('dialog',{name:/Kết quả nhập/});
+  await result.waitFor();
+  assert.match(await result.innerText(),/0 thất bại/);
+  await result.getByRole('button',{name:'Đóng',exact:true}).click();
+ }
  const pages=await Promise.all([newPage(),newPage()]);
  const file=(code,subject,score)=>{const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['Mã HV','Họ và Tên','Lớp',subject],[code,'Học viên kiểm thử','OTQS1',score]]),'Diem');return {name:'Diem_OTQS1_Nam_1.xlsx',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',buffer:XLSX.write(wb,{type:'buffer',bookType:'xlsx'})};};
  await Promise.all(pages.map(async(p,i)=>{
@@ -44,6 +53,7 @@ const assert=require('node:assert/strict');
   await p.locator('#excelFileInput').setInputFiles(file('HVTEST',i?'Vật lý':'Toán',i?'4,00':'3,99'));
   await p.waitForFunction(()=>!document.getElementById('btnConfirmImport').disabled);
   await p.locator('#btnConfirmImport').dispatchEvent('click');
+  await confirmImport(p);
   await p.waitForFunction(()=>document.getElementById('modalImportExcel').getAttribute('aria-hidden')==='true' && !document.getElementById('btnConfirmImport').disabled);
   assert.match(await p.locator('#classSpreadsheetWrapper').innerText(),/HVTEST/);
  }));
@@ -51,7 +61,7 @@ const assert=require('node:assert/strict');
  assert.deepEqual(tables.grades.map(g=>g.score).sort(),[3.99,4]);assert.deepEqual(errors,[]);
  for(const page of pages){
   await page.evaluate(()=>window.switchTab('tab-dashboard'));
-  assert.doesNotMatch(await page.locator('#reportCompanyTableBody').innerText(),/Trung bình khá/);
+  assert.match(await page.locator('#reportCompanyTableBody').innerText(),/Trung bình khá/);
   assert.match(await page.locator('#reportCompanyTableBody').innerText(),/Yếu/);
   assert.equal(await page.locator('#masterFilterRank option').count(),8);
  }
@@ -65,6 +75,7 @@ const assert=require('node:assert/strict');
   await profilePage.locator('#quickImportFileInput').setInputFiles({name:'HoSo.xlsx',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',buffer:XLSX.write(wb,{type:'buffer',bookType:'xlsx'})});
   await profilePage.waitForFunction(()=>!document.getElementById('btnExecuteQuickImport').disabled);
   await profilePage.locator('#btnExecuteQuickImport').dispatchEvent('click');
+  await confirmImport(profilePage);
   await profilePage.waitForFunction(()=>document.getElementById('modalQuickImportExcel').getAttribute('aria-hidden')==='true');
  };
  await uploadProfiles([['HVPROFILE1','Nguyễn Văn A','OTQS1','0900000001'],['HVPROFILE2','Nguyễn Văn A','OTQS2','0900000002']]);

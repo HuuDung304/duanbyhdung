@@ -1,9 +1,10 @@
+import { academicFixtureSource } from './module-source-helper.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 
-const source = readFileSync(new URL('../src/js/grades.js', import.meta.url), 'utf8');
+const source = academicFixtureSource();
 function declaration(name) {
   const start = source.search(new RegExp(`^export (?:const|(?:async )?function) ${name}\\b`, 'm'));
   assert.ok(start >= 0, name);

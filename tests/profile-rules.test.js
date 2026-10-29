@@ -1,3 +1,4 @@
+import { databaseFixtureSource } from './module-source-helper.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -45,12 +46,12 @@ test('political status defaults and clears irrelevant dates; membership requires
 
 function database(role = 'admin') {
   const rules = readFileSync('src/js/profile-rules.js', 'utf8').replace(/^export /gm, '');
-  const source = readFileSync('src/js/supabase.js', 'utf8').replace(/^import .*?;\n/gm, '').replace(/^export default.*$/gm, '').replace(/^export /gm, '');
+  const source = databaseFixtureSource().replace(/^import .*?;\n/gm, '').replace(/^export default.*$/gm, '').replace(/^export /gm, '');
   const requests = [];
   const context = vm.createContext({ AppState: { role }, TextEncoder, Date, setTimeout, clearTimeout,
     fetch: async (url, options) => { requests.push({ url, options }); return new Response(null, { status: 204 }); },
   });
-  const writes = [...readFileSync('src/js/supabase.js', 'utf8').matchAll(/^export async function ((?:upsert|delete)\w+|saveUnitSettingsToSupabase)\(/gm)].map(match => match[1]);
+  const writes = [...databaseFixtureSource().matchAll(/^export async function ((?:upsert|delete)\w+|saveUnitSettingsToSupabase)\(/gm)].map(match => match[1]);
   vm.runInContext(rules + '\n' + source + `\nglobalThis.api={mapStudentToDbRow,mapDbRowToStudent,mapLanguageToDbRow,${writes.join(',')}};`, context);
   return { context, requests, api: context.api, writes };
 }

@@ -1,3 +1,4 @@
+import { databaseFixtureSource } from './module-source-helper.js';
 import { calendarDate, parentBirthYear, politicalDates } from '../src/js/profile-rules.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -6,7 +7,7 @@ import vm from 'node:vm';
 
 const variants = ['src/js/supabase.js'];
 function supabase(file, handler = () => new Response('[]')) {
-  let source = readFileSync(file, 'utf8');
+  let source = file.endsWith('supabase.js') ? databaseFixtureSource() : readFileSync(file, 'utf8');
   source = source.replace(/^import .*?;\n/gm, '');
   const rules = readFileSync('src/js/profile-rules.js', 'utf8').replace(/^export /gm, '');
   source = rules + '\n' + source;

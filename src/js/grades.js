@@ -1,31 +1,15 @@
+import { createGradeCalculations } from './academic/calculations.js';
+import { createTranscript } from './academic/transcript.js';
+import { createReportStatistics } from './reports/statistics.js';
+import { createDashboardReports } from './reports/dashboard.js';
+import { createReportExports } from './reports/exports.js';
 import { reviewImport } from './components/import-review.js';
 import { sanitizeHTML, escapeHTML } from './safe-html.js';
 import { RANKING_HEADERS, rankingTableRows } from './academic-ranking.js';
 import { buildClassTranscript } from './class-transcript.js';
-import { studentBirthYear, collectLanguageStatistics, failedStudentExportRows } from './dashboard-statistics.js';
+import { collectLanguageStatistics, failedStudentExportRows } from './dashboard-statistics.js';
 import { writeReportWorkbook } from './report-workbook.js';
 import { requestDestructiveConfirmation } from './components/destructive-confirm.js';
-/**
- * MODULE: src/js/grades.js
- * Quản lý Kho dữ liệu (AppState & localStorage), Phân loại Môn học (Môn chung & Môn chuyên ngành),
- * Bảng điểm Lớp theo Năm học (Năm 1 -> Năm 5), Bảng điểm cuộn dọc cho Học viên,
- * Điểm tích lũy (DTB HK1 (10), DTB HKII (10), Ngoại ngữ hiện tại),
- * Tổng hợp Toàn Đại đội (Lọc theo kỳ), Báo cáo giao ban (Rớt < 4.0 định dạng [Tên môn] ([Số tín chỉ] TC)).
- */
-
-export const ExternalHooks = {
-  renderBentoDashboard: null,
-  renderProfilesTable: null,
-  renderStudentView: null,
-  handleRoleChange: null,
-  openStudentProfileModal: null,
-  openCadetDetailPage: null
-};
-
-export function registerExternalHooks(hooks = {}) {
-  Object.assign(ExternalHooks, hooks);
-}
-
 import {
   SUPABASE_CONFIG,
   SUPABASE_URL,
@@ -50,6 +34,134 @@ import {
   saveUnitSettingsToSupabase,
   subscribeSupabaseRealtime
 } from './supabase.js';
+
+// Live dependency adapters keep feature modules independent of this application shell.
+const moduleContext = {
+  get AppState() { return AppState; },
+  get DEFAULT_CLASSES() { return DEFAULT_CLASSES; },
+  get ExternalHooks() { return ExternalHooks; },
+  get LANGUAGE_LEVEL_OPTIONS() { return LANGUAGE_LEVEL_OPTIONS; },
+  get RANKING_HEADERS() { return RANKING_HEADERS; },
+  get RANK_LEVELS() { return RANK_LEVELS; },
+  get REPORT_RANK_LEVELS() { return REPORT_RANK_LEVELS; },
+  get REPORT_RANK_META() { return REPORT_RANK_META; },
+  get buildClassTranscript() { return buildClassTranscript; },
+  get buildReportYearsBreakdownStats() { return buildReportYearsBreakdownStats; },
+  get calculateAcademicYearGPA() { return calculateAcademicYearGPA; },
+  get calculateCreditsPassed() { return calculateCreditsPassed; },
+  get calculateCumulativeGPA4() { return calculateCumulativeGPA4; },
+  get calculateSemesterGPA() { return calculateSemesterGPA; },
+  get calculateYearGPA() { return calculateYearGPA; },
+  get collectLanguageStatistics() { return collectLanguageStatistics; },
+  get computeReportAcademicStats() { return computeReportAcademicStats; },
+  get escapeHTML() { return escapeHTML; },
+  get evaluateLangLevelStatus() { return evaluateLangLevelStatus; },
+  get failedStudentExportRows() { return failedStudentExportRows; },
+  get formatAchievementsText() { return formatAchievementsText; },
+  get formatFailedSubjectItem() { return formatFailedSubjectItem; },
+  get formatVN() { return formatVN; },
+  get getClassification() { return getClassification; },
+  get getCurrentUserClassScope() { return getCurrentUserClassScope; },
+  get getDebtSubjects() { return getDebtSubjects; },
+  get getFullSubjectName() { return getFullSubjectName; },
+  get getGradeLetterAndScale4() { return getGradeLetterAndScale4; },
+  get getLoggedInStudent() { return getLoggedInStudent; },
+  get getScopedStudents() { return getScopedStudents; },
+  get getSubjectsForClass() { return getSubjectsForClass; },
+  get getTotalCourseCredits() { return getTotalCourseCredits; },
+  get normalizeDateVN() { return normalizeDateVN; },
+  get rankingTableRows() { return rankingTableRows; },
+  get renderDashboardLanguageSummary() { return renderDashboardLanguageSummary; },
+  get sanitizeHTML() { return sanitizeHTML; },
+  get showModal() { return showModal; },
+  get showToast() { return showToast; },
+  get writeReportWorkbook() { return writeReportWorkbook; }
+};
+
+export const {
+  calculateSemesterGPA,
+  calculateSemesterGPA4,
+  calculateAcademicYearGPA,
+  calculateAcademicYearGPA4,
+  calculateYearGPA,
+  calculateCourseGPA10,
+  getScale3FromScore10,
+  calculateCourseGPA3,
+  getSemesterCredits,
+  getTotalCourseCredits,
+  RANK_LEVELS,
+  getClassification,
+  getClassificationBadge,
+  getDebtSubjects,
+  formatFailedSubjectItem,
+  getGradeLetterAndScale4,
+  calculateCumulativeGPA4,
+  calculateCreditsPassed
+} = createGradeCalculations(moduleContext);
+
+export const {
+  openTranscriptModal
+} = createTranscript(moduleContext);
+
+export const {
+  RANK_META,
+  REPORT_RANK_META,
+  REPORT_RANK_LEVELS,
+  getReportClassification,
+  computeTimeframeAcademicStats,
+  buildAllYearsBreakdownStats,
+  computeReportAcademicStats,
+  buildReportYearsBreakdownStats
+} = createReportStatistics(moduleContext);
+
+export const {
+  renderDashboard,
+  renderDebtCadetsSection
+} = createDashboardReports(moduleContext);
+
+export const {
+  exportReportExcel,
+  exportStudentPersonalExcel,
+  exportClassExcel,
+  exportMasterExcel,
+  exportAcademicRanking,
+  exportLanguageExcel,
+  getDashboardLanguageData,
+  renderDashboardLanguageSummary,
+  exportDashboardLanguageExcel,
+  exportFailedStudentsExcel,
+  exportAcademicAchievementsExcel,
+  exportCumulativeExcel
+} = createReportExports(moduleContext);
+
+
+
+
+
+
+
+/**
+ * MODULE: src/js/grades.js
+ * Quản lý Kho dữ liệu (AppState & localStorage), Phân loại Môn học (Môn chung & Môn chuyên ngành),
+ * Bảng điểm Lớp theo Năm học (Năm 1 -> Năm 5), Bảng điểm cuộn dọc cho Học viên,
+ * Điểm tích lũy (DTB HK1 (10), DTB HKII (10), Ngoại ngữ hiện tại),
+ * Tổng hợp Toàn Đại đội (Lọc theo kỳ), Báo cáo giao ban (Rớt < 4.0 định dạng [Tên môn] ([Số tín chỉ] TC)).
+ */
+
+export const ExternalHooks = {
+  renderBentoDashboard: null,
+  renderProfilesTable: null,
+  renderStudentView: null,
+  handleRoleChange: null,
+  openStudentProfileModal: null,
+  openCadetDetailPage: null
+};
+
+export function registerExternalHooks(hooks = {}) {
+  Object.assign(ExternalHooks, hooks);
+}
+
+
 
 export const STORAGE_KEY = 'dd460_firestore_app_data';
 export const AUTH_STORAGE_KEY = 'dd460_auth_session';
@@ -915,135 +1027,6 @@ export function persistData(immediate = false) {
 }
 
 // --- 2. CÔNG CỤ TÍNH ĐIỂM THEO MÔN CHUNG + MÔN CHUYÊN NGÀNH CỦA TỪNG LỚP ---
-export function calculateSemesterGPA(studentId, semester) {
-  const student = AppState.students.find(s => s.id === studentId);
-  const studentClass = student ? student.class : AppState.currentSheetClass;
-  const studentGrades = AppState.grades[studentId] || {};
-  const semSubjects = getSubjectsForClass(studentClass, semester);
-  if (semSubjects.length === 0) return 0;
-
-  let totalPoints = 0;
-  let totalCredits = 0;
-  semSubjects.forEach(s => {
-    const score = studentGrades[s.id];
-    if (score !== undefined && score !== null && score !== '' && !isNaN(score)) {
-      totalPoints += Number(score) * s.credits;
-      totalCredits += s.credits;
-    }
-  });
-  return totalCredits > 0 ? (totalPoints / totalCredits) : 0;
-}
-
-export function calculateSemesterGPA4(studentId, semester) {
-  const student = AppState.students.find(s => s.id === studentId);
-  const studentClass = student ? student.class : AppState.currentSheetClass;
-  const studentGrades = AppState.grades[studentId] || {};
-  const semSubjects = getSubjectsForClass(studentClass, semester);
-  if (semSubjects.length === 0) return 0;
-
-  let totalPoints4 = 0;
-  let totalCredits = 0;
-  semSubjects.forEach(s => {
-    const score = studentGrades[s.id];
-    if (score !== undefined && score !== null && score !== '' && !isNaN(score)) {
-      const { scale4 } = getGradeLetterAndScale4(score);
-      totalPoints4 += scale4 * s.credits;
-      totalCredits += s.credits;
-    }
-  });
-  return totalCredits > 0 ? (totalPoints4 / totalCredits) : 0;
-}
-
-export function calculateAcademicYearGPA(studentId, yearNum = 1) {
-  const student = AppState.students.find(s => s.id === studentId);
-  const studentClass = student ? student.class : AppState.currentSheetClass;
-  const studentGrades = AppState.grades[studentId] || {};
-  const y = Number(yearNum) || 1;
-  const sem1 = 2 * y - 1;
-  const sem2 = 2 * y;
-  const yearSubjects = [
-    ...getSubjectsForClass(studentClass, sem1),
-    ...getSubjectsForClass(studentClass, sem2)
-  ];
-  if (yearSubjects.length === 0) return 0;
-
-  let totalPoints = 0;
-  let totalCredits = 0;
-  yearSubjects.forEach(s => {
-    const score = studentGrades[s.id];
-    if (score !== undefined && score !== null && score !== '' && !isNaN(score)) {
-      totalPoints += Number(score) * s.credits;
-      totalCredits += s.credits;
-    }
-  });
-  return totalCredits > 0 ? (totalPoints / totalCredits) : 0;
-}
-
-export function calculateAcademicYearGPA4(studentId, yearNum = 1) {
-  const student = AppState.students.find(s => s.id === studentId);
-  const studentClass = student ? student.class : AppState.currentSheetClass;
-  const studentGrades = AppState.grades[studentId] || {};
-  const y = Number(yearNum) || 1;
-  const sem1 = 2 * y - 1;
-  const sem2 = 2 * y;
-  const yearSubjects = [
-    ...getSubjectsForClass(studentClass, sem1),
-    ...getSubjectsForClass(studentClass, sem2)
-  ];
-  if (yearSubjects.length === 0) return 0;
-
-  let totalPoints4 = 0;
-  let totalCredits = 0;
-  yearSubjects.forEach(s => {
-    const score = studentGrades[s.id];
-    if (score !== undefined && score !== null && score !== '' && !isNaN(score)) {
-      const { scale4 } = getGradeLetterAndScale4(score);
-      totalPoints4 += scale4 * s.credits;
-      totalCredits += s.credits;
-    }
-  });
-  return totalCredits > 0 ? (totalPoints4 / totalCredits) : 0;
-}
-
-export function calculateYearGPA(studentId) {
-  const student = AppState.students.find(s => s.id === studentId);
-  const studentClass = student ? student.class : AppState.currentSheetClass;
-  const studentGrades = AppState.grades[studentId] || {};
-  const applicableSubjects = getSubjectsForClass(studentClass);
-
-  let totalPoints = 0;
-  let totalCredits = 0;
-  applicableSubjects.forEach(s => {
-    const score = studentGrades[s.id];
-    if (score !== undefined && score !== null && score !== '' && !isNaN(score)) {
-      totalPoints += Number(score) * s.credits;
-      totalCredits += s.credits;
-    }
-  });
-  return totalCredits > 0 ? (totalPoints / totalCredits) : 0;
-}
-
-export function calculateCourseGPA10(studentId) {
-  return calculateYearGPA(studentId);
-}
-
-export function getScale3FromScore10(score10) {
-  if (score10 === undefined || score10 === null || score10 === '' || isNaN(score10)) return 0;
-  return (Number(score10) / 10) * 3;
-}
-
-export function calculateCourseGPA3(studentId) {
-  return (calculateYearGPA(studentId) / 10) * 3;
-}
-
-export function getSemesterCredits(semester, className = null) {
-  return getSubjectsForClass(className, semester).reduce((sum, s) => sum + Number(s.credits || 0), 0);
-}
-
-export function getTotalCourseCredits(className = 'OTQS1') {
-  return getSubjectsForClass(className).reduce((sum, s) => sum + Number(s.credits || 0), 0);
-}
-
 export function setSheetScaleMode(scaleMode) {
   AppState.currentSheetScale = scaleMode === '4' ? '4' : '10';
   const btn10 = document.getElementById('btnSheetScale10');
@@ -1099,67 +1082,6 @@ export function getHighestRussianCertInfo(studentId) {
     detailedLevels,
     extraCerts
   };
-}
-
-export const RANK_LEVELS = ['Xuất sắc', 'Giỏi', 'Khá', 'Trung bình khá', 'Trung bình', 'Yếu', 'Kém'];
-
-export function getClassification(gpa) {
-  const val = Number(gpa) || 0;
-  if (val >= 9.0) return 'Xuất sắc';
-  if (val >= 8.0) return 'Giỏi';
-  if (val >= 7.0) return 'Khá';
-  if (val >= 6.5) return 'Trung bình khá';
-  if (val >= 5.5) return 'Trung bình';
-  if (val >= 5.0) return 'Yếu';
-  return 'Kém';
-}
-
-export function getClassificationBadge(rank) {
-  switch (rank) {
-    case 'Xuất sắc':
-      return '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 whitespace-nowrap">Xuất sắc</span>';
-    case 'Giỏi':
-      return '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 whitespace-nowrap">Giỏi</span>';
-    case 'Khá':
-      return '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap">Khá</span>';
-    case 'Trung bình khá':
-      return '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-cyan-100 text-cyan-800 border border-cyan-300 whitespace-nowrap">Trung bình khá</span>';
-    case 'Trung bình':
-      return '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300 whitespace-nowrap">Trung bình</span>';
-    case 'Yếu':
-      return '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-orange-100 text-orange-800 border border-orange-300 whitespace-nowrap">Yếu</span>';
-    default:
-      return '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-300 whitespace-nowrap">Kém</span>';
-  }
-}
-
-export function getDebtSubjects(studentId, semesterFilter = null, yearFilter = null) {
-  const student = AppState.students.find(s => s.id === studentId);
-  const studentClass = student ? student.class : AppState.currentSheetClass;
-  const studentGrades = AppState.grades[studentId] || {};
-  let subjs = getSubjectsForClass(studentClass);
-
-  if (semesterFilter && semesterFilter !== 'all') {
-    subjs = subjs.filter(s => Number(s.semester) === Number(semesterFilter));
-  } else if (yearFilter && yearFilter !== 'all') {
-    const y = Number(yearFilter);
-    subjs = subjs.filter(s => Number(s.semester) === (2 * y - 1) || Number(s.semester) === (2 * y));
-  }
-
-  const debts = [];
-  subjs.forEach(s => {
-    const score = studentGrades[s.id];
-    if (score !== undefined && score !== null && score !== '' && !isNaN(score) && Number(score) < 4.0) {
-      debts.push({ subject: s, score: Number(score) });
-    }
-  });
-  return debts;
-}
-
-export function formatFailedSubjectItem(subject) {
-  if (!subject) return '';
-  const fullCourseName = getFullSubjectName(subject);
-  return `${fullCourseName} (${subject.credits} TC)`;
 }
 
 export function isCurrentSheetLocked() {
@@ -1917,946 +1839,6 @@ export function renderMasterTable() {
 
 // --- 6. BÁO CÁO GIAO BAN (3 BẢNG CHUẨN): BẢNG 1 (TỶ LỆ TÍCH LŨY) • BẢNG 2 (TỶ LỆ TỪNG NĂM & TỪNG HỌC KỲ) • BẢNG 3 (DANH SÁCH HỌC VIÊN RỚT MÔN CẦN BỒI DƯỠNG) ---
 
-export const RANK_META = [
-  { name: 'Xuất sắc', standard: '9.00 ≤ ĐTB ≤ 10.00', desc: 'Đạt danh hiệu Học viên Xuất sắc / Chiến sĩ thi đua', badge: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
-  { name: 'Giỏi', standard: '8.00 ≤ ĐTB < 9.00', desc: 'Đạt danh hiệu Học viên Giỏi tiêu biểu', badge: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
-  { name: 'Khá', standard: '7.00 ≤ ĐTB < 8.00', desc: 'Học lực vững chắc, hoàn thành tốt nhiệm vụ', badge: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-  { name: 'Trung bình khá', standard: '6.50 ≤ ĐTB < 7.00', desc: 'Cần tiếp tục củng cố kiến thức và nâng cao kết quả học tập', badge: 'bg-cyan-100 text-cyan-900 border-cyan-300' },
-  { name: 'Trung bình', standard: '5.50 ≤ ĐTB < 6.50', desc: 'Đạt yêu cầu, cần tăng cường tự học nâng cao điểm số', badge: 'bg-amber-100 text-amber-900 border-amber-300' },
-  { name: 'Yếu', standard: '5.00 ≤ ĐTB < 5.50', desc: 'Cần tăng cường ôn tập để nâng cao kết quả', badge: 'bg-orange-100 text-orange-900 border-orange-300' },
-  { name: 'Kém', standard: 'ĐTB < 5.00', desc: 'Cần bồi dưỡng; chỉ môn dưới 4.00 mới tính là rớt', badge: 'bg-rose-100 text-rose-900 border-rose-300' }
-];
-
-// All screens and exports share the same seven-level classification policy.
-export const REPORT_RANK_META = RANK_META;
-export const REPORT_RANK_LEVELS = REPORT_RANK_META.map(item => item.name);
-export function getReportClassification(score) {
-  return getClassification(score);
-}
-
-/**
- * Tính toán toàn diện thống kê học lực 7 mức (Xuất sắc, Giỏi, Khá, Trung bình khá, Trung bình, Yếu, Kém),
- * Tỷ lệ đạt/rớt học phần, Tổng số học viên rớt môn, Tổng số lượt rớt và Danh sách chi tiết môn rớt
- * theo từng mốc thời gian:
- * - mode = 'semester' : Theo Học kỳ (HK1 -> HK10)
- * - mode = 'year'     : Theo Năm học (Năm 1 -> Năm 5)
- * - mode = 'course'   : Từ đầu khóa đến nay (Tích lũy toàn khóa)
- */
-export function computeTimeframeAcademicStats(studentsList = [], mode = 'course', semester = 1, year = 1, policy = 'academic') {
-  const levels = policy === 'report' ? REPORT_RANK_LEVELS : RANK_LEVELS;
-  const classify = policy === 'report' ? getReportClassification : getClassification;
-  const semNum = Number(semester) || 1;
-  const yearNum = Number(year) || 1;
-  const totalCadets = Array.isArray(studentsList) ? studentsList.length : 0;
-
-  const rankCounts = Object.fromEntries(levels.map(rank => [rank, 0]));
-
-  const rankDebtStudents = Object.fromEntries(levels.map(rank => [rank, 0]));
-
-  const rankFailInstances = Object.fromEntries(levels.map(rank => [rank, 0]));
-
-  const classScope = getCurrentUserClassScope();
-  const visibleClasses = classScope ? [classScope] : DEFAULT_CLASSES;
-  const classStats = {};
-  visibleClasses.forEach(c => {
-    classStats[c] = {
-      count: 0,
-      totalGpa: 0,
-      xs: 0,
-      gioi: 0,
-      kha: 0,
-      tbk: 0,
-      tb: 0,
-      kem: 0,
-      rankCounts: Object.fromEntries(levels.map(rank => [rank, 0])),
-      yeu: 0,
-      passedCourses: 0,
-      failedCourses: 0,
-      totalGradedCourses: 0,
-      debtStudents: 0,
-      totalFails: 0
-    };
-  });
-
-  let totalGpaSum = 0;
-  let goodCount = 0; // Xuất sắc + Giỏi
-  let khaGioiXsCount = 0; // Xuất sắc + Giỏi + Khá
-  let debtStudentCount = 0;
-  let totalDebtFailsCount = 0;
-  let passedCourseInstances = 0;
-  let failedCourseInstances = 0;
-  let totalGradedCourseInstances = 0;
-
-  const debtCadetsList = [];
-  const failedCourseDetailsList = [];
-
-  studentsList.forEach(s => {
-    const studentGrades = AppState.grades[s.id] || {};
-    let applicableSubjects = [];
-    let gpa = 0;
-
-    if (mode === 'semester') {
-      applicableSubjects = getSubjectsForClass(s.class, semNum);
-      gpa = calculateSemesterGPA(s.id, semNum);
-    } else if (mode === 'year') {
-      const s1 = 2 * yearNum - 1;
-      const s2 = 2 * yearNum;
-      applicableSubjects = [
-        ...getSubjectsForClass(s.class, s1),
-        ...getSubjectsForClass(s.class, s2)
-      ];
-      gpa = calculateAcademicYearGPA(s.id, yearNum);
-    } else {
-      applicableSubjects = getSubjectsForClass(s.class);
-      gpa = calculateYearGPA(s.id);
-    }
-
-    totalGpaSum += gpa;
-    const rank = classify(gpa);
-    const effectiveRank = rankCounts[rank] !== undefined ? rank : 'Trung bình';
-    rankCounts[effectiveRank]++;
-
-    if (effectiveRank === 'Xuất sắc' || effectiveRank === 'Giỏi') goodCount++;
-    if (effectiveRank === 'Xuất sắc' || effectiveRank === 'Giỏi' || effectiveRank === 'Khá') khaGioiXsCount++;
-
-    const studentDebts = [];
-    let studentPassedCourses = 0;
-    let studentFailedCourses = 0;
-
-    applicableSubjects.forEach(sub => {
-      const rawScore = studentGrades[sub.id];
-      if (rawScore !== undefined && rawScore !== null && rawScore !== '' && !isNaN(rawScore)) {
-        const numScore = Number(rawScore);
-        totalGradedCourseInstances++;
-        if (numScore < 4.0) {
-          failedCourseInstances++;
-          studentFailedCourses++;
-          const fullCourseName = getFullSubjectName(sub);
-          studentDebts.push({
-            subject: { ...sub, name: fullCourseName, course_name: fullCourseName },
-            score: numScore
-          });
-          failedCourseDetailsList.push({
-            student: s,
-            studentCode: s.code,
-            studentName: s.name,
-            studentRank: s.rank,
-            studentClass: s.class,
-            subject: sub,
-            courseName: fullCourseName,
-            semester: Number(sub.semester) || 1,
-            academicYear: Math.ceil((Number(sub.semester) || 1) / 2),
-            credits: Number(sub.credits) || 3,
-            score: numScore,
-            gpa,
-            classification: effectiveRank
-          });
-        } else {
-          passedCourseInstances++;
-          studentPassedCourses++;
-        }
-      }
-    });
-
-    const hasDebt = studentDebts.length > 0;
-    if (hasDebt) {
-      debtStudentCount++;
-      totalDebtFailsCount += studentDebts.length;
-      rankDebtStudents[effectiveRank] = (rankDebtStudents[effectiveRank] || 0) + 1;
-      rankFailInstances[effectiveRank] = (rankFailInstances[effectiveRank] || 0) + studentDebts.length;
-      debtCadetsList.push({
-        student: s,
-        yearGpa: gpa,
-        rank: effectiveRank,
-        debts: studentDebts,
-        failCount: studentDebts.length
-      });
-    }
-
-    const cs = classStats[s.class];
-    if (cs) {
-      cs.count++;
-      cs.totalGpa += gpa;
-      cs.rankCounts[effectiveRank]++;
-      if (effectiveRank === 'Xuất sắc') cs.xs++;
-      else if (effectiveRank === 'Giỏi') cs.gioi++;
-      else if (effectiveRank === 'Khá') cs.kha++;
-      else if (effectiveRank === 'Trung bình khá') cs.tbk++;
-      else if (effectiveRank === 'Trung bình') cs.tb++;
-      else if (effectiveRank === 'Yếu') cs.yeu++;
-      else cs.kem++;
-
-      cs.passedCourses += studentPassedCourses;
-      cs.failedCourses += studentFailedCourses;
-      cs.totalGradedCourses += (studentPassedCourses + studentFailedCourses);
-
-      if (hasDebt) {
-        cs.debtStudents++;
-        cs.totalFails += studentDebts.length;
-      }
-    }
-  });
-
-  const avgGpa = totalCadets > 0 ? (totalGpaSum / totalCadets).toFixed(2) : '0.00';
-  const goodRate = totalCadets > 0 ? ((goodCount / totalCadets) * 100).toFixed(1) : '0.0';
-  const khaGioiXsRate = totalCadets > 0 ? ((khaGioiXsCount / totalCadets) * 100).toFixed(1) : '0.0';
-  const debtStudentRate = totalCadets > 0 ? ((debtStudentCount / totalCadets) * 100).toFixed(1) : '0.0';
-  const passStudentCount = Math.max(0, totalCadets - debtStudentCount);
-  const passStudentRate = totalCadets > 0 ? ((passStudentCount / totalCadets) * 100).toFixed(1) : '0.0';
-
-  const coursePassRate = totalGradedCourseInstances > 0
-    ? ((passedCourseInstances / totalGradedCourseInstances) * 100).toFixed(1)
-    : (totalCadets > 0 ? '100.0' : '0.0');
-  const courseFailRate = totalGradedCourseInstances > 0
-    ? ((failedCourseInstances / totalGradedCourseInstances) * 100).toFixed(1)
-    : '0.0';
-
-  const rankRates = {};
-  levels.forEach(r => {
-    rankRates[r] = totalCadets > 0 ? (((rankCounts[r] || 0) / totalCadets) * 100).toFixed(1) : '0.0';
-  });
-
-  const label = mode === 'semester'
-    ? `Theo Học kỳ ${semNum} (Năm thứ ${Math.ceil(semNum / 2)})`
-    : mode === 'year'
-      ? `Theo Năm học thứ ${yearNum} (HK${2 * yearNum - 1} & HK${2 * yearNum})`
-      : 'Tích lũy từ đầu khóa đến nay (Toàn khóa)';
-
-  return {
-    mode,
-    semester: semNum,
-    year: yearNum,
-    label,
-    totalCadets,
-    avgGpa,
-    rankCounts,
-    rankRates,
-    rankDebtStudents,
-    rankFailInstances,
-    goodCount,
-    goodRate,
-    khaGioiXsCount,
-    khaGioiXsRate,
-    debtStudentCount,
-    debtStudentRate,
-    passStudentCount,
-    passStudentRate,
-    totalDebtFailsCount,
-    passedCourseInstances,
-    failedCourseInstances,
-    totalGradedCourseInstances,
-    coursePassRate,
-    courseFailRate,
-    classStats,
-    debtCadetsList,
-    failedCourseDetailsList
-  };
-}
-
-/**
- * Xây dựng dữ liệu 5 Năm học cho Bảng 2:
- * Cấu trúc: Năm 1 (HK1, HK2, Cả năm, Số học viên rớt môn, Số lượt rớt) -> Năm 2 -> Năm 3 -> Năm 4 -> Năm 5
- */
-export function buildAllYearsBreakdownStats(studentsList = [], policy = 'academic') {
-  const yearsData = [];
-  for (let y = 1; y <= 5; y++) {
-    const sem1Num = 2 * y - 1;
-    const sem2Num = 2 * y;
-    const hk1Stats = computeTimeframeAcademicStats(studentsList, 'semester', sem1Num, y, policy);
-    const hk2Stats = computeTimeframeAcademicStats(studentsList, 'semester', sem2Num, y, policy);
-    const fullYearStats = computeTimeframeAcademicStats(studentsList, 'year', sem1Num, y, policy);
-    yearsData.push({
-      year: y,
-      sem1Num,
-      sem2Num,
-      hk1: hk1Stats,
-      hk2: hk2Stats,
-      fullYear: fullYearStats
-    });
-  }
-  return yearsData;
-}
-
-export function computeReportAcademicStats(studentsList = [], mode = 'course', semester = 1, year = 1) {
-  return computeTimeframeAcademicStats(studentsList, mode, semester, year, 'report');
-}
-export function buildReportYearsBreakdownStats(studentsList = []) {
-  return buildAllYearsBreakdownStats(studentsList, 'report');
-}
-
-export function renderDashboard() {
-  const elTotal = document.getElementById('statTotalCadets');
-  if (!elTotal) return;
-
-  if (!AppState.dashboardFilters) {
-    AppState.dashboardFilters = { mode: 'course', semester: 1, year: 1, class: 'all' };
-  }
-
-  const classScope = getCurrentUserClassScope();
-  const dashClassSelect = document.getElementById('dashboardClassFilter');
-  if (dashClassSelect) {
-    if (classScope) {
-      dashClassSelect.innerHTML = sanitizeHTML(`<option value="${classScope}">Lớp ${classScope}</option>`);
-      dashClassSelect.value = classScope;
-      dashClassSelect.disabled = true;
-      AppState.dashboardFilters.class = classScope;
-    } else {
-      dashClassSelect.disabled = false;
-      if (dashClassSelect.value !== AppState.dashboardFilters.class) {
-        dashClassSelect.value = AppState.dashboardFilters.class || 'all';
-      }
-    }
-  }
-
-  const selectedClass = classScope || (dashClassSelect ? dashClassSelect.value : (AppState.dashboardFilters.class || 'all'));
-  AppState.dashboardFilters.class = selectedClass;
-  if (typeof ExternalHooks.renderBentoDashboard === 'function') ExternalHooks.renderBentoDashboard();
-
-  // 1. Tính toán Tỷ lệ Tích lũy từ đầu khóa đến nay (Bảng 1)
-  const tableStudents = id => {
-    const select = document.getElementById(id);
-    const scope = classScope || select?.value || selectedClass || 'all';
-    if (select) { select.value = scope; select.disabled = Boolean(classScope); }
-    return getScopedStudents().filter(student => scope === 'all' || student.class === scope);
-  };
-  const courseStats = computeReportAcademicStats(tableStudents('reportCourseFilterClass'), 'course', 1, 1);
-
-  // 2. Tính toán Tỷ lệ theo Từng Năm & Từng Học kỳ: Năm 1 -> Năm 5 (Bảng 2)
-  const yearsBreakdown = buildReportYearsBreakdownStats(tableStudents('reportYearsFilterClass'));
-
-  const overviewStudents = getScopedStudents();
-  const overviewStats = computeReportAcademicStats(overviewStudents);
-  const overviewYears = buildReportYearsBreakdownStats(overviewStudents);
-  renderDashboardLanguageSummary();
-
-  // Cập nhật 4 thẻ KPI tổng quan trên đầu Báo cáo giao ban
-  elTotal.textContent = overviewStats.totalCadets;
-  const elScopeSub = document.getElementById('statScopeSubtitle');
-  if (elScopeSub) {
-    elScopeSub.textContent = `${classScope ? 'Lớp ' + classScope : 'Toàn Đại đội 460 (5 lớp)'} • Tích lũy từ đầu khóa đến nay`;
-  }
-
-  const elAvg = document.getElementById('statAvgGPA');
-  if (elAvg) elAvg.textContent = overviewStats.avgGpa;
-  const elAvgSub = document.getElementById('statAvgGPASub');
-  if (elAvgSub) {
-    const yGpas = overviewYears.map(yb => `N${yb.year}: ${yb.fullYear.avgGpa}`).join(' • ');
-    elAvgSub.textContent = yGpas;
-  }
-
-  const elGoodRate = document.getElementById('statGoodRate');
-  if (elGoodRate) elGoodRate.textContent = `${overviewStats.goodRate}%`;
-  const elGoodCount = document.getElementById('statGoodCount');
-  if (elGoodCount) {
-    elGoodCount.textContent = `XS & Giỏi: ${overviewStats.goodCount}/${overviewStats.totalCadets} đ/c • Khá trở lên: ${overviewStats.khaGioiXsCount} đ/c (${overviewStats.khaGioiXsRate}%)`;
-  }
-
-  const standard = evaluateLangLevelStatus('Chưa đạt', AppState.requiredLangStandard).requiredStandard;
-  const { roster } = collectLanguageStatistics(overviewStudents, AppState.languages || {}, standard, evaluateLangLevelStatus, classScope ? [classScope] : DEFAULT_CLASSES);
-  const total = roster.length, passed = roster.filter(item => item.passed).length;
-  const notPassed = total - passed;
-  const languagePassRate = total ? (passed * 100 / total).toFixed(1) : '0.0';
-  const languageNotPassedRate = total ? (notPassed * 100 / total).toFixed(1) : '0.0';
-  const elPassRate = document.getElementById('statLanguagePassRate');
-  if (elPassRate) elPassRate.textContent = `${languagePassRate}%`;
-  const elFailRate = document.getElementById('statLanguageNotPassedRate');
-  if (elFailRate) elFailRate.textContent = `${languageNotPassedRate}%`;
-  const elPassFailDetail = document.getElementById('statLanguageDetail');
-  if (elPassFailDetail) {
-    elPassFailDetail.textContent = `Chuẩn ${standard} • ${classScope ? 'Lớp ' + classScope : 'Toàn đơn vị'}: ${passed}/${total} học viên đạt • ${notPassed}/${total} chưa đạt`;
-  }
-
-  const elDebtCount = document.getElementById('statDebtCount');
-  if (elDebtCount) elDebtCount.textContent = `${overviewStats.debtStudentCount} (${overviewStats.debtStudentRate}%)`;
-  const elDebtFails = document.getElementById('statDebtTotalFails');
-  if (elDebtFails) elDebtFails.textContent = overviewStats.totalDebtFailsCount;
-
-  const elActiveModeBadge = document.getElementById('reportActiveModeBadge');
-  if (elActiveModeBadge) {
-    elActiveModeBadge.textContent = `Phạm vi: ${selectedClass === 'all' ? 'Toàn Đại đội 460 (5 Lớp)' : 'Lớp ' + selectedClass}`;
-  }
-
-  const courseScope = classScope || document.getElementById('reportCourseFilterClass')?.value || selectedClass;
-  const visibleClasses = courseScope && courseScope !== 'all' ? [courseScope] : DEFAULT_CLASSES;
-
-  // =========================================================================
-  // BẢNG 1: TỶ LỆ TÍCH LŨY (XẾP LOẠI HỌC LỰC 7 MỨC & TỶ LỆ ĐẠT/RỚT TỪ ĐẦU KHÓA ĐẾN NAY)
-  // =========================================================================
-  const companyTbody = document.getElementById('reportCompanyTableBody');
-  const companyTfoot = document.getElementById('reportCompanyTableFooter');
-  if (companyTbody) {
-    const rankRowsHtml = REPORT_RANK_META.map((item, idx) => {
-      const cCourse = courseStats.rankCounts[item.name] || 0;
-      const rCourse = courseStats.rankRates[item.name] || '0.0';
-
-      const classBreakdownStr = visibleClasses.map(clsName => {
-        const cs = courseStats.classStats[clsName];
-        if (!cs) return `${clsName}: 0`;
-        const val = cs.rankCounts[item.name] || 0;
-        return `<span class="inline-block px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-semibold text-[10px] mr-1">${clsName}: <strong>${val}</strong></span>`;
-      }).join('');
-
-      return `
-        <tr class="hover:bg-slate-50 transition">
-          <td class="py-2.5 px-3 text-center text-slate-500 font-medium">${idx + 1}</td>
-          <td class="py-2.5 px-4 font-bold text-slate-900">
-            <span class="inline-block px-2.5 py-0.5 rounded text-[11px] font-bold border ${item.badge}">${escapeHTML(item.name)}</span>
-          </td>
-          <td class="py-2.5 px-3 text-center font-mono font-semibold text-slate-700 bg-slate-50/60">${item.standard}</td>
-          <td class="py-2.5 px-3 text-center font-extrabold text-slate-900 bg-amber-50/40">${cCourse} đồng chí</td>
-          <td class="py-2.5 px-3 text-center bg-amber-50/60">
-            <span class="px-2.5 py-0.5 rounded bg-army-800 text-gold-300 font-black text-xs">${rCourse}%</span>
-          </td>
-          <td class="py-2.5 px-3 text-left">${classBreakdownStr}</td>
-          <td class="py-2.5 px-4 text-slate-600">${item.desc}</td>
-        </tr>
-      `;
-    }).join('');
-
-    // Hai hàng sau các mức xếp loại trong Bảng 1: Tỷ lệ Đạt / Rớt tích lũy từ đầu khóa đến nay
-    companyTbody.innerHTML = sanitizeHTML(rankRowsHtml);
-
-    if (companyTfoot) {
-      companyTfoot.innerHTML = sanitizeHTML(`
-        <tr class="bg-slate-100 border-t-2 border-slate-300 text-slate-900">
-          <td colspan="3" class="py-3 px-4 uppercase text-army-900 font-black">TỔNG HỢP TÍCH LŨY TOÀN KHÓA (TỪ ĐẦU KHÓA ĐẾN NAY):</td>
-          <td class="py-3 px-3 text-center font-black text-army-900 text-xs">${courseStats.totalCadets} đồng chí (100%)</td>
-          <td class="py-3 px-3 text-center font-black text-army-900 text-xs">ĐTB Tích lũy: <span class="text-sm text-army-800">${courseStats.avgGpa}</span></td>
-          <td colspan="2" class="py-3 px-4 text-slate-800">
-            <div class="flex flex-wrap items-center gap-2 text-xs">
-              <span>Tỷ lệ Đạt/Rớt: <strong class="text-emerald-700">${courseStats.coursePassRate}% Đạt</strong> / <strong class="text-rose-700">${courseStats.courseFailRate}% Rớt</strong></span>
-              <span class="text-slate-300">|</span>
-              <span class="text-rose-700">Tổng số HV rớt môn: <strong class="font-black text-rose-800">${courseStats.debtStudentCount} đ/c (${courseStats.debtStudentRate}%)</strong></span>
-              <span class="text-slate-300">|</span>
-              <span class="text-rose-700">Tổng số lượt rớt: <strong class="font-black text-rose-800">${courseStats.totalDebtFailsCount} lượt</strong></span>
-            </div>
-          </td>
-        </tr>
-      `);
-    }
-  }
-
-  // =========================================================================
-  // BẢNG 2: TỶ LỆ THEO TỪNG NĂM & TỪNG HỌC KỲ
-  // Cấu trúc tuần tự: Năm 1 (HK1, HK2, Cả năm, Số học viên rớt môn, Số lượt rớt) -> Năm 2 -> Năm 3 -> Năm 4 -> Năm 5
-  // =========================================================================
-  const matrixThead = document.getElementById('reportYearSemesterMatrixThead');
-  const matrixTbody = document.getElementById('reportYearSemesterMatrixBody');
-  const matrixTfoot = document.getElementById('reportYearSemesterMatrixFooter');
-
-  if (matrixThead && matrixTbody) {
-    const yearColors = [
-      { headerBg: 'bg-army-900 text-gold-300', subBg: 'bg-army-800 text-white' },
-      { headerBg: 'bg-slate-900 text-emerald-300', subBg: 'bg-slate-800 text-white' },
-      { headerBg: 'bg-army-900 text-amber-300', subBg: 'bg-army-800 text-white' },
-      { headerBg: 'bg-slate-900 text-cyan-300', subBg: 'bg-slate-800 text-white' },
-      { headerBg: 'bg-army-950 text-gold-400', subBg: 'bg-army-900 text-white' }
-    ];
-
-    const topYearHeaders = yearsBreakdown.map((yb, idx) => {
-      const colStyle = yearColors[idx] || yearColors[0];
-      return `
-        <th colspan="5" class="py-2.5 px-3 text-center font-black uppercase border-b border-slate-600 ${colStyle.headerBg}">
-          NĂM ${yb.year} (HK1, HK2, Cả năm, Số học viên rớt môn, Số lượt rớt)
-          <div class="text-[10px] font-normal text-slate-200 mt-0.5">Học kỳ ${yb.sem1Num} &amp; Học kỳ ${yb.sem2Num}</div>
-        </th>
-      `;
-    }).join('');
-
-    const subYearHeaders = yearsBreakdown.map((yb, idx) => {
-      const colStyle = yearColors[idx] || yearColors[0];
-      return `
-        <th class="py-2 px-2.5 text-center min-w-[95px] ${colStyle.subBg}">HK1<br><span class="text-[9px] font-normal text-slate-300">(Kỳ ${yb.sem1Num}: SL / %)</span></th>
-        <th class="py-2 px-2.5 text-center min-w-[95px] ${colStyle.subBg}">HK2<br><span class="text-[9px] font-normal text-slate-300">(Kỳ ${yb.sem2Num}: SL / %)</span></th>
-        <th class="py-2 px-2.5 text-center min-w-[100px] bg-amber-900/90 text-gold-200 font-bold">Cả năm<br><span class="text-[9px] font-normal text-amber-100">(Năm ${yb.year}: SL / %)</span></th>
-        <th class="py-2 px-2.5 text-center min-w-[115px] bg-rose-900 text-white font-bold">Số học viên rớt môn<br><span class="text-[9px] font-normal text-rose-200">(Năm ${yb.year})</span></th>
-        <th class="py-2 px-2.5 text-center min-w-[95px] bg-rose-950 text-gold-300 font-black">Số lượt rớt<br><span class="text-[9px] font-normal text-rose-200">(Năm ${yb.year})</span></th>
-      `;
-    }).join('');
-
-    matrixThead.innerHTML = sanitizeHTML(`
-      <tr class="divide-x divide-slate-600 bg-army-950 text-white text-xs">
-        <th rowspan="2" class="py-2.5 px-2 text-center w-10 sticky left-0 z-20 bg-army-950">STT</th>
-        <th rowspan="2" class="py-2.5 px-3 min-w-[155px] sticky left-10 z-20 bg-army-950">Xếp Loại Học Lực / Chỉ Tiêu</th>
-        <th rowspan="2" class="py-2.5 px-2 text-center min-w-[115px]">Tiêu Chuẩn</th>
-        ${topYearHeaders}
-      </tr>
-      <tr class="divide-x divide-slate-600 text-[11px]">
-        ${subYearHeaders}
-      </tr>
-    `);
-
-    // 7 hàng xếp loại học lực
-    const rankMatrixRows = REPORT_RANK_META.map((item, rIdx) => {
-      const yearCells = yearsBreakdown.map(yb => {
-        const c1 = yb.hk1.rankCounts[item.name] || 0;
-        const r1 = yb.hk1.rankRates[item.name] || '0.0';
-        const c2 = yb.hk2.rankCounts[item.name] || 0;
-        const r2 = yb.hk2.rankRates[item.name] || '0.0';
-        const cy = yb.fullYear.rankCounts[item.name] || 0;
-        const ry = yb.fullYear.rankRates[item.name] || '0.0';
-        const debtInRank = yb.fullYear.rankDebtStudents[item.name] || 0;
-        const failsInRank = yb.fullYear.rankFailInstances[item.name] || 0;
-
-        return `
-          <td class="py-2 px-2 text-center border-l border-slate-200">
-            <span class="font-bold text-slate-900">${c1}</span>
-            <span class="text-[10px] text-slate-500">(${r1}%)</span>
-          </td>
-          <td class="py-2 px-2 text-center">
-            <span class="font-bold text-slate-900">${c2}</span>
-            <span class="text-[10px] text-slate-500">(${r2}%)</span>
-          </td>
-          <td class="py-2 px-2 text-center bg-amber-50/50 font-bold">
-            <span class="text-army-950">${cy}</span>
-            <span class="text-[10px] text-army-700 font-extrabold">(${ry}%)</span>
-          </td>
-          <td class="py-2 px-2 text-center ${debtInRank > 0 ? 'text-rose-700 font-bold bg-rose-50/40' : 'text-slate-400'}">
-            ${debtInRank > 0 ? `${debtInRank} HV` : '0'}
-          </td>
-          <td class="py-2 px-2 text-center ${failsInRank > 0 ? 'text-rose-800 font-black bg-rose-50/60' : 'text-slate-400'}">
-            ${failsInRank > 0 ? `${failsInRank} lượt` : '0'}
-          </td>
-        `;
-      }).join('');
-
-      return `
-        <tr class="divide-x divide-slate-200 hover:bg-slate-50 transition">
-          <td class="py-2.5 px-2 text-center text-slate-500 font-medium sticky left-0 bg-white z-10">${rIdx + 1}</td>
-          <td class="py-2.5 px-3 font-bold text-slate-900 sticky left-10 bg-white z-10">
-            <span class="inline-block px-2 py-0.5 rounded text-[11px] font-bold border ${item.badge}">${escapeHTML(item.name)}</span>
-          </td>
-          <td class="py-2.5 px-2 text-center font-mono text-[11px] text-slate-600">${item.standard}</td>
-          ${yearCells}
-        </tr>
-      `;
-    }).join('');
-
-    matrixTbody.innerHTML = sanitizeHTML(rankMatrixRows);
-
-    if (matrixTfoot) {
-      const footCells = yearsBreakdown.map(yb => `
-        <td class="py-3 px-2 text-center border-l border-slate-300 font-bold text-army-900">
-          ĐTB HK1: ${yb.hk1.avgGpa}
-        </td>
-        <td class="py-3 px-2 text-center font-bold text-army-900">
-          ĐTB HK2: ${yb.hk2.avgGpa}
-        </td>
-        <td class="py-3 px-2 text-center bg-amber-100/80 font-black text-army-950">
-          ĐTB Năm ${yb.year}: ${yb.fullYear.avgGpa}
-        </td>
-        <td class="py-3 px-2 text-center bg-rose-100 font-black text-rose-800">
-          ${yb.fullYear.debtStudentCount} HV rớt (${yb.fullYear.debtStudentRate}%)
-        </td>
-        <td class="py-3 px-2 text-center bg-rose-200 font-black text-rose-950">
-          ${yb.fullYear.totalDebtFailsCount} lượt rớt
-        </td>
-      `).join('');
-
-      matrixTfoot.innerHTML = sanitizeHTML(`
-        <tr class="divide-x divide-slate-300 bg-slate-100 border-t-2 border-slate-300 text-xs">
-          <td colspan="3" class="py-3 px-3 uppercase text-army-900 font-black sticky left-0 bg-slate-100 z-10">
-            TỔNG HỢP ĐTB &amp; RỚT MÔN THEO TỪNG NĂM (QUÂN SỐ: ${courseStats.totalCadets} Đ/C):
-          </td>
-          ${footCells}
-        </tr>
-      `);
-    }
-  }
-
-  // =========================================================================
-  // BẢNG 3: DANH SÁCH HỌC VIÊN RỚT MÔN (THI LẠI / NỢ HỌC PHẦN) CẦN BỒI DƯỠNG
-  // =========================================================================
-  renderDebtCadetsSection();
-}
-
-export function renderDebtCadetsSection(debtCadetsList = null, failedCourseDetailsList = null) {
-  const escapeText = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
-  const tbody = document.getElementById('reportDebtCadetsTableBody');
-  const footer = document.getElementById('reportDebtCadetsFooter');
-  if (!tbody) return;
-
-  const classScope = getCurrentUserClassScope();
-  const filterSelect = document.getElementById('reportDebtFilterClass');
-  if (filterSelect) {
-    if (classScope) {
-      filterSelect.innerHTML = sanitizeHTML(`<option value="${classScope}">Lớp ${classScope}</option>`);
-      filterSelect.value = classScope;
-      filterSelect.disabled = true;
-    } else {
-      filterSelect.disabled = false;
-    }
-  }
-  const filterClass = classScope || filterSelect?.value || 'all';
-  if (filterSelect) { filterSelect.value = filterClass; filterSelect.disabled = Boolean(classScope); }
-
-  let computedStats = null;
-  if (!debtCadetsList || !failedCourseDetailsList) {
-    computedStats = computeReportAcademicStats(getScopedStudents(), 'course', 1, 1);
-  }
-
-  let list = debtCadetsList || (computedStats ? computedStats.debtCadetsList : []);
-  let detailRows = failedCourseDetailsList || (computedStats ? computedStats.failedCourseDetailsList : []);
-
-  if (filterClass !== 'all') {
-    list = list.filter(item => item.student.class === filterClass);
-    detailRows = detailRows.filter(item => item.studentClass === filterClass);
-  }
-
-  list.sort((a, b) => b.failCount - a.failCount || a.yearGpa - b.yearGpa);
-
-  let rowsHtml = '';
-  if (list.length === 0) {
-    rowsHtml = `
-      <tr>
-        <td colspan="9" class="py-10 text-center font-bold text-emerald-700 bg-emerald-50/40">
-          ✅ Không có học viên nào rớt học phần (điểm &lt; 4.0) ${filterClass !== 'all' ? `ở lớp ${filterClass}` : 'trong toàn đơn vị'}!
-        </td>
-      </tr>
-    `;
-  } else {
-    list.forEach((item, idx) => {
-      const s = Object.fromEntries(['id', 'code', 'name', 'rank', 'class'].map(key => [key, escapeText(item.student[key])]));
-      const debtsBadges = item.debts.map(d => {
-        const fullCourseName = escapeText(getFullSubjectName(d.subject));
-        const credits = d.subject ? d.subject.credits : 3;
-        const sem = d.subject ? d.subject.semester : 1;
-        return `
-          <span class="inline-flex items-center gap-1.5 bg-rose-100 text-rose-900 font-bold px-2.5 py-1 rounded-md text-xs border border-rose-300 mr-1.5 mb-1 shadow-sm">
-            <span>${fullCourseName} (${credits} TC • HK${sem})</span>
-            <span class="bg-rose-600 text-white px-1.5 py-0.2 rounded text-[10px] font-black" title="Điểm học phần: ${Number(d.score).toFixed(2)}">Điểm: ${Number(d.score).toFixed(2)}</span>
-          </span>
-        `;
-      }).join('');
-
-      rowsHtml += `
-        <tr class="hover:bg-slate-50 transition">
-          <td class="py-2.5 px-3 text-center text-slate-500 font-medium">${idx + 1}</td>
-          <td class="py-2.5 px-3 font-mono font-bold">
-            <button type="button" class="btn-view-cadet-detail text-army-800 hover:text-gold-600 hover:underline" data-id="${s.id}">
-              ${escapeHTML(s.code)}
-            </button>
-          </td>
-          <td class="py-2.5 px-4 font-bold text-slate-900">
-            <button type="button" class="btn-view-cadet-detail hover:text-army-800 hover:underline text-left font-bold" data-id="${s.id}">
-              ${escapeHTML(s.name)}
-            </button>
-          </td>
-          <td class="py-2.5 px-2 text-center text-slate-600">${escapeHTML(s.rank)}</td>
-          <td class="py-2.5 px-2 text-center font-bold text-army-800">${escapeHTML(s.class)}</td>
-          <td class="py-2.5 px-4">${debtsBadges}</td>
-          <td class="py-2.5 px-3 text-center font-black bg-rose-50 text-rose-700 text-sm">
-            <span class="px-2.5 py-0.5 rounded-full bg-rose-200 text-rose-950 font-black">${item.failCount} học phần</span>
-          </td>
-          <td class="py-2.5 px-4 text-[11px] text-slate-700 leading-relaxed">
-            Phân công Cán sự lớp <strong>${escapeHTML(s.class)}</strong> kèm cặp; duy trì tự học tối; đăng ký ôn và thi lại học phần.
-          </td>
-          <td class="py-2.5 px-3 text-center">
-            <button type="button" class="btn-open-transcript px-2.5 py-1 rounded bg-army-700 hover:bg-army-800 text-white font-semibold text-[11px] shadow-sm transition" data-id="${s.id}">
-              Phiếu Điểm
-            </button>
-          </td>
-        </tr>
-      `;
-    });
-  }
-  tbody.innerHTML = sanitizeHTML(rowsHtml);
-
-  if (footer) {
-    const totalFailsInFilter = list.reduce((sum, item) => sum + item.failCount, 0);
-    footer.innerHTML = sanitizeHTML(`
-      <span>Tổng số học viên rớt môn: <strong class="text-rose-700">${list.length} học viên</strong> • Tổng số lượt rớt: <strong class="text-rose-800">${totalFailsInFilter} lượt học phần (&lt; 4.0)</strong></span>
-      <span class="text-[11px] text-slate-500 italic">Hiển thị đầy đủ Tên môn học (không viết tắt) &amp; Điểm số cụ thể</span>
-    `);
-  }
-}
-
-/**
- * Xuất file Báo cáo Tình hình Học tập (exportReportExcel):
- * - Chuẩn hóa hiển thị đầy đủ Tên môn học (tuyệt đối không dùng tên viết tắt hay mã môn).
- * - Bao gồm đầy đủ 3 bảng và các chỉ số:
- *   1. Bảng 1: Tỷ lệ Tích lũy (7 mức Xuất sắc, Giỏi, Khá, Trung bình khá, Trung bình, Yếu, Kém + tỷ lệ đạt/rớt từ đầu khóa đến nay)
- *   2. Bảng 2: Tỷ lệ theo Từng Năm & Từng Học kỳ: Năm 1 (HK1, HK2, Cả năm, Số học viên rớt môn, Số lượt rớt) -> Năm 2 -> Năm 3 -> Năm 4 -> Năm 5
- *   3. Bảng 3: Danh sách Học viên Rớt môn (Thi lại / Nợ học phần) Cần Bồi dưỡng & Chi tiết cụ thể từng học viên bị rớt môn nào (Tên môn đầy đủ, học kỳ, số tín chỉ, điểm số).
- */
-export function exportReportExcel() {
-  if (!['admin', 'company_officer'].includes(AppState.role) && !AppState.role?.startsWith('class_leader_')) {
-    showToast('Tài khoản không có quyền xuất báo cáo giao ban.', 'error'); return;
-  }
-  const classScope = getCurrentUserClassScope();
-  const selectedClass = classScope || (AppState.dashboardFilters?.class || 'all');
-
-  let scopedStudents = getScopedStudents();
-  if (selectedClass && selectedClass !== 'all') {
-    scopedStudents = scopedStudents.filter(s => s.class === selectedClass);
-  }
-
-  const courseStats = computeReportAcademicStats(scopedStudents, 'course', 1, 1);
-  const yearsBreakdown = buildReportYearsBreakdownStats(scopedStudents);
-
-  // =========================================================================
-  // SHEET 1: BÁO CÁO GIAO BAN TỔNG HỢP (ĐẦY ĐỦ 3 BẢNG: BẢNG 1, BẢNG 2, BẢNG 3)
-  // =========================================================================
-  const reportClasses = selectedClass === 'all' ? DEFAULT_CLASSES : [selectedClass];
-  const rows1 = [
-    ['HỌC VIỆN KỸ THUẬT QUÂN SỰ - TIỂU ĐOÀN 4 - ĐẠI ĐỘI 460'],
-    ['BÁO CÁO GIAO BAN: TÌNH HÌNH HỌC TẬP, XẾP LOẠI HỌC LỰC & DANH SÁCH HỌC VIÊN RỚT MÔN'],
-    [`Đơn vị: ${selectedClass === 'all' ? 'Toàn Đại đội 460 (5 Lớp)' : 'Lớp ' + selectedClass} • Ngày xuất báo cáo: ${new Date().toLocaleDateString('vi-VN')}`],
-    [],
-    ['BẢNG 1: TỶ LỆ TÍCH LŨY (TỪ ĐẦU KHÓA ĐẾN NAY)'],
-    ['STT', 'Chỉ tiêu / Xếp loại học lực tích lũy', 'Tiêu chuẩn đánh giá (Hệ 10)', 'Số lượng', 'Tỷ lệ tích lũy (%)', ...reportClasses.map(className => `Lớp ${className}`), 'Ghi chú / Đánh giá chất lượng']
-  ];
-
-  REPORT_RANK_META.forEach((item, idx) => {
-    rows1.push([
-      idx + 1,
-      `Xếp loại ${item.name}`,
-      item.standard,
-      `${courseStats.rankCounts[item.name] || 0} học viên`,
-      `${courseStats.rankRates[item.name] || '0.0'}%`,
-      ...reportClasses.map(className => courseStats.classStats[className]?.rankCounts[item.name] || 0),
-      item.desc
-    ]);
-  });
-
-  rows1.push(
-    [
-      'TỔNG',
-      'Tổng hợp Tích lũy Toàn khóa',
-      `ĐTB tích lũy: ${courseStats.avgGpa}`,
-      `${courseStats.totalCadets} học viên`,
-      '100.0%',
-      `Đạt: ${courseStats.coursePassRate}% | Rớt: ${courseStats.courseFailRate}% | Số HV rớt môn: ${courseStats.debtStudentCount} | Số lượt rớt: ${courseStats.totalDebtFailsCount}`
-    ]
-  );
-
-  rows1.push([]);
-  rows1.push(['BẢNG 2: TỶ LỆ THEO TỪNG NĂM & TỪNG HỌC KỲ (NĂM 1 -> NĂM 2 -> NĂM 3 -> NĂM 4 -> NĂM 5)']);
-
-  // Dòng tiêu đề cấp 1 của Bảng 2: Năm 1 (HK1, HK2, Cả năm, Số học viên rớt môn, Số lượt rớt) -> Năm 2...
-  const matrixHeader1 = ['STT', 'Xếp loại Học lực / Chỉ tiêu', 'Tiêu chuẩn'];
-  const matrixHeader2 = ['', '', ''];
-  yearsBreakdown.forEach(yb => {
-    matrixHeader1.push(
-      `Năm ${yb.year} - HK1 (Kỳ ${yb.sem1Num})`,
-      `Năm ${yb.year} - HK2 (Kỳ ${yb.sem2Num})`,
-      `Năm ${yb.year} - Cả năm`,
-      `Năm ${yb.year} - Số học viên rớt môn`,
-      `Năm ${yb.year} - Số lượt rớt`
-    );
-    matrixHeader2.push('HK1 (SL / %)', 'HK2 (SL / %)', 'Cả năm (SL / %)', 'Số học viên rớt môn', 'Số lượt rớt');
-  });
-  rows1.push(matrixHeader1);
-  rows1.push(matrixHeader2);
-
-  REPORT_RANK_META.forEach((item, idx) => {
-    const r = [idx + 1, item.name, item.standard];
-    yearsBreakdown.forEach(yb => {
-      const c1 = yb.hk1.rankCounts[item.name] || 0;
-      const p1 = yb.hk1.rankRates[item.name] || '0.0';
-      const c2 = yb.hk2.rankCounts[item.name] || 0;
-      const p2 = yb.hk2.rankRates[item.name] || '0.0';
-      const cy = yb.fullYear.rankCounts[item.name] || 0;
-      const py = yb.fullYear.rankRates[item.name] || '0.0';
-      const debtInRank = yb.fullYear.rankDebtStudents[item.name] || 0;
-      const failsInRank = yb.fullYear.rankFailInstances[item.name] || 0;
-      r.push(`${c1} (${p1}%)`, `${c2} (${p2}%)`, `${cy} (${py}%)`, `${debtInRank} học viên`, `${failsInRank} lượt`);
-    });
-    rows1.push(r);
-  });
-
-  const avgRow = ['TỔNG', 'Điểm trung bình (ĐTB) & Tổng số rớt theo Năm', 'Hệ 10'];
-
-  yearsBreakdown.forEach(yb => {
-    avgRow.push(
-      `ĐTB HK1: ${yb.hk1.avgGpa}`,
-      `ĐTB HK2: ${yb.hk2.avgGpa}`,
-      `ĐTB Cả năm: ${yb.fullYear.avgGpa}`,
-      `Tổng HV rớt: ${yb.fullYear.debtStudentCount} (${yb.fullYear.debtStudentRate}%)`,
-      `Tổng lượt rớt: ${yb.fullYear.totalDebtFailsCount}`
-    );
-  });
-
-  rows1.push(avgRow);
-
-  rows1.push([]);
-  rows1.push(['BẢNG 3: DANH SÁCH HỌC VIÊN RỚT MÔN (THI LẠI / NỢ HỌC PHẦN) CẦN BỒI DƯỠNG']);
-  rows1.push([
-    'STT',
-    'Mã HV',
-    'Họ và Tên',
-    'Cấp bậc',
-    'Lớp',
-    'Các Học Phần Bị Rớt (< 4.0) — Tên môn học đầy đủ (Số TC • Học kỳ • Điểm số)',
-    'Số Học Phần Rớt',
-    'ĐTB Tích Lũy',
-    'Xếp Loại Học Lực',
-    'Biện Pháp Bồi Dưỡng / Kế Hoạch Khắc Phục'
-  ]);
-
-  if (courseStats.debtCadetsList.length === 0) {
-    rows1.push(['-', '-', 'Không có học viên nào rớt môn trong phạm vi báo cáo này', '-', '-', '-', 0, '-', '-', '-']);
-  } else {
-    courseStats.debtCadetsList.forEach((item, idx) => {
-      const s = item.student;
-      const fullCoursesStr = item.debts
-        .map(d => `${getFullSubjectName(d.subject)} (${d.subject.credits} TC - Học kỳ ${d.subject.semester} - Điểm: ${Number(d.score).toFixed(2)})`)
-        .join('; ');
-      rows1.push([
-        idx + 1,
-        s.code,
-        s.name,
-        s.rank,
-        s.class,
-        fullCoursesStr,
-        item.failCount,
-        item.yearGpa.toFixed(2),
-        item.rank,
-        `Phân công Cán sự lớp ${s.class} kèm cặp; duy trì tự học tối; đăng ký ôn và thi lại học phần.`
-      ]);
-    });
-  }
-
-  rows1.push([]);
-  rows1.push(['PHỤ LỤC CHI TIẾT: DANH SÁCH CỤ THỂ TỪNG HỌC VIÊN BỊ RỚT MÔN NÀO (TÊN MÔN HỌC ĐẦY ĐỦ & ĐIỂM SỐ CỤ THỂ)']);
-  rows1.push(['STT', 'Mã học viên', 'Họ và Tên học viên', 'Cấp bậc', 'Lớp', 'Tên môn học bị rớt (Tên đầy đủ)', 'Học kỳ', 'Năm học', 'Số tín chỉ', 'Điểm số cụ thể']);
-
-  if (courseStats.failedCourseDetailsList.length === 0) {
-    rows1.push(['-', '-', 'Không có lượt môn học nào bị rớt (< 4.0)', '-', '-', '-', '-', '-', '-', '-']);
-  } else {
-    courseStats.failedCourseDetailsList.forEach((d, idx) => {
-      rows1.push([
-        idx + 1,
-        d.studentCode,
-        d.studentName,
-        d.studentRank,
-        d.studentClass,
-        getFullSubjectName(d.subject || d.courseName),
-        `Học kỳ ${d.semester}`,
-        `Năm thứ ${d.academicYear}`,
-        d.credits,
-        Number(d.score).toFixed(2)
-      ]);
-    });
-  }
-
-  // =========================================================================
-  // SHEET 2: BẢNG 2 CHI TIẾT THEO TỪNG NĂM & TỪNG HỌC KỲ (NĂM 1 -> NĂM 5)
-  // =========================================================================
-  const rows2 = [
-    ['HỌC VIỆN KỸ THUẬT QUÂN SỰ - TIỂU ĐOÀN 4 - ĐẠI ĐỘI 460'],
-    ['BẢNG 2: THỐNG KÊ TỶ LỆ THEO TỪNG NĂM & TỪNG HỌC KỲ (NĂM 1 -> NĂM 5)'],
-    ['Cấu trúc chuẩn: Năm 1 (HK1, HK2, Cả năm, Số học viên rớt môn, Số lượt rớt) -> Năm 2 -> Năm 3 -> Năm 4 -> Năm 5'],
-    [],
-    [
-      'Năm học',
-      'Mốc trong năm (HK1 / HK2 / Cả năm)',
-      'Quân số',
-      'Xuất sắc (SL / %)',
-      'Giỏi (SL / %)',
-      ...REPORT_RANK_LEVELS.slice(2).map(rank => `${rank} (SL / %)`),
-      'Tỷ lệ Đạt học phần (%)',
-      'Tỷ lệ Rớt học phần (%)',
-      'Số học viên rớt môn',
-      'Số lượt rớt',
-      'ĐTB Chung'
-    ]
-  ];
-
-  yearsBreakdown.forEach(yb => {
-    const pushSubRow = (subTitle, st) => {
-      rows2.push([
-        `Năm ${yb.year}`,
-        subTitle,
-        st.totalCadets,
-        ...REPORT_RANK_LEVELS.map(rank => `${st.rankCounts[rank]} (${st.rankRates[rank]}%)`),
-        `${st.coursePassRate}%`,
-        `${st.courseFailRate}%`,
-        `${st.debtStudentCount} học viên (${st.debtStudentRate}%)`,
-        `${st.totalDebtFailsCount} lượt`,
-        st.avgGpa
-      ]);
-    };
-    pushSubRow(`HK1 (Học kỳ ${yb.sem1Num})`, yb.hk1);
-    pushSubRow(`HK2 (Học kỳ ${yb.sem2Num})`, yb.hk2);
-    pushSubRow(`Cả năm Năm ${yb.year} (HK${yb.sem1Num} & HK${yb.sem2Num})`, yb.fullYear);
-  });
-
-  // =========================================================================
-  // SHEET 3: DANH SÁCH HỌC VIÊN RỚT MÔN CẦN BỒI DƯỠNG & MÔN HỌC CỤ THỂ BỊ RỚT
-  // =========================================================================
-  let rows3 = [
-    ['HỌC VIỆN KỸ THUẬT QUÂN SỰ - TIỂU ĐOÀN 4 - ĐẠI ĐỘI 460'],
-    ['BẢNG 3: DANH SÁCH HỌC VIÊN RỚT MÔN (THI LẠI / NỢ HỌC PHẦN) CẦN BỒI DƯỠNG'],
-    [`Tổng số học viên rớt môn: ${courseStats.debtStudentCount} đồng chí (${courseStats.debtStudentRate}%) • Tổng số lượt rớt: ${courseStats.totalDebtFailsCount} lượt`],
-    [],
-    [
-      'STT',
-      'Mã học viên',
-      'Họ và Tên học viên',
-      'Cấp bậc',
-      'Lớp',
-      'Tên môn học bị rớt (Tên đầy đủ, không viết tắt)',
-      'Học kỳ',
-      'Năm học',
-      'Số tín chỉ',
-      'Điểm số cụ thể',
-      'ĐTB Tích lũy',
-      'Xếp loại học lực',
-      'Biện pháp bồi dưỡng / Kế hoạch khắc phục'
-    ]
-  ];
-
-  courseStats.failedCourseDetailsList.forEach((d, idx) => {
-    const fullCourseName = getFullSubjectName(d.subject || d.courseName);
-    rows3.push([
-      idx + 1,
-      d.studentCode,
-      d.studentName,
-      d.studentRank,
-      d.studentClass,
-      fullCourseName,
-      `Học kỳ ${d.semester}`,
-      `Năm thứ ${d.academicYear}`,
-      d.credits,
-      Number(d.score).toFixed(2),
-      Number(d.gpa).toFixed(2),
-      d.classification,
-      `Phân công Cán sự lớp ${d.studentClass} kèm cặp; ôn và thi lại môn ${fullCourseName}`
-    ]);
-  });
-
-  const table3Start = rows1.findIndex(row => String(row[0] || '').startsWith('BẢNG 3:'));
-  const appendixStart = rows1.findIndex(row => String(row[0] || '').startsWith('PHỤ LỤC CHI TIẾT:'));
-  rows3 = [rows3[0], ...rows1.slice(table3Start, appendixStart), [], ...rows3.slice(1)];
-
-  // Align summary descriptions with the added per-class columns in Table 1.
-  const table2Start = rows1.findIndex(row => String(row[0] || '').startsWith('BẢNG 2:'));
-  for (let i = 6 + REPORT_RANK_LEVELS.length; i < table2Start; i++) {
-    if (rows1[i]?.length === 6) rows1[i].splice(5, 0, ...reportClasses.map(() => ''));
-  }
-  const ws1 = XLSX.utils.aoa_to_sheet(rows1);
-  ws1['!cols'] = Array.from({ length: Math.max(...rows1.map(row => row.length)) }, (_, index) => ({ wch: index === 0 ? 8 : index === 1 ? 30 : 20 }));
-
-  const ws2 = XLSX.utils.aoa_to_sheet(rows2);
-  ws2['!cols'] = [{ wch: 12 }, { wch: 30 }, { wch: 10 },
-    ...REPORT_RANK_LEVELS.map(() => ({ wch: 20 })),
-    { wch: 18 }, { wch: 18 }, { wch: 25 }, { wch: 16 }, { wch: 12 }];
-
-  const ws3 = XLSX.utils.aoa_to_sheet(rows3);
-  ws3['!cols'] = [
-    { wch: 6 }, { wch: 16 }, { wch: 25 }, { wch: 14 }, { wch: 12 },
-    { wch: 36 }, { wch: 14 }, { wch: 14 }, { wch: 12 }, { wch: 16 },
-    { wch: 14 }, { wch: 16 }, { wch: 42 }
-  ];
-
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws1, 'Bao_Cao_Giao_Ban_3_Bang');
-  XLSX.utils.book_append_sheet(wb, ws2, 'Bang_2_Ty_Le_Nam_Hoc_Ky');
-  XLSX.utils.book_append_sheet(wb, ws3, 'Bang_3_DS_HV_Rot_Mon');
-  writeReportWorkbook(wb, `Bao_Cao_Tinh_Hinh_Hoc_Tap_${selectedClass === 'all' ? 'Dai_Doi_460' : selectedClass}.xlsx`);
-}
-
 // --- 7. CHỨNG CHỈ NGOẠI NGỮ ---
 export function renderLanguages() {
   const summaryContainer = document.getElementById('languageClassSummary');
@@ -3388,318 +2370,6 @@ export function toggleCurrentSheetLock() {
 }
 
 // --- 13. XUẤT / NHẬP EXCEL ---
-export function exportStudentPersonalExcel() {
-  const student = getLoggedInStudent() || (AppState.role !== 'student' ? AppState.students.find(s => s.id === AppState.studentViewingId) || AppState.students[0] : null);
-  if (!student) {
-    showToast('Không tìm thấy thông tin học viên để xuất bảng điểm!', 'error');
-    return;
-  }
-
-  const studentGrades = AppState.grades[student.id] || {};
-  const rows = [
-    ['HỌC VIỆN KỸ THUẬT QUÂN SỰ - TIỂU ĐOÀN 4 - ĐẠI ĐỘI 460'],
-    ['BẢNG ĐIỂM VÀ THÔNG TIN CÁ NHÂN QUÂN NHÂN'],
-    [],
-    ['I. THÔNG TIN LÝ LỊCH CÁ NHÂN'],
-    ['Họ và tên:', student.name, 'Mã học viên:', student.code],
-    ['Cấp bậc:', student.rank, 'Lớp:', student.class],
-    ['Chức vụ:', student.position || student.role || 'Học viên', 'Ngày sinh:', formatVN(student.dob)],
-    ['Nhập ngũ:', student.enlistmentDate || '02/2022', 'Quê quán:', student.hometown || ''],
-    ['Trình độ ngoại ngữ:', student.currentLangLevel || 'Chưa đạt'],
-    ['Danh hiệu đạt được:', formatAchievementsText(student.achievements)],
-    [],
-    ['II. BẢNG ĐIỂM CHI TIẾT TỪ NĂM NHẤT ĐẾN NĂM NĂM (5 NĂM - 10 HỌC KỲ)']
-  ];
-
-  for (let y = 1; y <= 5; y++) {
-    const sem1 = 2 * y - 1;
-    const sem2 = 2 * y;
-    const subs1 = getSubjectsForClass(student.class, sem1);
-    const subs2 = getSubjectsForClass(student.class, sem2);
-    const gpa1 = calculateSemesterGPA(student.id, sem1);
-    const gpa2 = calculateSemesterGPA(student.id, sem2);
-    const yearGpa = calculateAcademicYearGPA(student.id, y);
-    const yearRank = getClassification(yearGpa);
-
-    rows.push([]);
-    rows.push([`NĂM HỌC THỨ ${y} (HỌC KỲ ${sem1} & HỌC KỲ ${sem2})`]);
-    rows.push(['Hàng 1 - Học kỳ 1:', ...subs1.map(s => `${getFullSubjectName(s)} (${s.credits} TC): ${studentGrades[s.id] !== undefined ? studentGrades[s.id] : '-'}`), `ĐTB HK1: ${gpa1.toFixed(2)}`]);
-    rows.push(['Hàng 2 - Học kỳ 2:', ...subs2.map(s => `${getFullSubjectName(s)} (${s.credits} TC): ${studentGrades[s.id] !== undefined ? studentGrades[s.id] : '-'}`), `ĐTB HK2: ${gpa2.toFixed(2)}`]);
-    rows.push(['Hàng 3 - Tổng kết Năm học:', `Điểm trung bình Năm thứ ${y}: ${yearGpa.toFixed(2)}`, `Xếp loại Năm thứ ${y}: ${yearRank}`]);
-  }
-
-  const ws = XLSX.utils.aoa_to_sheet(rows);
-  ws['!cols'] = [{ wch: 24 }, { wch: 28 }, { wch: 28 }, { wch: 28 }, { wch: 28 }, { wch: 28 }, { wch: 22 }];
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Bang_Diem_Ca_Nhan');
-
-  const year = Number(AppState.cumulativeSelectedYear) || 1;
-  const cumulative = XLSX.utils.aoa_to_sheet([
-    ['BẢNG ĐIỂM TÍCH LŨY CÁ NHÂN'], [`Năm học ${year} · Tích lũy toàn khóa`], [], [],
-    ['STT','Mã HV','Họ và Tên','Cấp bậc','Lớp','Tín chỉ tích lũy','ĐTB Tích Lũy (Hệ 10)','Xếp loại (Hệ 10)','Điểm Hệ 4 (/4.0)','Trình độ ngoại ngữ hiện tại','Số học phần rớt (< 4.0)'],
-    [1,student.code,student.name,student.rank,student.class,`${calculateCreditsPassed(student.id)} / ${getTotalCourseCredits(student.class)} TC`,calculateYearGPA(student.id).toFixed(2),getClassification(calculateYearGPA(student.id)),calculateCumulativeGPA4(student.id).toFixed(2),student.currentLangLevel || 'Chưa đạt',getDebtSubjects(student.id).length]
-  ]);
-  cumulative['!cols'] = Array.from({ length: 11 }, (_, i) => ({ wch: i === 2 ? 30 : 20 }));
-  XLSX.utils.book_append_sheet(wb,cumulative,'Diem_Tich_Luy');
-
-  // Định dạng tên file bắt buộc: Bảng điểm(thông tin cá nhân) - [Họ và tên học viên].xlsx
-  const exactFilename = `Bảng điểm(thông tin cá nhân) - ${student.name}.xlsx`;
-  writeReportWorkbook(wb, exactFilename);
-}
-
-export function exportClassExcel() {
-  if (AppState.role === 'student') {
-    exportStudentPersonalExcel();
-    return;
-  }
-
-  const cls = getCurrentUserClassScope() || AppState.currentSheetClass;
-  if (!DEFAULT_CLASSES.includes(cls)) {
-    showToast('Vui lòng chọn một lớp để tải bảng điểm.', 'error');
-    return;
-  }
-  const students = getScopedStudents().filter(student => student.class === cls);
-  if (!students.length) { showToast('Lớp chưa có học viên để xuất bảng điểm.', 'error'); return; }
-  const semesters = Array.from({ length: 10 }, (_, index) => ({ semester: index + 1, subjects: getSubjectsForClass(cls, index + 1) }));
-  const { headers, headerRows, merges, rows, completed } = buildClassTranscript(students, semesters, AppState.grades,
-    calculateSemesterGPA, calculateAcademicYearGPA, getFullSubjectName, value => normalizeDateVN(value, ''));
-  if (!completed.length) { showToast('Lớp chưa có kỳ nào đầy đủ điểm toàn bộ học viên.', 'error'); return; }
-  const ws = XLSX.utils.aoa_to_sheet([...headerRows, ...rows]);
-  ws['!reportHeaderRows'] = [1, 2, 3];
-  ws['!merges'] = merges;
-  ws['!rows'] = [{ hpt: 28 }, { hpt: 100 }, { hpt: 22 }];
-  ws['!cols'] = headers.map((header, index) => ({ wch: header === 'GHI CHÚ' ? 30 : index === 0 ? 7 : index === 2 ? 28 : index < 5 ? 18 : header.startsWith('ĐIỂM TB') ? 16 : 12 }));
-  for (let row = headerRows.length; row < rows.length + headerRows.length; row++) {
-    for (let column = 5; column < headers.length - 1; column++) {
-      const cell = ws[XLSX.utils.encode_cell({ r: row, c: column })];
-      if (cell) cell.z = '0.00';
-    }
-  }
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, `Bang_diem_${cls}`);
-  writeReportWorkbook(wb, `Bảng điểm ${cls}.xlsx`);
-}
-
-export function exportMasterExcel() {
-  const year = Math.min(5, Math.max(1, Number(AppState.masterFilters.year) || 1));
-  const sem1 = year * 2 - 1, sem2 = year * 2;
-  const headers = [
-    'STT', 'Mã HV', 'Họ và Tên', 'Cấp bậc', 'Lớp', 'Ngày sinh',
-    'ĐTB HK1', 'ĐTB HK2', 'ĐTB Cả Năm',
-    'Xếp loại Học lực', 'Học phần rớt (< 4.0)'
-  ];
-
-  const rows = [
-    ['HỌC VIỆN KỸ THUẬT QUÂN SỰ - TIỂU ĐOÀN 4 - ĐẠI ĐỘI 460'],
-    [`BẢNG TỔNG HỢP KẾT QUẢ HỌC TẬP TOÀN ĐẠI ĐỘI 460 - NĂM ${year}`],
-    [],
-    headers
-  ];
-
-  getScopedStudents().forEach((student, idx) => {
-    const g1 = calculateSemesterGPA(student.id, sem1);
-    const g2 = calculateSemesterGPA(student.id, sem2);
-    const gy = calculateAcademicYearGPA(student.id, year);
-    const debts = getDebtSubjects(student.id, null, year);
-
-    rows.push([
-      idx + 1,
-      student.code,
-      student.name,
-      student.rank,
-      student.class,
-      formatVN(student.dob),
-      g1.toFixed(2),
-      g2.toFixed(2),
-      gy.toFixed(2),
-      getClassification(gy),
-      debts.length > 0 ? debts.map(d => formatFailedSubjectItem(d.subject)).join('; ') : 'Đạt chuẩn'
-    ]);
-  });
-
-  const ws = XLSX.utils.aoa_to_sheet(rows);
-  ws['!cols'] = headers.map(() => ({ wch: 16 }));
-  ws['!cols'][2] = { wch: 24 };
-
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Tong_Hop_Dai_Doi');
-  writeReportWorkbook(wb, `Tong_Hop_Diem_Dai_Doi_460_Nam_${year}.xlsx`);
-}
-
-export function exportAcademicRanking() {
-  if (!['admin', 'company_officer'].includes(AppState.role) && !AppState.role?.startsWith('class_leader_')) {
-    showToast('Tài khoản không có quyền xuất xếp hạng điểm.', 'error'); return;
-  }
-  const year = Math.min(5, Math.max(1, Number(document.getElementById('rankingYearSelect')?.value) || 1));
-  const scope = getCurrentUserClassScope();
-  const students = getScopedStudents();
-  if (!students.length) { showToast('Chưa có học viên để xếp hạng.', 'error'); return; }
-  const standard = evaluateLangLevelStatus('Chưa đạt', AppState.requiredLangStandard).requiredStandard;
-  const { roster } = collectLanguageStatistics(students, AppState.languages || {}, standard, evaluateLangLevelStatus, scope ? [scope] : DEFAULT_CLASSES);
-  const round = value => Number(Number(value).toFixed(2));
-  const records = roster.map(({ student, passed }) => {
-    const hasScore = semester => getSubjectsForClass(student.class, semester).some(subject => {
-      const score = AppState.grades[student.id]?.[subject.id];
-      return score !== '' && score !== undefined && score !== null && Number.isFinite(Number(score));
-    });
-    const first = year * 2 - 1, second = year * 2;
-    const hasFirst = hasScore(first), hasSecond = hasScore(second);
-    return { student, languagePassed: passed,
-      hk1: hasFirst ? round(calculateSemesterGPA(student.id, first)) : null,
-      hk2: hasSecond ? round(calculateSemesterGPA(student.id, second)) : null,
-      total: hasFirst || hasSecond ? calculateAcademicYearGPA(student.id, year) : null };
-  });
-  const makeSheet = blocks => {
-    const sheet = XLSX.utils.aoa_to_sheet([]);
-    sheet['!cols'] = []; sheet['!merges'] = []; sheet['!reportCellFills'] = {}; sheet['!reportBlankColumns'] = [];
-    sheet['!reportHeaderRows'] = [1, 2, 3]; sheet['!reportRepeatRows'] = 3;
-    blocks.forEach(({ label, members }, index) => {
-      const start = index * 12;
-      const table = rankingTableRows(members, value => normalizeDateVN(value, ''));
-      XLSX.utils.sheet_add_aoa(sheet, [[`XẾP HẠNG ĐIỂM - ${label}`], [`Năm ${year} • Yêu cầu Tiếng Nga: ${standard} • Xanh: tối đa 10% • Vàng: tiếp theo tối đa 25%`], RANKING_HEADERS, ...table.rows], { origin: { r: 0, c: start } });
-      for (const row of [0,1]) sheet['!merges'].push({ s: { r: row, c: start }, e: { r: row, c: start + 9 } });
-      [7,20,28,24,12,16,16,20,16,24].forEach((wch,column) => { sheet['!cols'][start + column] = { wch }; });
-      table.ranked.forEach((record, row) => {
-        for (let column = 0; column < 10; column++) {
-          const address = XLSX.utils.encode_cell({ r: row + 3, c: start + column });
-          if (record.award) sheet['!reportCellFills'][address] = record.award;
-          if (column >= 5 && column <= 7 && sheet[address]?.t === 'n') sheet[address].z = '0.00';
-        }
-      });
-      if (index < blocks.length - 1) for (const offset of [10,11]) {
-        sheet['!cols'][start + offset] = { wch: 4 };
-        sheet['!reportBlankColumns'].push(XLSX.utils.encode_col(start + offset));
-      }
-    });
-    return sheet;
-  };
-  const wb = XLSX.utils.book_new();
-  if (scope) {
-    XLSX.utils.book_append_sheet(wb, makeSheet([{ label: `LỚP ${scope}`, members: records }]), 'Xep_hang_lop');
-  } else {
-    XLSX.utils.book_append_sheet(wb, makeSheet([{ label: 'TOÀN ĐẠI ĐỘI', members: records }]), 'Toan_dai_doi');
-    XLSX.utils.book_append_sheet(wb, makeSheet(DEFAULT_CLASSES.map(className => ({ label: `LỚP ${className}`, members: records.filter(item => item.student.class === className) }))), 'Tung_lop');
-  }
-  writeReportWorkbook(wb, 'Xếp hạng điểm.xlsx');
-}
-
-export function exportLanguageExcel() {
-  if (!['admin', 'company_officer'].includes(AppState.role) && !AppState.role?.startsWith('class_leader_')) {
-    showToast('Tài khoản không có quyền tải danh sách Tiếng Nga.', 'error'); return;
-  }
-  const students = getScopedStudents();
-  if (!students.length) { showToast('Chưa có học viên để xuất danh sách.', 'error'); return; }
-  const scope = getCurrentUserClassScope();
-  const standard = evaluateLangLevelStatus('Chưa đạt', AppState.requiredLangStandard).requiredStandard;
-  const { roster } = collectLanguageStatistics(students, AppState.languages || {}, standard, evaluateLangLevelStatus, scope ? [scope] : DEFAULT_CLASSES);
-  const headers = ['STT', 'MÃ HỌC VIÊN', 'HỌ VÀ TÊN', 'NGÀY THÁNG NĂM SINH', 'TRÌNH ĐỘ THỰC TẾ', 'GHI CHÚ'];
-  const rows = roster.map(({ student, level }, index) => [index + 1, String(student.code || ''), student.name, normalizeDateVN(student.dob, ''), level, '']);
-  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-  const passed = roster.filter(item => item.passed).length;
-  const total = roster.length;
-  XLSX.utils.sheet_add_aoa(ws, [
-    [`Yêu cầu: (${standard})`, 'SỐ LƯỢNG', 'TỶ LỆ'],
-    ['ĐẠT', passed, total ? passed / total : 0],
-    ['CHƯA ĐẠT', total - passed, total ? (total - passed) / total : 0]
-  ], { origin: 'H4' });
-  ws.J5.z = '0.0%'; ws.J6.z = '0.0%';
-  ws['!reportHeaderRows'] = [1];
-  ws['!cols'] = [{ wch: 7 }, { wch: 20 }, { wch: 30 }, { wch: 24 }, { wch: 22 }, { wch: 30 }, { wch: 4 }, { wch: 24 }, { wch: 14 }, { wch: 14 }];
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Danh_sach_tieng_Nga');
-  writeReportWorkbook(wb, 'Danh sách tiếng Nga.xlsx');
-}
-
-export function getDashboardLanguageData() {
-  const scope = getCurrentUserClassScope();
-  let classes = scope ? [scope] : DEFAULT_CLASSES;
-  const standard = evaluateLangLevelStatus('Chưa đạt', AppState.requiredLangStandard).requiredStandard;
-  const selected = AppState.activeTab === 'tab-reports' ? document.getElementById('reportsClassSelect')?.value || 'all' : 'all';
-  if (!scope && selected !== 'all') classes = [selected];
-  const students = getScopedStudents().filter(student => scope || selected === 'all' || student.class === selected);
-  return { standard, scope: scope || (selected !== 'all' ? selected : null), ...collectLanguageStatistics(students, AppState.languages || {}, standard, evaluateLangLevelStatus, classes) };
-}
-
-export function renderDashboardLanguageSummary() {
-  const tbody = document.getElementById('dashboardLanguageSummaryBody');
-  if (!tbody) return;
-  if (!['admin', 'company_officer'].includes(AppState.role) && !AppState.role?.startsWith('class_leader_')) { tbody.replaceChildren(); return; }
-  const { rows, standard, scope } = getDashboardLanguageData();
-  const select = document.getElementById('dashboardLanguageStandard');
-  if (select) {
-    const options = LANGUAGE_LEVEL_OPTIONS.filter(level => level !== 'Chưa đạt');
-    if (!select.options.length) options.forEach(level => select.append(new Option(level, level)));
-    select.value = standard;
-    select.disabled = AppState.role !== 'admin';
-  }
-  const caption = document.getElementById('dashboardOverviewScope');
-  if (caption) caption.textContent = `${scope ? 'Lớp ' + scope : 'Toàn Đại đội 460 · 5 lớp'} · Chuẩn hiện tại: ${standard} · Tỷ lệ tính trên quân số từng lớp.`;
-  const percent = value => `${value.toLocaleString('vi-VN', { maximumFractionDigits: 1, minimumFractionDigits: 1 })}%`;
-  tbody.replaceChildren(...rows.map(item => {
-    const row = document.createElement('tr');
-    [item.className, item.total, item.passed, percent(item.passedRate), item.notPassed, percent(item.notPassedRate)].forEach((value, index) => {
-      const cell = document.createElement(index === 0 ? 'th' : 'td');
-      if (index === 0) cell.scope = 'row';
-      if (index === 2 || index === 3) cell.className = 'language-summary-pass';
-      if (index === 4 || index === 5) cell.className = 'language-summary-fail';
-      cell.textContent = value; row.append(cell);
-    });
-    return row;
-  }));
-}
-
-export function exportDashboardLanguageExcel() {
-  if (!['admin', 'company_officer'].includes(AppState.role) && !AppState.role?.startsWith('class_leader_')) { showToast('Tài khoản không có quyền xuất thống kê đơn vị.', 'error'); return; }
-  const { rows, roster, standard, scope } = getDashboardLanguageData();
-  const preamble = [['ĐẠI ĐỘI 460'], ['THỐNG KÊ ĐẠT CHUẨN NGOẠI NGỮ'], [`Chuẩn ngoại ngữ hiện tại: ${standard}`], [`Phạm vi: ${scope || 'Toàn Đại đội 460'}`]];
-  const summary = XLSX.utils.aoa_to_sheet([...preamble,
-    ['Lớp', 'Quân số', 'Số lượng đạt', 'Tỷ lệ đạt (%)', 'Số lượng chưa đạt', 'Tỷ lệ chưa đạt (%)'],
-    ...rows.map(item => [item.className, item.total, item.passed, Number(item.passedRate.toFixed(1)), item.notPassed, Number(item.notPassedRate.toFixed(1))])
-  ]);
-  const list = XLSX.utils.aoa_to_sheet([...preamble,
-    ['Mã học viên', 'Họ và tên', 'Ngày sinh', 'Lớp', 'Trình độ hiện tại', 'Trạng thái'],
-    ...roster.map(({ student, level, passed }) => [student.code, student.name, normalizeDateVN(student.dob, ''), student.class, level.replaceAll('.', ''), passed ? 'Đạt' : 'Chưa đạt'])
-  ]);
-  summary['!cols'] = [{ wch: 16 }, { wch: 12 }, { wch: 18 }, { wch: 20 }, { wch: 20 }, { wch: 22 }];
-  list['!cols'] = [{ wch: 18 }, { wch: 30 }, { wch: 12 }, { wch: 14 }, { wch: 22 }, { wch: 18 }];
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, summary, 'Thong_Ke_Theo_Lop');
-  XLSX.utils.book_append_sheet(workbook, list, 'Danh_Sach_Hoc_Vien');
-  writeReportWorkbook(workbook, `Thong_Ke_Ngoai_Ngu_${scope || 'Dai_Doi_460'}_${standard}.xlsx`);
-}
-
-export function exportFailedStudentsExcel() {
-  if (!['admin', 'company_officer'].includes(AppState.role) && !AppState.role?.startsWith('class_leader_')) { showToast('Tài khoản không có quyền xuất thống kê đơn vị.', 'error'); return; }
-  const scope = getCurrentUserClassScope();
-  const selected = scope || (AppState.activeTab === 'tab-reports' ? document.getElementById('reportsClassSelect')?.value : 'all') || 'all';
-  const exportScope = scope || (selected !== 'all' ? selected : null);
-  const stats = computeReportAcademicStats(getScopedStudents().filter(student => selected === 'all' || student.class === selected));
-  const records = failedStudentExportRows(stats.debtCadetsList, getFullSubjectName);
-  const sheet = XLSX.utils.aoa_to_sheet([
-    ['ĐẠI ĐỘI 460'], ['DANH SÁCH HỌC VIÊN RỚT MÔN'], [`Phạm vi: ${exportScope || 'Toàn Đại đội 460'}`], ['Chỉ học phần dưới 4,00; tổng tín chỉ là tổng tín chỉ các học phần rớt.'],
-    ['Mã học viên', 'Họ và tên', 'Năm sinh', 'Lớp', 'Môn học rớt (tín chỉ)', 'Tổng số tín chỉ rớt'], ...records
-  ]);
-  sheet['!cols'] = [{ wch: 18 }, { wch: 30 }, { wch: 12 }, { wch: 14 }, { wch: 65 }, { wch: 22 }];
-  sheet['!rows'] = Array.from({ length: records.length + 5 }, (_, index) => ({ hpt: index < 5 ? 20 : Math.max(24, String(records[index - 5][4]).split('\n').length * 18) }));
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, sheet, 'Hoc_Vien_Rot_Mon');
-  writeReportWorkbook(workbook, `Hoc_Vien_Rot_Mon_${exportScope || 'Dai_Doi_460'}.xlsx`);
-}
-
-export function exportAcademicAchievementsExcel() {
-  if (!['admin','company_officer'].includes(AppState.role) && !AppState.role?.startsWith('class_leader_')) return;
-  const selected = getCurrentUserClassScope() || document.getElementById('reportsClassSelect')?.value || 'all';
-  const students = getScopedStudents().filter(student => selected === 'all' || student.class === selected);
-  const sheet = XLSX.utils.aoa_to_sheet([
-    ['ĐẠI ĐỘI 460'],['BÁO CÁO THÀNH TÍCH HỌC TẬP'],[`Phạm vi: ${selected}`],[],
-    ['Mã học viên','Họ và tên','Ngày sinh','Lớp','Điểm tích lũy hệ 10','Điểm tích lũy hệ 4','Xếp loại','Danh hiệu / Thành tích'],
-    ...students.map(student => [student.code,student.name,normalizeDateVN(student.dob,''),student.class,Number(calculateYearGPA(student.id).toFixed(2)),Number(calculateCumulativeGPA4(student.id).toFixed(2)),getClassification(calculateYearGPA(student.id)),formatAchievementsText(student.achievements)])
-  ]);
-  sheet['!cols'] = [18,30,16,14,22,22,20,60].map(wch=>({wch}));
-  const book = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(book,sheet,'Thanh_Tich_Hoc_Tap');
-  writeReportWorkbook(book,`Thanh_Tich_Hoc_Tap_${selected}.xlsx`);
-}
-
 export function downloadExcelTemplate() {
   const cls = getCurrentUserClassScope() || AppState.currentSheetClass || 'OTQS1';
   const targetCls = cls === 'all' ? 'OTQS1' : cls;
@@ -4182,56 +2852,6 @@ export async function executeExcelImport() {
 }
 
 // --- 16. ĐIỂM TÍCH LŨY ---
-export function getGradeLetterAndScale4(score10) {
-  if (score10 === undefined || score10 === null || isNaN(score10) || score10 === '') {
-    return { letter: '-', scale4: 0, status: 'Chưa thi' };
-  }
-  const s = Number(score10);
-  if (s >= 9.0) return { letter: 'A', scale4: 4.0, status: 'Đạt (Giỏi)' };
-  if (s >= 8.0) return { letter: 'B+', scale4: 3.5, status: 'Đạt (Khá Giỏi)' };
-  if (s >= 7.0) return { letter: 'B', scale4: 3.0, status: 'Đạt (Khá)' };
-  if (s >= 6.5) return { letter: 'C+', scale4: 2.5, status: 'Đạt (TB Khá)' };
-  if (s >= 5.5) return { letter: 'C', scale4: 2.0, status: 'Đạt (TB)' };
-  if (s >= 5.0) return { letter: 'D+', scale4: 1.5, status: 'Đạt (TB Yếu)' };
-  if (s >= 4.0) return { letter: 'D', scale4: 1.0, status: 'Đạt (Tối thiểu)' };
-  return { letter: 'F', scale4: 0.0, status: 'Rớt môn (< 4.0)' };
-}
-
-export function calculateCumulativeGPA4(studentId) {
-  const student = AppState.students.find(s => s.id === studentId);
-  const studentClass = student ? student.class : AppState.currentSheetClass;
-  const studentGrades = AppState.grades[studentId] || {};
-  const subjs = getSubjectsForClass(studentClass);
-
-  let totalPoints = 0;
-  let totalCredits = 0;
-  subjs.forEach(sub => {
-    const score = studentGrades[sub.id];
-    if (score !== undefined && score !== null && score !== '' && !isNaN(score)) {
-      const { scale4 } = getGradeLetterAndScale4(score);
-      totalPoints += scale4 * sub.credits;
-      totalCredits += sub.credits;
-    }
-  });
-  return totalCredits > 0 ? (totalPoints / totalCredits) : 0;
-}
-
-export function calculateCreditsPassed(studentId) {
-  const student = AppState.students.find(s => s.id === studentId);
-  const studentClass = student ? student.class : AppState.currentSheetClass;
-  const studentGrades = AppState.grades[studentId] || {};
-  const subjs = getSubjectsForClass(studentClass);
-
-  let passedCredits = 0;
-  subjs.forEach(sub => {
-    const score = studentGrades[sub.id];
-    if (score !== undefined && score !== null && score !== '' && !isNaN(score) && Number(score) >= 4.0) {
-      passedCredits += sub.credits;
-    }
-  });
-  return passedCredits;
-}
-
 export async function handleInlineCumulativeMetaChange(studentId, field, value, triggerSelectEl = null) {
   if (AppState.role === 'company_officer') { showToast('Tài khoản cán bộ chỉ được xem.', 'error'); return; }
   if (field !== 'currentLangLevel') return;
@@ -4425,169 +3045,6 @@ export function renderCumulativeTable() {
   }
 
   // Event Delegation xử lý .btn-open-transcript, .select-cumul-lang, .select-cumul-it tại document
-}
-
-export function openTranscriptModal(studentId) {
-  if (AppState.role === 'student') {
-    const selfStudent = getLoggedInStudent();
-    if (!selfStudent || selfStudent.id !== studentId) {
-      showToast('Bảo mật: Học viên chỉ được phép xem phiếu điểm tích lũy của chính mình!', 'error');
-      return;
-    }
-  }
-
-  const student = AppState.students.find(s => s.id === studentId);
-  if (!student) return;
-
-  const classScope = getCurrentUserClassScope();
-  if (classScope && student.class !== classScope) {
-    showToast(`Tài khoản Lớp ${classScope} không được phép truy cập dữ liệu của lớp khác!`, 'error');
-    return;
-  }
-
-  const gpa10 = calculateYearGPA(student.id);
-  const gpa4 = calculateCumulativeGPA4(student.id);
-  const passedTC = calculateCreditsPassed(student.id);
-  const totalCourseTC = getTotalCourseCredits(student.class);
-  const rank = getClassification(gpa10);
-  const pos = student.position || student.role || 'Học viên';
-
-  document.getElementById('transcriptModalTitle').textContent = `Phiếu Điểm Tích Lũy: ${student.name}`;
-  document.getElementById('tcName').textContent = student.name;
-  document.getElementById('tcCode').textContent = student.code;
-  document.getElementById('tcClass').textContent = `${student.class} • ${pos}`;
-  document.getElementById('tcRank').textContent = `${student.rank} • Ngoại ngữ: ${evaluateLangLevelStatus(student.currentLangLevel).actualLevel}`;
-
-  document.getElementById('tcGpa10').textContent = gpa10.toFixed(2);
-  document.getElementById('tcGpa4').textContent = `${gpa4.toFixed(2)} / 4.00`;
-  document.getElementById('tcCredits').textContent = `${passedTC} / ${totalCourseTC} TC`;
-  document.getElementById('tcClassification').textContent = rank;
-
-  const studentGrades = AppState.grades[student.id] || {};
-  const escape = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
-  const hasRecordedScore = subject => {
-    const score = studentGrades[subject.id];
-    return score !== undefined && score !== null && String(score).trim() !== '' && Number.isFinite(Number(score)) && Number(score) >= 0 && Number(score) <= 10;
-  };
-  const renderSubjRow = (sub, idx) => {
-    const sc10 = studentGrades[sub.id];
-    const hasScore = sc10 !== undefined && sc10 !== null && sc10 !== '' && !isNaN(sc10);
-    const { letter, scale4, status } = getGradeLetterAndScale4(sc10);
-    const sc4 = hasScore ? scale4.toFixed(1) : '-';
-    const isFail = hasScore && Number(sc10) < 4.0;
-
-    return `
-      <tr class="hover:bg-slate-50 ${isFail ? 'bg-rose-50/50' : ''}">
-        <td class="p-2 text-center text-slate-500">${idx + 1}</td>
-        <td class="p-2 font-mono font-bold text-slate-700">${escape(sub.code)}</td>
-        <td class="p-2 font-medium text-slate-900">${escape(getFullSubjectName(sub))} ${sub.category === 'specialized' ? `<span class="text-[10px] font-bold text-amber-800">(CN ${escape(sub.targetClass)})</span>` : ''}</td>
-        <td class="p-2 text-center font-bold text-gold-600">${Number(sub.credits) || 0}</td>
-        <td class="p-2 text-center font-bold ${isFail ? 'text-rose-700 font-black' : 'text-slate-800'}">${hasScore ? Number(sc10).toFixed(2) : '-'}</td>
-        <td class="p-2 text-center font-black ${isFail ? 'text-rose-700' : 'text-army-800'}">${letter}</td>
-        <td class="p-2 text-center font-bold text-blue-800">${sc4}</td>
-        <td class="p-2 text-center">
-          <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isFail ? 'bg-rose-100 text-rose-800' : hasScore ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'}">
-            ${status}
-          </span>
-        </td>
-      </tr>
-    `;
-  };
-
-  const extra = document.getElementById('tcExtraSemestersContainer');
-  extra.replaceChildren();
-  const tableHeader = document.getElementById('tcHk1TableBody').closest('table').querySelector('thead').outerHTML;
-  let visibleSemesters = 0, recordedCredits = 0;
-  for (let semester = 1; semester <= 10; semester++) {
-    const subjects = getSubjectsForClass(student.class, semester).filter(hasRecordedScore);
-    const credits = subjects.reduce((sum, subject) => sum + (Number(subject.credits) || 0), 0);
-    let section;
-    if (semester <= 2) {
-      section = document.getElementById(`tcHk${semester}TableBody`).closest('table').parentElement;
-    } else if (subjects.length) {
-      section = document.createElement('div'); section.className = 'space-y-2';
-      section.innerHTML = sanitizeHTML(`<div class="flex flex-wrap items-center justify-between gap-2 border-b pb-1"><h4 class="font-bold text-army-900 uppercase"></h4><span id="tcHk${semester}Summary" class="text-[11px] font-semibold text-slate-600"></span></div><table class="w-full text-xs text-left border-collapse border border-slate-200">${tableHeader}<tbody id="tcHk${semester}TableBody" class="divide-y divide-slate-100"></tbody></table>`);
-      extra.append(section);
-    }
-    if (!section) continue;
-    section.dataset.semester = String(semester);
-    section.hidden = !subjects.length;
-    const tbody = section.querySelector('tbody');
-    tbody.innerHTML = sanitizeHTML(subjects.map(renderSubjRow).join(''));
-    if (!subjects.length) continue;
-    visibleSemesters++; recordedCredits += credits;
-    section.querySelector('h4').textContent = `Học kỳ ${semester} (${credits} tín chỉ đã có điểm)`;
-    document.getElementById(`tcHk${semester}Summary`).textContent = `ĐTB HK${semester} (10): ${calculateSemesterGPA(student.id, semester).toFixed(2)}`;
-  }
-  document.getElementById('tcNoGradedSubjects').hidden = visibleSemesters > 0;
-  document.getElementById('transcriptModalSubtitle').textContent = `Các học phần đã có điểm • ${recordedCredits} tín chỉ`;
-
-  showModal('modalTranscriptDetail');
-}
-
-export function exportCumulativeExcel() {
-  if (AppState.role === 'student') return exportStudentPersonalExcel();
-  const classScope = getCurrentUserClassScope();
-  const targetClass = classScope || document.getElementById('cumulFilterClass')?.value || 'all';
-  const targetRank = document.getElementById('cumulFilterRank')?.value || 'all';
-  const filterYear = parseInt(document.getElementById('cumulFilterYear')?.value || AppState.cumulativeSelectedYear || '1', 10) || 1;
-  const sem1 = 2 * filterYear - 1;
-  const sem2 = 2 * filterYear;
-
-  let studentsToExport = getScopedStudents();
-  if (targetClass !== 'all') {
-    studentsToExport = studentsToExport.filter(s => s.class === targetClass);
-  }
-  if (targetRank !== 'all') {
-    studentsToExport = studentsToExport.filter(s => getClassification(calculateYearGPA(s.id)) === targetRank);
-  }
-
-  studentsToExport.sort((a, b) => calculateYearGPA(b.id) - calculateYearGPA(a.id));
-
-  const headers = [
-    'STT', 'Mã HV', 'Họ và Tên', 'Cấp bậc', 'Lớp',
-    'Tín chỉ tích lũy',
-    'ĐTB Tích Lũy (Hệ 10)', 'Xếp loại (Hệ 10)', 'Điểm Hệ 4 (/4.0)',
-    'Trình độ ngoại ngữ hiện tại', 'Số học phần rớt (< 4.0)'
-  ];
-
-  const rows = [
-    ['BỘ QUỐC PHÒNG - HỌC VIỆN KỸ THUẬT QUÂN SỰ'],
-    ['TIỂU ĐOÀN 4 - ĐẠI ĐỘI 460'],
-    [targetClass !== 'all' ? `BẢNG ĐIỂM TÍCH LŨY - LỚP ${targetClass}` : 'BẢNG ĐIỂM TÍCH LŨY TOÀN ĐẠI ĐỘI 460'],
-    [],
-    headers
-  ];
-
-  studentsToExport.forEach((s, idx) => {
-    const gpa10 = calculateYearGPA(s.id);
-    const gpa4 = calculateCumulativeGPA4(s.id);
-    const passedTC = calculateCreditsPassed(s.id);
-    const totalTC = getTotalCourseCredits(s.class);
-    const debts = getDebtSubjects(s.id);
-
-    rows.push([
-      idx + 1,
-      s.code,
-      s.name,
-      s.rank,
-      s.class,
-      `${passedTC} / ${totalTC} TC`,
-      gpa10.toFixed(2),
-      getClassification(gpa10),
-      gpa4.toFixed(2),
-      s.currentLangLevel || 'Chưa đạt',
-      debts.length
-    ]);
-  });
-
-  const ws = XLSX.utils.aoa_to_sheet(rows);
-  ws['!cols'] = headers.map(() => ({ wch: 16 }));
-  ws['!cols'][2] = { wch: 24 };
-
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Diem_Tich_Luy');
-  writeReportWorkbook(wb, `Bang_Diem_Tich_Luy_${targetClass !== 'all' ? targetClass : 'Dai_Doi_460'}.xlsx`);
 }
 
 // --- 17. ĐỒNG BỘ ĐÁM MÂY SUPABASE (wxiimjbseovuxmvolswh) ---
