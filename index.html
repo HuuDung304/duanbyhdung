@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="app-release" content="da1f8001ed3f">
+  <meta name="app-release" content="3b9d431cf9cf">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Quản lý đơn vị</title>
   <link rel="icon" type="image/svg+xml" href="./src/assets/favicon.svg?v=43c991ef71f6">
@@ -118,6 +118,7 @@ body {
 
   </style>
   <link rel="stylesheet" href="./src/css/bento-dashboard.css?v=9a8963f8e223">
+  <link rel="stylesheet" href="./src/css/readability.css?v=50a2957fee30">
   <link rel="stylesheet" href="./src/css/motion.css?v=b450b4f5f1f3">
 </head>
 <body class="bento-app bg-slate-100 text-slate-800 min-h-screen flex flex-col">
@@ -240,7 +241,7 @@ body {
 
       <button data-tab="tab-audit" class="nav-tab flex items-center gap-2 py-3 px-4 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-slate-300 hover:text-white whitespace-nowrap transition">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-        Lịch Sử Sửa Điểm (Audit Log)
+        Lịch sử sửa điểm
       </button>
       <button data-tab="tab-settings" class="nav-tab flex items-center gap-2 py-3 px-4 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-slate-300 hover:text-white whitespace-nowrap transition">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
@@ -355,7 +356,7 @@ body {
         <div class="sheet-filter-controls flex flex-wrap items-start gap-3">
           <!-- Class Selector -->
           <div id="sheetClassSelectBox">
-            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Đơn vị Lớp:</label>
+            <label for="sheetClassSelect" class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Lớp:</label>
             <select id="sheetClassSelect" class="bg-slate-50 border border-slate-300 text-slate-900 text-sm font-semibold rounded-lg px-3 py-2 focus:ring-2 focus:ring-army-600 focus:outline-none">
               <option value="all">🏢 Toàn bộ Đại đội 460 (Tất cả 5 Lớp)</option>
               <option value="OTQS1" selected>Lớp Ô tô Quân sự 1 (OTQS1)</option>
@@ -368,7 +369,7 @@ body {
 
           <!-- Academic Year Selector (Năm 1 -> Năm 5) -->
           <div id="sheetYearSelectBox">
-            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Chọn Năm Học (Năm 1 &rarr; Năm 5):</label>
+            <label for="sheetSemesterSelect" class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Năm học:</label>
             <select id="sheetSemesterSelect" class="bg-slate-50 border border-slate-300 text-slate-900 text-sm font-semibold rounded-lg px-3 py-2 focus:ring-2 focus:ring-army-600 focus:outline-none">
               <option value="1">Năm học thứ 1 (Học kỳ 1 &amp; Học kỳ 2)</option>
               <option value="2">Năm học thứ 2 (Học kỳ 3 &amp; Học kỳ 4)</option>
@@ -422,13 +423,10 @@ body {
       </div>
 
       <!-- Instruction banner for keyboard navigation -->
-      <div id="sheetInstructionBanner" class="bg-amber-50 border-l-4 border-amber-500 p-2.5 rounded-r text-xs text-amber-900 flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <span class="font-bold uppercase tracking-wider text-amber-800">💡 Hướng dẫn nhập nhanh (Spreadsheet Mode):</span>
-          <span>Click trực tiếp vào ô điểm để sửa, dùng phím <strong>Mũi tên (↑ ↓ ← →)</strong>, <strong>Enter</strong> hoặc <strong>Tab</strong> để chuyển ô nhanh. Nhập số từ 0.0 đến 10.0.</span>
-        </div>
-        <span class="text-[11px] text-amber-700 font-semibold italic">Tự động tính ĐTB & Xếp loại tức thì</span>
-      </div>
+      <details id="sheetInstructionBanner" class="sheet-help">
+        <summary>Hướng dẫn nhập điểm</summary>
+        <p>Chọn ô điểm để sửa. Dùng phím <strong>Mũi tên</strong>, <strong>Enter</strong> hoặc <strong>Tab</strong> để chuyển ô. Nhập điểm từ 0 đến 10; ĐTB và xếp loại được tính tự động.</p>
+      </details>
 
       <!-- SPREADSHEET GRID TABLE (DÀNH CHO CÁN BỘ, ADMIN & TÀI KHOẢN LỚP) -->
       <div id="classSpreadsheetWrapper" class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
@@ -470,10 +468,10 @@ body {
         <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
           <div>
             <div class="text-[11px] font-semibold text-slate-500 uppercase">Đảng Viên Chính Thức</div>
-            <div id="statProfOfficial" class="text-xl font-extrabold text-rose-700 mt-0.5">0</div>
-            <div class="text-[10px] text-rose-600 font-medium">Hạt nhân lãnh đạo</div>
+            <div id="statProfOfficial" class="text-xl font-extrabold text-indigo-700 mt-0.5">0</div>
+            <div class="text-[10px] text-slate-600 font-medium">Hạt nhân lãnh đạo</div>
           </div>
-          <div class="w-10 h-10 rounded-lg bg-rose-100 text-rose-800 flex items-center justify-center font-bold text-xs">
+          <div class="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold text-xs">
             ★
           </div>
         </div>
@@ -481,10 +479,10 @@ body {
         <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
           <div>
             <div class="text-[11px] font-semibold text-slate-500 uppercase">Đảng Viên Dự Bị</div>
-            <div id="statProfProbationary" class="text-xl font-extrabold text-amber-700 mt-0.5">0</div>
-            <div class="text-[10px] text-amber-600 font-medium">Trong thời gian thử thách</div>
+            <div id="statProfProbationary" class="text-xl font-extrabold text-indigo-700 mt-0.5">0</div>
+            <div class="text-[10px] text-slate-600 font-medium">Trong thời gian thử thách</div>
           </div>
-          <div class="w-10 h-10 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-xs">
+          <div class="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold text-xs">
             DB
           </div>
         </div>
@@ -582,7 +580,7 @@ body {
                 <th class="py-3 px-4 text-left min-w-[180px] whitespace-nowrap">Họ và Tên</th>
                 <th class="py-3 px-2 text-center min-w-[100px] whitespace-nowrap">Cấp bậc</th>
                 <th class="py-3 px-2 text-center min-w-[90px] whitespace-nowrap">Lớp</th>
-                <th class="py-3 px-3 text-center bg-army-700 min-w-[130px] whitespace-nowrap">Chức Vụ</th>
+                <th class="py-3 px-3 text-center min-w-[130px] whitespace-nowrap">Chức Vụ</th>
                 <th class="py-3 px-2 text-center min-w-[110px] whitespace-nowrap">Ngày sinh</th>
                 <th class="py-3 px-2 text-center min-w-[110px] whitespace-nowrap">Nhập ngũ</th>
                 <th class="py-3 px-3 text-left min-w-[160px] whitespace-nowrap">Quê quán</th>
@@ -878,9 +876,9 @@ body {
         <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
           <div>
             <div class="text-[11px] font-bold text-gold-600 uppercase tracking-wider">Học viện Kỹ thuật Quân sự • Tiểu đoàn 4</div>
-            <h3 class="text-base font-extrabold text-slate-900 uppercase">Báo Cáo Giao Ban: Xếp Loại Học Lực &amp; Tình Hình Học Tập (Đại Đội 460)</h3>
-            <p id="reportClassificationPolicy" class="text-xs font-bold mt-2">Xếp loại 7 mức • Xuất sắc từ 9,00 • Giỏi từ 8,00 • Khá từ 7,00 • Trung bình khá từ 6,50 • Trung bình từ 5,50 • Yếu từ 5,00 • Kém dưới 5,00. Học phần dưới 4,00 mới tính rớt.</p>
-            <p class="text-xs text-slate-500">Gồm 3 bảng chuẩn: (1) Bảng 1: Tỷ lệ Tích lũy • (2) Bảng 2: Tỷ lệ theo Từng Năm &amp; Từng Học kỳ (Năm 1 &rarr; Năm 5) • (3) Bảng 3: Danh sách Học viên Rớt môn Cần Bồi dưỡng</p>
+            <h3 class="text-base font-extrabold text-slate-900 uppercase">Tình hình học tập Đại đội 460</h3>
+            <p class="report-intro">Theo dõi kết quả học tập, chuẩn Tiếng Nga và học viên cần bồi dưỡng.</p>
+            <details class="report-policy"><summary>Quy tắc tính và xếp loại</summary><p id="reportClassificationPolicy">Xếp loại 7 mức: Xuất sắc từ 9,00; Giỏi từ 8,00; Khá từ 7,00; Trung bình khá từ 6,50; Trung bình từ 5,50; Yếu từ 5,00; Kém dưới 5,00. Học phần dưới 4,00 mới tính rớt.</p></details>
           </div>
           <div class="flex flex-wrap items-center gap-2.5 w-full lg:w-auto justify-end">
             <span id="reportActiveModeBadge" class="px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-300 text-army-900 text-xs font-extrabold">
@@ -928,12 +926,9 @@ body {
 
         <div class="bg-white p-4 rounded-xl border border-emerald-200 bg-emerald-50/20 shadow-sm">
           <div class="text-[11px] font-bold text-emerald-800 uppercase">Tỷ Lệ Đạt Chuẩn Tiếng Nga</div>
-          <div class="flex items-baseline gap-2 mt-1">
-            <span id="statLanguagePassRate" class="text-2xl font-extrabold text-emerald-700">0.0%</span>
-            <span class="text-xs text-emerald-700 font-bold">Đạt</span>
-            <span class="text-xs text-slate-300">|</span>
-            <span id="statLanguageNotPassedRate" class="text-lg font-black text-rose-600">0.0%</span>
-            <span class="text-xs text-rose-600 font-bold">Chưa đạt</span>
+          <div class="language-kpi-values">
+            <div><span id="statLanguagePassRate" class="text-2xl font-extrabold text-emerald-700">0.0%</span><span class="kpi-value-label text-emerald-700">Đạt</span></div>
+            <div><span id="statLanguageNotPassedRate" class="text-lg font-black text-rose-600">0.0%</span><span class="kpi-value-label text-rose-600">Chưa đạt</span></div>
           </div>
           <div id="statLanguageDetail" class="text-[10px] text-slate-600 font-medium mt-1">Đang tổng hợp theo chuẩn Tiếng Nga hiện tại</div>
         </div>
@@ -970,7 +965,7 @@ body {
             <span class="w-2.5 h-2.5 rounded-full bg-army-700"></span>
             <div>
               <h4 class="font-bold text-xs sm:text-sm text-army-900 uppercase">Bảng 1: Tỷ Lệ Tích Lũy (Từ Đầu Khóa Đến Nay)</h4>
-              <p class="text-[11px] text-slate-500">Thống kê tỷ lệ xếp loại học lực tích lũy (Xuất sắc, Giỏi, Khá, Trung bình khá, Trung bình, Yếu, Kém) và tỷ lệ đạt/rớt từ đầu khóa đến nay</p>
+              <p class="text-[11px] text-slate-500">Phân bố học lực từ đầu khóa đến hiện tại theo 7 mức xếp loại.</p>
             </div>
           </div>
           <label class="text-xs font-semibold text-slate-700">Phạm vi: <select id="reportCourseFilterClass" class="bg-white border border-slate-300 rounded-lg px-3 py-2"><option value="all">Toàn bộ Đại đội</option><option value="OTQS1">Lớp OTQS1</option><option value="OTQS2">Lớp OTQS2</option><option value="TTG1">Lớp TTG1</option><option value="TTG2">Lớp TTG2</option><option value="XMCB">Lớp XMCB</option></select></label>
@@ -2224,6 +2219,7 @@ body {
     "./src/js/components/expanding-rail.js": "./src/js/components/expanding-rail.js?v=5c4f74608e33",
     "./src/js/components/import-review.js": "./src/js/components/import-review.js?v=57e0aa5e92d0",
     "./src/js/components/notched-field.js": "./src/js/components/notched-field.js?v=553608c192ae",
+    "./src/js/components/readability.js": "./src/js/components/readability.js?v=3099cc2c00eb",
     "./src/js/components/report-center.js": "./src/js/components/report-center.js?v=6c26e21009dd",
     "./src/js/dashboard-statistics.js": "./src/js/dashboard-statistics.js?v=6e42e8415b31",
     "./src/js/database/batches.js": "./src/js/database/batches.js?v=dcbf8f6651d0",
@@ -2233,10 +2229,10 @@ body {
     "./src/js/database/realtime.js": "./src/js/database/realtime.js?v=08238ad1e200",
     "./src/js/database/repository.js": "./src/js/database/repository.js?v=7d0c39435b2e",
     "./src/js/grades.js": "./src/js/grades.js?v=03c85d082924",
-    "./src/js/main.js": "./src/js/main.js?v=da1f8001ed3f",
+    "./src/js/main.js": "./src/js/main.js?v=3b9d431cf9cf",
     "./src/js/profile-rules.js": "./src/js/profile-rules.js?v=3a3bbf350b00",
     "./src/js/report-workbook.js": "./src/js/report-workbook.js?v=1cd3836da746",
-    "./src/js/reports/dashboard.js": "./src/js/reports/dashboard.js?v=0a8f55bb44a4",
+    "./src/js/reports/dashboard.js": "./src/js/reports/dashboard.js?v=ce90c9f95100",
     "./src/js/reports/exports.js": "./src/js/reports/exports.js?v=4c778da05b96",
     "./src/js/reports/statistics.js": "./src/js/reports/statistics.js?v=0ec34478e300",
     "./src/js/safe-html.js": "./src/js/safe-html.js?v=07b6fe69e868",
@@ -2246,9 +2242,10 @@ body {
   }
 }
   </script>
-  <script type="module" src="./src/js/main.js?v=da1f8001ed3f"></script>
+  <script type="module" src="./src/js/main.js?v=3b9d431cf9cf"></script>
   <script type="module" src="./src/js/components/expanding-rail.js?v=5c4f74608e33"></script>
   <script type="module" src="./src/js/components/notched-field.js?v=553608c192ae"></script>
   <script type="module" src="./src/js/components/bento-dashboard.js?v=c76ec853266e"></script>
+  <script type="module" src="./src/js/components/readability.js?v=3099cc2c00eb"></script>
 </body>
 </html>

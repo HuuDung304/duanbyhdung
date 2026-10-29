@@ -1,0 +1,84 @@
+/* Readable data workspace. Scope changes to the existing application shell. */
+.bento-app { --readable-ink:#1e293b; --readable-muted:#475569; }
+.bento-app .u040-content { font-size:14px; line-height:1.6; }
+.bento-app .u040-content :is([class~="text-[9px]"],[class~="text-[10px]"],[class~="text-[11px]"]) { font-size:12px; line-height:1.5; }
+.bento-app .u040-content .text-xs { font-size:13px; }
+.bento-app .u040-content :is(input,select,textarea) { font-size:14px; }
+.bento-app .u040-content :is(label,small) { line-height:1.5; }
+.bento-app .u040-content :is(.text-slate-400,.text-slate-500) { color:#64748b; }
+.bento-app .u040-content table th { font-size:13px; line-height:1.5; font-weight:750; color:var(--readable-ink); background:#f1f5f9; text-transform:none; }
+.bento-app .u040-content .text-rose-600 { color:#be123c; }
+.bento-app .u040-content table td { font-size:14px; line-height:1.5; font-variant-numeric:tabular-nums; }
+.bento-app .u040-content table td input { font-size:14px; font-variant-numeric:tabular-nums; }
+.bento-app .u040-content table th:is(.bg-army-700,.bg-army-800,.bg-army-900,.bg-slate-800,.bg-slate-900) { background:#e0e7ff; color:#1e293b; }
+.bento-app .u040-content table thead.bg-army-800 { background:#f1f5f9; color:#1e293b; }
+.bento-app .readable-table-scroll { max-height: min(70dvh,620px); overflow:auto; overscroll-behavior:contain; scroll-padding-top:85px; }
+.bento-app .readable-table-scroll:focus-visible { outline:2px solid #2563eb; outline-offset:3px; }
+.bento-app .readable-data-table { border-collapse:separate; border-spacing:0; }
+.bento-app .readable-data-table thead { position:sticky; top:0; z-index:25; }
+.bento-app .readable-data-table [data-identity-column] { position:sticky; left:var(--identity-left); z-index:5; background:#fff; }
+.bento-app .readable-data-table th[data-identity-column] { background:#f1f5f9; }
+.bento-app .readable-data-table [data-identity-column="2"] { box-shadow:2px 0 0 #e2e8f0; }
+.bento-app .readable-data-table td[data-numeric-cell],.bento-app .readable-data-table td[data-numeric-cell] input { text-align:right; }
+.bento-app .readable-data-table td[data-numeric-cell] input { padding-right:8px; }
+.bento-app .readable-data-table tbody tr:hover [data-identity-column] { background:#eff6ff; }
+.bento-app .language-kpi-values { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:4px; align-items:baseline; }
+.bento-app .kpi-value-label { display:block; font-size:13px; font-weight:650; }
+.bento-app .report-intro { font-size:14px; margin-top:6px; color:#e2e8f0; }
+.bento-app .report-policy { margin-top:10px; font-size:13px; color:#e2e8f0; }
+.bento-app .report-policy summary { cursor:pointer; width:fit-content; text-decoration:underline; text-underline-offset:4px; }
+.bento-app .report-policy p { max-width:76ch; line-height:1.7; margin-top:10px; }
+.bento-app #tab-dashboard #statAvgGPASub,.bento-app #tab-dashboard #statScopeSubtitle { white-space:normal; overflow:visible; }
+.bento-app #tab-dashboard :is(#statLanguagePassRate,#statLanguageNotPassedRate,#statDebtCount,#statDebtTotalFails) { white-space:nowrap; }
+.bento-app #tab-dashboard .grid>div>.flex { flex-wrap:wrap; }
+.bento-app .sheet-help { padding:10px 14px; border:1px solid #e2e8f0; border-radius:12px; background:#fff; color:#475569; font-size:13px; }
+.bento-app .sheet-help summary { cursor:pointer; font-weight:650; }
+.bento-app .sheet-help p { margin-top:8px; max-width:85ch; }
+.bento-app #toolbarOptions { display:block; }
+.bento-app .toolbar-options-body { display:flex; align-items:center; gap:10px; }
+.bento-app #toolbarOptions>summary { display:none; }
+.bento-app #sheetAdvancedControls>summary { display:none; }
+.bento-app .sheet-advanced-body { display:flex; flex-wrap:wrap; gap:16px; align-items:center; }
+.bento-app #sheetAdvancedControls #sheetLockBox { padding-top:0; }
+.bento-app #tab-sheet .sheet-filter-controls { column-gap:16px; row-gap:14px; padding-bottom:20px; }
+.bento-app #tab-sheet #sheetAdvancedControls { flex-basis:100%; }
+.bento-app .bento-shell .u040-it span { font-size:13px; }
+.bento-app .bento-toolbar :is(.bento-search input,.bento-quick summary) { font-size:13px; }
+.bento-app .bento-account #authRoleText { font-size:12px; }
+.bento-app #tab-reports .report-gallery p { font-size:14px; color:#475569; }
+@media(max-width:640px) {
+  .bento-app .bento-shell .u040-page-heading { position:relative; padding:14px 0; gap:12px; min-height:0; }
+  .bento-app .bento-shell .u040-page-heading>h2 { font-size:18px; padding-right:80px; line-height:1.4; }
+  .bento-app .bento-toolbar { display:contents; }
+  .bento-app .bento-search-wrap { width:100%; }
+  .bento-app .bento-search { height:42px; }
+  .bento-app .bento-search input { font-size:14px; }
+  .bento-app #toolbarOptions { display:block; }
+  .bento-app #toolbarOptions>summary { display:flex; position:absolute; right:0; top:4px; min-height:44px; align-items:center; padding:0 9px; border:1px solid #cbd5e1; border-radius:10px; background:white; font-size:12px; color:#334155; cursor:pointer; list-style:none; }
+  .bento-app #toolbarOptions>summary::-webkit-details-marker { display:none; }
+  .bento-app #toolbarOptions:not([open])>.toolbar-options-body { display:none; }
+  .bento-app #toolbarOptions[open]>.toolbar-options-body { display:flex; flex-wrap:wrap; align-items:center; gap:12px; position:absolute; top:54px; right:0; width:min(330px,100%); padding:16px; border:1px solid #e2e8f0; border-radius:16px; background:white; box-shadow:0 12px 35px #0f172a20; z-index:50; }
+  .bento-app .toolbar-options-body .bento-account { width:100%; }
+  .bento-app #tab-sheet .sheet-filter-controls { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); width:100%; gap:12px; padding-bottom:0; }
+  .bento-app #tab-sheet :is(#sheetClassSelectBox,#sheetYearSelectBox) { width:auto; }
+  .bento-app #tab-sheet :is(#sheetSemesterSelect,#sheetClassSelect) { font-size:13px; padding-left:8px; }
+  .bento-app #tab-sheet #sheetSearchBox { grid-column:1 / -1; padding-bottom:20px; }
+  .bento-app #tab-sheet #sheetSearchStatus { top:auto; bottom:0; font-size:12px; }
+  .bento-app #tab-sheet #sheetAdvancedControls { grid-column:1 / -1; }
+  .bento-app #sheetAdvancedControls>summary { display:list-item; cursor:pointer; font-size:13px; font-weight:650; color:#334155; padding:10px 0; min-height:44px; }
+  .bento-app .sheet-advanced-body { padding-top:12px; gap:12px; }
+  .bento-app #sheetAdvancedControls:not([open])>.sheet-advanced-body { display:none; }
+  .bento-app #tab-sheet>div:first-child { gap:10px; }
+  .bento-app #tab-sheet>div:first-child>div:last-child { padding-top:0; }
+  .bento-app .bento-welcome { margin:12px 0; }
+  .bento-app .bento-welcome h2 { font-size:23px; }
+  .bento-app .bento-welcome p { font-size:13px; }
+  .bento-app .readable-data-table [data-identity-column] { position:static; }
+  .bento-app .readable-data-table [data-identity-column="2"] { position:sticky; left:0; z-index:5; max-width:175px; white-space:normal; }
+  .bento-app .u040-content .grid-cell-input { min-width:62px; min-height:44px; }
+  .bento-app .readable-data-table th { font-size:13px; }
+}
+@media print {
+  .bento-app .readable-table-scroll { overflow:visible; max-height:none; }
+  .bento-app .readable-data-table thead,.bento-app .readable-data-table [data-identity-column] { position:static; box-shadow:none; }
+}

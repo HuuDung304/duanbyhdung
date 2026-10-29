@@ -42,7 +42,7 @@ const {chromium}=require('playwright');const fs=require('node:fs');const assert=
    await page.keyboard.press('ArrowRight');assert.equal(await page.evaluate(()=>document.activeElement.dataset.col),'1');
    await page.evaluate(()=>window.switchTab('tab-profiles'));await page.locator('#btnAddNewProfile').click();
    const frame=page.locator('#modalStudentProfile>div').first();
-   assert.equal(await frame.evaluate(e=>getComputedStyle(e).animationName),reducedMotion==='reduce'?'none':'digital-modal-in');
+   assert.equal(await frame.evaluate(e=>getComputedStyle(e).animationName),reducedMotion==='reduce'?'none':'app-dialog-enter');
    await page.locator('#profFormName').fill('Giữ nguyên nội dung đang nhập');
    await page.evaluate(async()=>{window.digitalInput=document.getElementById('profFormName');const {updateAllViews}=await import(new URL('./src/js/grades.js',document.baseURI).href);updateAllViews();});
    assert.equal(await page.locator('#profFormName').inputValue(),'Giữ nguyên nội dung đang nhập');assert.equal(await page.evaluate(()=>window.digitalInput===document.getElementById('profFormName')),true);

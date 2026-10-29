@@ -53,10 +53,10 @@ export function createDashboardReports(context) {
     }
 
     const elAvg = document.getElementById('statAvgGPA');
-    if (elAvg) elAvg.textContent = overviewStats.avgGpa;
+    if (elAvg) elAvg.textContent = overviewStats.totalGradedCourseInstances ? overviewStats.avgGpa : '—';
     const elAvgSub = document.getElementById('statAvgGPASub');
     if (elAvgSub) {
-      const yGpas = overviewYears.map(yb => `N${yb.year}: ${yb.fullYear.avgGpa}`).join(' • ');
+      const yGpas = overviewYears.map(yb => `N${yb.year}: ${yb.fullYear.totalGradedCourseInstances ? yb.fullYear.avgGpa : '—'}`).join(' • ');
       elAvgSub.textContent = yGpas;
     }
 
