@@ -35,7 +35,7 @@ if (main && dashboard) {
   const settings=make('button','nav-tab account-settings','Cài đặt');settings.type='button';settings.dataset.tab=preferences.id;settings.id='btnAccountSettings';settings.setAttribute('aria-controls',preferences.id);
   new MutationObserver(()=>{if(preferences.classList.contains('active'))settings.setAttribute('aria-current','page');else settings.removeAttribute('aria-current');}).observe(preferences,{attributes:true,attributeFilter:['class']});
   const account=$('sidebarAccountMenu');account?.prepend(settings);
-  settings.addEventListener('click',()=>{account.hidden=true;document.querySelector('.sidebar-account-trigger')?.setAttribute('aria-expanded','false');});
+  settings.addEventListener('click',()=>{setTimeout(()=>account.closest('.u037')?.dispatchEvent(new Event('account-menu-close')));});
   // Header remains in the DOM for role/status synchronization, but is no longer displayed.
   document.querySelector('.u040-page-heading')?.setAttribute('hidden','');
   const kpis=dashboard.querySelector(':scope > .grid');

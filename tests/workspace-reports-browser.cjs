@@ -13,6 +13,33 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
    await page.goto(process.env.TEST_BASE_URL||'http://127.0.0.1:3018',{waitUntil:'networkidle'});if(process.env.REPORT_TEST_CSS_PATH)await page.addStyleTag({path:process.env.REPORT_TEST_CSS_PATH});
    await page.waitForFunction(()=>window.AppState?.students.length===5);
    await page.emulateMedia({reducedMotion:'reduce'});
+   const chip=page.locator('.sidebar-account-trigger'), account=page.locator('#sidebarAccountMenu');
+   for(const theme of ['light','dark']){
+    await page.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);
+    await chip.focus();await page.keyboard.press('ArrowUp');
+    assert.equal(await chip.getAttribute('aria-expanded'),'true');
+    assert.equal(await page.locator('#btnAccountSettings').evaluate(el=>el===document.activeElement),true);
+    assert.equal(await account.evaluate(el=>el.inert),false);
+    assert.equal(await page.locator('#btnAccountSettings').evaluate(el=>getComputedStyle(el).display),'flex');
+    assert.equal(await page.locator('#btnLogout span').evaluate(el=>getComputedStyle(el).opacity),'1');
+    assert.equal(await account.evaluate(el=>getComputedStyle(el).backgroundColor),theme==='dark'?'rgb(19, 20, 28)':'rgb(255, 255, 255)');
+    await page.keyboard.press('ArrowDown');assert.equal(await page.locator('#btnLogout').evaluate(el=>el===document.activeElement),true);
+    await page.keyboard.press('Home');assert.equal(await page.locator('#btnAccountSettings').evaluate(el=>el===document.activeElement),true);
+    await page.keyboard.press('End');assert.equal(await page.locator('#btnLogout').evaluate(el=>el===document.activeElement),true);
+    const bounds=await account.boundingBox();assert.ok(bounds.x>=0&&bounds.x+bounds.width<=width+1&&bounds.y>=0);
+    await page.keyboard.press('Escape');assert.equal(await chip.getAttribute('aria-expanded'),'false');
+    assert.equal(await account.evaluate(el=>el.inert),true);assert.equal(await chip.evaluate(el=>el===document.activeElement),true);
+   }
+   await page.evaluate(()=>document.documentElement.dataset.theme='light');
+   await page.emulateMedia({reducedMotion:'no-preference'});await chip.click();
+   assert.equal(await chip.getAttribute('aria-expanded'),'true');
+   await page.waitForTimeout(600);
+   await page.locator('#btnLogout').hover();
+   assert.equal(await page.locator('.u037-list').evaluate(el=>el.classList.contains('is-hl')),true);
+   await page.locator('.u037').screenshot({path:`/tmp/account-chip-${width}.png`});
+   await page.screenshot({path:`/tmp/account-menu-${width}.png`});
+   await page.mouse.click(width-10,10);assert.equal(await chip.getAttribute('aria-expanded'),'false');
+   await page.emulateMedia({reducedMotion:'reduce'});
    for(const type of ['admin','company_officer','class_account']){
     await page.evaluate(type=>{window.AuthState.setUser({type,class:'OTQS1',displayName:'Kiểm thử'});window.AppState.requiredLangStandard='A2';},type);
     await page.locator('.u040-it[data-tab="tab-dashboard"]').click();
@@ -68,6 +95,10 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
    await page.evaluate(()=>window.switchTab('tab-preferences'));
    assert.equal(await page.locator('#tab-preferences').isVisible(),false);
    assert.equal(await page.locator('#languageMissingBody tr').count(),0);
+   await page.locator('.sidebar-account-trigger').click();
+   assert.equal(await page.locator('#btnAccountSettings').isVisible(),false);
+   await page.locator('#btnLogout').click();
+   await page.waitForFunction(()=>window.AppState.role==='guest');
    assert.deepEqual(errors,[]);
    console.log(`PASS: ${width}px three KPIs, report keyboard tabs, sorted unmet levels, class isolation, officer read-only, account settings, protected delete and student restrictions`);
    await context.close();

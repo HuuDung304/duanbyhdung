@@ -1,0 +1,34 @@
+/* Lucian UX/UI Prompt #037 · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/#037 */
+.u037{--ux-surface:#fff;--ux-surface-2:#f1f5f9;--ux-ink:#0f172a;--ux-ink-2:#475569;--ux-ink-3:#64748b;--ux-line:#e2e8f0;--ux-line-2:#cbd5e1;--ux-accent:var(--digital-indigo,#4f46e5);--ux-danger:#be123c;--ux-shadow-strong:#1e40af30;--ux-ease:cubic-bezier(.2,.8,.2,1);--ux-spring:cubic-bezier(.34,1.45,.64,1);position:relative;color-scheme:light}
+.u037,.u037 *{box-sizing:border-box}
+.u037 #sidebarAccountMenu.u037-menu{position:fixed;z-index:100;min-width:0;max-width:none;padding:8px;border:0;border-radius:22px;background:var(--ux-surface);color:var(--ux-ink);box-shadow:0 0 0 1px var(--ux-line),0 34px 64px -30px var(--ux-shadow-strong);overflow:auto;transform-origin:30px 100%;opacity:0;transform:translateY(10px) scale(.9);visibility:hidden;transition:opacity .2s var(--ux-ease),transform .45s var(--ux-spring),visibility 0s .45s}
+.u037.is-open #sidebarAccountMenu.u037-menu{opacity:1;transform:none;visibility:visible;transition:opacity .2s var(--ux-ease),transform .5s var(--ux-spring)}
+.u037 .u037-sec{margin:6px 10px;font-size:11.5px;font-weight:750;letter-spacing:.06em;color:var(--ux-ink-3)}
+.u037 .u037-list{position:relative;margin:0;padding:0;list-style:none}
+.u037 .u037-hl{position:absolute;left:0;right:0;top:0;height:var(--h,52px);border-radius:14px;background:var(--ux-surface-2);transform:translateY(var(--y,0));opacity:0;transition:transform .3s var(--ux-spring),height .3s var(--ux-spring),opacity .2s;pointer-events:none}
+.u037 .u037-list.is-hl .u037-hl{opacity:1}
+.u037 #sidebarAccountMenu .u037-it{position:relative;display:flex;align-items:center;justify-content:flex-start;gap:12px;width:100%;height:52px;margin:0;padding:0 10px;border:0;border-radius:14px;background:none;color:var(--ux-ink);font:inherit;font-size:14.5px;font-weight:630;text-align:left;cursor:pointer;box-shadow:none;opacity:0;transform:translateY(8px);transition:opacity .25s var(--ux-ease),transform .45s var(--ux-spring)}
+.u037.is-open #sidebarAccountMenu .u037-it{opacity:1;transform:none;transition-delay:calc(var(--i) * 32ms)}
+.u037 #sidebarAccountMenu .u037-it.out{color:var(--ux-danger)}
+.u037 #sidebarAccountMenu .u037-it svg{width:19px;height:19px;color:inherit;stroke-width:1.9}
+.u037 #sidebarAccountMenu .u037-it:focus-visible{outline:2px solid var(--ux-accent);outline-offset:-2px}
+.u037 .u037-chip.sidebar-account-trigger{position:relative;display:flex;align-items:center;gap:12px;width:100%;height:68px;padding:0 14px 0 12px;border:0;border-radius:22px;background:var(--ux-surface);color:var(--ux-ink);text-align:left;box-shadow:0 0 0 1px var(--ux-line),0 18px 36px -24px var(--ux-shadow-strong);transition:transform .4s var(--ux-spring),box-shadow .3s}
+.u037 .u037-chip:hover{box-shadow:0 0 0 1px var(--ux-line-2),0 18px 36px -24px var(--ux-shadow-strong)}
+.u037 .u037-chip:active{transform:scale(.98)}
+.u037 .u037-chip:focus-visible{outline:2px solid var(--ux-accent);outline-offset:3px}
+.u037 .u037-chip i.u037-ws{width:42px;height:42px;flex:none;border:0;border-radius:13px;background:var(--digital-gradient,linear-gradient(140deg,#3b82f6,#4f46e5));transition:background .4s var(--ux-ease)}
+.u037 .u037-chip b{display:block;font-size:15.5px;font-weight:720}
+.u037 .u037-chip small{display:block;margin-top:1px;font-size:12.5px;color:var(--ux-ink-3);opacity:1}
+.u037 .u037-car{margin-left:auto;flex:none;width:20px;height:20px;fill:none;stroke:var(--ux-ink-3);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .45s var(--ux-spring)}
+.u037.is-open .u037-car{transform:rotate(180deg)}
+.u040:not(.is-wide) .u037 .u037-car{display:none}
+.bento-app .bento-shell .u040-me.u037{height:68px;background:transparent;border-radius:22px}
+@media(prefers-color-scheme:dark){html:not([data-theme="light"]):not(.light) .u037{--ux-surface:#13141c;--ux-surface-2:#1a1b25;--ux-ink:#f4f0e8;--ux-ink-2:#cbc8d2;--ux-ink-3:#a5a1af;--ux-line:#ffffff14;--ux-line-2:#ffffff29;--ux-accent:#b7a4ff;--ux-danger:#ff7d8c;--ux-shadow-strong:#000b;color-scheme:dark}}
+html[data-theme="dark"] .u037,html.dark .u037{--ux-surface:#13141c;--ux-surface-2:#1a1b25;--ux-ink:#f4f0e8;--ux-ink-2:#cbc8d2;--ux-ink-3:#a5a1af;--ux-line:#ffffff14;--ux-line-2:#ffffff29;--ux-accent:#b7a4ff;--ux-danger:#ff7d8c;--ux-shadow-strong:#000b;color-scheme:dark}
+@media(prefers-reduced-motion:reduce){.u037,.u037 *,.u037 *::before,.u037 *::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;transition-delay:0s!important;scroll-behavior:auto!important}}
+.u037 #sidebarAccountMenu #btnLogout,.u037 #sidebarAccountMenu #btnAccountSettings{justify-content:flex-start;padding:0 10px;border:0;background:transparent;box-shadow:none;color:var(--ux-ink);font-size:14.5px}
+.u037 #sidebarAccountMenu #btnLogout{color:var(--ux-danger)}
+.u037 #sidebarAccountMenu #btnLogout svg{width:19px;height:19px}
+.u037 .u037-chip i.u037-ws{display:grid;place-items:center;font-style:normal;font-size:16px;font-weight:800;color:#fff}
+.u037 #sidebarAccountMenu #btnAccountSettings{display:flex}
+.u037 #sidebarAccountMenu .u037-it span{display:inline;opacity:1;transform:none;font:inherit;color:inherit;white-space:normal}

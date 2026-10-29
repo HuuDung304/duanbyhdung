@@ -1,3 +1,4 @@
+import { mountAccountMenu } from './account-menu.js';
 import './bento-dashboard.js';
 import { AppState, DEFAULT_CLASSES, getCurrentUserClassScope, getLoggedInStudent } from '../grades.js';
 const $ = id => document.getElementById(id);
@@ -51,27 +52,4 @@ $('reportExportForm')?.addEventListener('submit', event => {
   if ($('reportExportForm').reportValidity()) $('reportExportDialog').close('download');
 });
 window.addEventListener('report-role-change', () => { if ($('reportExportDialog')?.open) $('reportExportDialog').close('cancel'); });
-// Reuse the real logout button/handler inside an accessible account popover.
-const profile = document.querySelector('.u040-me');
-if (profile) {
-  const trigger = document.createElement('button'); trigger.type = 'button'; trigger.className = 'sidebar-account-trigger';
-  trigger.setAttribute('aria-label','Mở menu tài khoản'); trigger.setAttribute('aria-expanded','false'); trigger.setAttribute('aria-controls','sidebarAccountMenu');
-  trigger.append(...profile.childNodes);
-  const menu = document.createElement('div'); menu.id = 'sidebarAccountMenu'; menu.hidden = true;
-  const logout = $('btnLogout'); if (logout) menu.append(logout);
-  profile.append(trigger, menu);
-  const close = () => { menu.hidden = true; trigger.setAttribute('aria-expanded','false'); };
-  trigger.addEventListener('click', () => {
-    menu.hidden = !menu.hidden; trigger.setAttribute('aria-expanded', String(!menu.hidden));
-    if (!menu.hidden) {
-      const bounds = trigger.getBoundingClientRect();
-      menu.style.position = 'fixed'; menu.style.left = `${Math.min(bounds.left, innerWidth - 180)}px`;
-      menu.style.bottom = `${innerHeight - bounds.top + 10}px`; menu.style.width = `${Math.max(160, Math.min(220, bounds.width))}px`;
-    }
-  });
-  window.addEventListener('resize', close);
-  document.addEventListener('click', event => { if (!profile.contains(event.target)) close(); });
-  document.addEventListener('keydown', event => { if (event.key === 'Escape' && !menu.hidden) { close(); trigger.focus(); } });
-  logout?.addEventListener('click', close);
-  window.addEventListener('report-role-change', close);
-}
+mountAccountMenu(document.querySelector('.u040-me'), $('btnLogout'));
