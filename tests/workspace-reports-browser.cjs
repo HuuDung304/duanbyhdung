@@ -22,7 +22,7 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
     assert.equal(await account.evaluate(el=>el.inert),false);
     assert.equal(await page.locator('#btnAccountSettings').evaluate(el=>getComputedStyle(el).display),'flex');
     assert.equal(await page.locator('#btnLogout span').evaluate(el=>getComputedStyle(el).opacity),'1');
-    assert.equal(await account.evaluate(el=>getComputedStyle(el).backgroundColor),theme==='dark'?'rgb(19, 20, 28)':'rgb(255, 255, 255)');
+    assert.equal(await account.evaluate(el=>getComputedStyle(el).backgroundColor),theme==='dark'?'rgb(48, 38, 45)':'rgb(255, 252, 250)');
     await page.keyboard.press('ArrowDown');assert.equal(await page.locator('#btnLogout').evaluate(el=>el===document.activeElement),true);
     await page.keyboard.press('Home');assert.equal(await page.locator('#btnAccountSettings').evaluate(el=>el===document.activeElement),true);
     await page.keyboard.press('End');assert.equal(await page.locator('#btnLogout').evaluate(el=>el===document.activeElement),true);
