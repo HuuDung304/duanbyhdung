@@ -21,7 +21,7 @@ body.workspace-reports #statDebtRate{font-size:13px;margin-top:auto;color:#47556
 .workspace-report-panel[hidden]{display:none!important}
 .workspace-report-panel:not([hidden]){display:flex;flex-direction:column;gap:20px;animation:workspace-panel-in .24s cubic-bezier(.22,1,.36,1)}
 .workspace-report-panel>article,.workspace-report-panel>div{background:#fff;border:1px solid #e2e8f0;border-radius:22px;overflow:hidden}
-.workspace-report-panel .overflow-x-auto,.workspace-table-scroll{overflow:auto;max-height:70dvh;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.workspace-report-panel .overflow-x-auto,.workspace-table-scroll{overflow:auto;max-height:70dvh;overscroll-behavior-x:contain; overscroll-behavior-y:auto;-webkit-overflow-scrolling:touch}
 .workspace-report-panel :is(h3,h4){font-size:18px!important;line-height:1.5;font-weight:800;text-transform:none!important;color:#1e293b}
 .workspace-report-panel .language-summary-head,.workspace-table-heading{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;padding:20px 22px}
 body.workspace-reports #dashboardLanguageSummary{padding:0}

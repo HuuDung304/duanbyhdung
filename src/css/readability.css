@@ -12,7 +12,7 @@
 .bento-app .u040-content table td input { font-size:14px; font-variant-numeric:tabular-nums; }
 .bento-app .u040-content table th:is(.bg-army-700,.bg-army-800,.bg-army-900,.bg-slate-800,.bg-slate-900) { background:#e0e7ff; color:#1e293b; }
 .bento-app .u040-content table thead.bg-army-800 { background:#f1f5f9; color:#1e293b; }
-.bento-app .readable-table-scroll { max-height: min(70dvh,620px); overflow:auto; overscroll-behavior:contain; scroll-padding-top:85px; }
+.bento-app .readable-table-scroll { max-height: min(70dvh,620px); overflow:auto; overscroll-behavior-x:contain; overscroll-behavior-y:auto; scroll-padding-top:85px; }
 .bento-app .readable-table-scroll:focus-visible { outline:2px solid #2563eb; outline-offset:3px; }
 .bento-app .readable-data-table { border-collapse:separate; border-spacing:0; }
 .bento-app .readable-data-table thead { position:sticky; top:0; z-index:25; }
