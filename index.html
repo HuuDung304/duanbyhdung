@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="app-release" content="2d7be1a3fd00">
+  <meta name="app-release" content="ee81330caadc">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Quản lý đơn vị</title>
   <link rel="icon" type="image/svg+xml" href="./src/assets/favicon.svg?v=43c991ef71f6">
@@ -871,35 +871,6 @@ body {
           <article class="bento-card bento-subjects"><div class="bento-card-head"><div><span class="bento-eyebrow">LEARNING FOCUS</span><h3>Học phần cần bồi dưỡng</h3></div><span class="bento-round-icon" aria-hidden="true">↗</span></div><p class="bento-muted">Ưu tiên các học phần có điểm dưới 4,00.</p><div id="bentoSubjects"></div><button type="button" class="bento-outline-button" data-bento-tab="tab-settings">Xem toàn bộ danh mục môn học ↗</button></article>
           <article class="bento-card bento-analytics"><div class="bento-card-head"><div><span class="bento-eyebrow">ACADEMIC ANALYTICS</span><h3>Hành trình qua từng học kỳ</h3></div><span class="bento-chart-key"><i></i> Điểm trung bình</span></div><p id="bentoChartNote" class="bento-muted">Thang điểm 10 · Chỉ tính học viên có điểm trong học kỳ.</p><div class="bento-chart-wrap"><canvas id="bentoSemesterChart" role="img" aria-label="Điểm trung bình theo học kỳ; dữ liệu có trong danh sách bên dưới" hidden></canvas><div id="bentoBars" class="bento-bars" aria-label="Điểm trung bình từ học kỳ 1 đến học kỳ 10"></div></div><div id="bentoChartSummary" class="bento-chart-summary"></div></article>
           <article class="bento-card bento-activity"><div class="bento-card-head"><div><span class="bento-eyebrow">RECENT ACTIVITY</span><h3>Nhịp hoạt động</h3></div><button type="button" class="bento-text-button" data-bento-tab="tab-audit" aria-label="Xem toàn bộ nhật ký">↗</button></div><div id="bentoActivity"></div><span class="bento-muted bento-activity-foot">Các thay đổi gần nhất trong phạm vi đang chọn</span></article>
-        </div>
-      </div>
-
-      <!-- Toolbar & Title + Bộ lọc phạm vi Lớp & Xuất file Báo cáo -->
-      <div class="digital-report-banner bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-        <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-          <div>
-            <div class="text-[11px] font-bold text-gold-600 uppercase tracking-wider">Học viện Kỹ thuật Quân sự • Tiểu đoàn 4</div>
-            <h3 class="text-base font-extrabold text-slate-900 uppercase">Tình hình học tập Đại đội 460</h3>
-            <p class="report-intro">Theo dõi kết quả học tập, chuẩn Tiếng Nga và học viên cần bồi dưỡng.</p>
-            <details class="report-policy"><summary>Quy tắc tính và xếp loại</summary><p id="reportClassificationPolicy">Xếp loại 7 mức: Xuất sắc từ 9,00; Giỏi từ 8,00; Khá từ 7,00; Trung bình khá từ 6,50; Trung bình từ 5,50; Yếu từ 5,00; Kém dưới 5,00. Học phần dưới 4,00 mới tính rớt.</p></details>
-          </div>
-          <div class="flex flex-wrap items-center gap-2.5 w-full lg:w-auto justify-end">
-            <span id="reportActiveModeBadge" class="px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-300 text-army-900 text-xs font-extrabold">
-              Phạm vi: Toàn Đại đội 460 (5 Lớp)
-            </span>
-            <div id="dashboardReportScope" class="flex items-center gap-1.5">
-              <label for="dashboardClassFilter" class="text-xs font-bold text-slate-700 whitespace-nowrap">Lọc bảng báo cáo:</label>
-              <select id="dashboardClassFilter" class="bg-slate-50 border border-slate-300 text-slate-800 text-xs font-bold rounded-lg px-3 py-2 focus:outline-none">
-                <option value="all">-- Toàn bộ Đại đội 460 (5 Lớp) --</option>
-                <option value="OTQS1">Lớp OTQS1</option>
-                <option value="OTQS2">Lớp OTQS2</option>
-                <option value="TTG1">Lớp TTG1</option>
-                <option value="TTG2">Lớp TTG2</option>
-                <option value="XMCB">Lớp XMCB</option>
-              </select>
-            </div>
-
-          </div>
         </div>
       </div>
 
@@ -2228,7 +2199,7 @@ body {
     "./src/js/components/readability.js": "./src/js/components/readability.js?v=3099cc2c00eb",
     "./src/js/components/report-center.js": "./src/js/components/report-center.js?v=6c26e21009dd",
     "./src/js/components/upload-state.js": "./src/js/components/upload-state.js?v=20000299c632",
-    "./src/js/components/workspace-reports.js": "./src/js/components/workspace-reports.js?v=76fb608a3f98",
+    "./src/js/components/workspace-reports.js": "./src/js/components/workspace-reports.js?v=6de0bfe09f78",
     "./src/js/dashboard-statistics.js": "./src/js/dashboard-statistics.js?v=6e42e8415b31",
     "./src/js/database/batches.js": "./src/js/database/batches.js?v=dcbf8f6651d0",
     "./src/js/database/client.js": "./src/js/database/client.js?v=ba2ea5eda791",
@@ -2237,7 +2208,7 @@ body {
     "./src/js/database/realtime.js": "./src/js/database/realtime.js?v=08238ad1e200",
     "./src/js/database/repository.js": "./src/js/database/repository.js?v=7d0c39435b2e",
     "./src/js/grades.js": "./src/js/grades.js?v=0d27774870ce",
-    "./src/js/main.js": "./src/js/main.js?v=2d7be1a3fd00",
+    "./src/js/main.js": "./src/js/main.js?v=ee81330caadc",
     "./src/js/profile-rules.js": "./src/js/profile-rules.js?v=3a3bbf350b00",
     "./src/js/report-workbook.js": "./src/js/report-workbook.js?v=1cd3836da746",
     "./src/js/reports/dashboard.js": "./src/js/reports/dashboard.js?v=ecacb5e5a926",
@@ -2253,12 +2224,12 @@ body {
   }
 }
   </script>
-  <script type="module" src="./src/js/main.js?v=2d7be1a3fd00"></script>
+  <script type="module" src="./src/js/main.js?v=ee81330caadc"></script>
   <script type="module" src="./src/js/components/expanding-rail.js?v=75a8090525a1"></script>
   <script type="module" src="./src/js/components/notched-field.js?v=553608c192ae"></script>
   <script type="module" src="./src/js/components/bento-dashboard.js?v=c76ec853266e"></script>
   <script type="module" src="./src/js/components/readability.js?v=3099cc2c00eb"></script>
   <script type="module" src="./src/js/components/drop-upload.js?v=71abf0bb0378"></script>
-  <script type="module" src="./src/js/components/workspace-reports.js?v=76fb608a3f98"></script>
+  <script type="module" src="./src/js/components/workspace-reports.js?v=6de0bfe09f78"></script>
 </body>
 </html>

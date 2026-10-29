@@ -19,6 +19,8 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
     assert.equal(await page.locator('.u040-page-heading').isVisible(),false);
     assert.equal(await page.locator('#statTotalCadets').count(),0);
     assert.equal(await page.locator('#dashboardKpis>div').count(),3);
+    assert.equal(await page.locator('#tab-dashboard .digital-report-banner').count(),0);
+    assert.equal(await page.locator('#dashboardClassFilter').count(),0);
     assert.equal(await page.locator('.u040-it[data-tab="tab-settings"]').innerText(),'Môn học');
     const tabs=page.getByRole('tablist',{name:'Nội dung báo cáo giao ban'}).getByRole('tab');
     await tabs.nth(0).click();

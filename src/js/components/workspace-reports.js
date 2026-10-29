@@ -40,7 +40,6 @@ if (main && dashboard) {
   document.querySelector('.u040-page-heading')?.setAttribute('hidden','');
   const kpis=dashboard.querySelector(':scope > .grid');
   if(kpis){kpis.id='dashboardKpis';kpis.firstElementChild?.remove();['Học lực tích lũy','Chuẩn Tiếng Nga','Học viên rớt môn'].forEach((label,index)=>{kpis.children[index].firstElementChild.textContent=label;});}
-  const banner=dashboard.querySelector('.digital-report-banner h3');if(banner)banner.textContent='Báo cáo giao ban';
   const directCard=node=>{let e=node;while(e?.parentElement&&e.parentElement!==dashboard)e=e.parentElement;return e?.parentElement===dashboard?e:null;};
   const cards=[directCard($('dashboardLanguageSummary')),directCard($('reportYearSemesterMatrixBody')),directCard($('reportCompanyTableBody')),directCard($('reportDebtCadetsTableBody'))];
   const debtCard=kpis?.lastElementChild;
