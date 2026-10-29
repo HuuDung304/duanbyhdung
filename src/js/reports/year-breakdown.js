@@ -86,8 +86,8 @@ export function renderYearBreakdown({ years, ranks, onYearChange }) {
     body.append(row);
   }
   if (foot) {
-    const row=make('tr');const label=make('th','','Điểm trung bình');label.scope='row';row.append(label);
-    for (const column of columns) row.append(make('td',column===columns[2]?'year-total':'',column.stats.totalGradedCourseInstances>0?column.stats.avgGpa:'—'));
+    const row=make('tr');const label=make('th','','Tổng');label.scope='row';row.append(label);
+    for (const column of columns) row.append(make('td',column===columns[2]?'year-total':'',column.stats.totalGradedCourseInstances>0?'100%':'—'));
     foot.replaceChildren(row);
   }
   const summary=card.querySelector('.year-breakdown-summary');summary.replaceChildren();

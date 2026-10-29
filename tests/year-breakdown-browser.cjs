@@ -24,7 +24,8 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
    assert.match(await page.locator('#reportYearSemesterMatrixThead').innerText(),/Kỳ 3/);
    const row=page.locator('#reportYearSemesterMatrixBody tr').filter({has:page.locator('strong',{hasText:/^Giỏi$/})});
    assert.equal(await row.locator('td.year-total .year-count').innerText(),'1');
-   assert.equal(await page.locator('#reportYearSemesterMatrixFooter td').nth(1).innerText(),'3.00');
+   assert.equal(await page.locator('#reportYearSemesterMatrixFooter th').innerText(),'Tổng');
+   assert.deepEqual(await page.locator('#reportYearSemesterMatrixFooter td').allTextContents(),['100%','100%','100%']);
    assert.deepEqual(await page.locator('.year-breakdown-summary strong').allTextContents(),['1','1']);
    await picker.getByRole('button',{name:'Năm 1',exact:true}).click();
    assert.match(await page.locator('#reportYearSemesterMatrixThead').innerText(),/Kỳ 1/);
@@ -38,10 +39,11 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
    assert.equal(await page.locator('.year-breakdown-status').innerText(),'Năm 5 chưa có điểm');
    assert.equal(await page.locator('#reportYearSemesterMatrixBody .year-count').first().innerText(),'—');
    assert.deepEqual(await page.locator('.year-breakdown-summary strong').allTextContents(),['—','—']);
+   assert.deepEqual(await page.locator('#reportYearSemesterMatrixFooter td').allTextContents(),['—','—','—']);
    await picker.getByRole('button',{name:'Năm 2',exact:true}).click();
    await page.locator('#reportYearsFilterClass').selectOption('OTQS1');
    assert.equal(await page.locator('.year-breakdown-scope').innerText(),'2 học viên');
-   assert.equal(await page.locator('#reportYearSemesterMatrixFooter td').nth(1).innerText(),'4.50');
+   assert.deepEqual(await page.locator('#reportYearSemesterMatrixFooter td').allTextContents(),['100%','100%','100%']);
    assert.equal(await picker.getByRole('button',{pressed:true}).innerText(),'Năm 2');
    await page.evaluate(()=>window.AuthState.setUser({type:'class_account',class:'OTQS1',displayName:'Lớp'}));
    await page.locator('.u040-it[data-tab="tab-dashboard"]').click();
@@ -51,7 +53,7 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
    assert.deepEqual(errors,[]);
    await page.locator('.year-breakdown-card').screenshot({path:`/tmp/year-breakdown-${width}.png`});
-   console.log(`PASS: ${width}px four-column report, year switching, keyboard focus, unchanged counts/GPA/debt, real zero vs absent year, class scope`);
+   console.log(`PASS: ${width}px four-column report, year switching, keyboard focus, unchanged counts/debt and 100% totals, real zero vs absent year, class scope`);
    await context.close();
   }
  }finally{await browser.close();}
