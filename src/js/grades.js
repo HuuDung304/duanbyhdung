@@ -4415,11 +4415,11 @@ export function openTranscriptModal(studentId) {
   const rank = getClassification(gpa10);
   const pos = student.position || student.role || 'Học viên';
 
-  document.getElementById('transcriptModalTitle').textContent = `Phiếu Điểm Tích Lũy Toàn Khóa: ${student.name}`;
+  document.getElementById('transcriptModalTitle').textContent = `Phiếu Điểm Tích Lũy: ${student.name}`;
   document.getElementById('tcName').textContent = student.name;
   document.getElementById('tcCode').textContent = student.code;
   document.getElementById('tcClass').textContent = `${student.class} • ${pos}`;
-  document.getElementById('tcRank').textContent = `${student.rank} • Ngoại ngữ: ${student.currentLangLevel || 'Chưa đạt'}`;
+  document.getElementById('tcRank').textContent = `${student.rank} • Ngoại ngữ: ${evaluateLangLevelStatus(student.currentLangLevel).actualLevel}`;
 
   document.getElementById('tcGpa10').textContent = gpa10.toFixed(2);
   document.getElementById('tcGpa4').textContent = `${gpa4.toFixed(2)} / 4.00`;
@@ -4427,6 +4427,11 @@ export function openTranscriptModal(studentId) {
   document.getElementById('tcClassification').textContent = rank;
 
   const studentGrades = AppState.grades[student.id] || {};
+  const escape = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
+  const hasRecordedScore = subject => {
+    const score = studentGrades[subject.id];
+    return score !== undefined && score !== null && String(score).trim() !== '' && Number.isFinite(Number(score)) && Number(score) >= 0 && Number(score) <= 10;
+  };
   const renderSubjRow = (sub, idx) => {
     const sc10 = studentGrades[sub.id];
     const hasScore = sc10 !== undefined && sc10 !== null && sc10 !== '' && !isNaN(sc10);
@@ -4437,9 +4442,9 @@ export function openTranscriptModal(studentId) {
     return `
       <tr class="hover:bg-slate-50 ${isFail ? 'bg-rose-50/50' : ''}">
         <td class="p-2 text-center text-slate-500">${idx + 1}</td>
-        <td class="p-2 font-mono font-bold text-slate-700">${sub.code}</td>
-        <td class="p-2 font-medium text-slate-900">${getFullSubjectName(sub)} ${sub.category === 'specialized' ? `<span class="text-[10px] font-bold text-amber-800">(CN ${sub.targetClass})</span>` : ''}</td>
-        <td class="p-2 text-center font-bold text-gold-600">${sub.credits}</td>
+        <td class="p-2 font-mono font-bold text-slate-700">${escape(sub.code)}</td>
+        <td class="p-2 font-medium text-slate-900">${escape(getFullSubjectName(sub))} ${sub.category === 'specialized' ? `<span class="text-[10px] font-bold text-amber-800">(CN ${escape(sub.targetClass)})</span>` : ''}</td>
+        <td class="p-2 text-center font-bold text-gold-600">${Number(sub.credits) || 0}</td>
         <td class="p-2 text-center font-bold ${isFail ? 'text-rose-700 font-black' : 'text-slate-800'}">${hasScore ? Number(sc10).toFixed(2) : '-'}</td>
         <td class="p-2 text-center font-black ${isFail ? 'text-rose-700' : 'text-army-800'}">${letter}</td>
         <td class="p-2 text-center font-bold text-blue-800">${sc4}</td>
@@ -4452,17 +4457,33 @@ export function openTranscriptModal(studentId) {
     `;
   };
 
-  const hk1Subs = getSubjectsForClass(student.class, 1);
-  const hk2Subs = getSubjectsForClass(student.class, 2);
-  const elHk1 = document.getElementById('tcHk1TableBody');
-  const elHk2 = document.getElementById('tcHk2TableBody');
-  if (elHk1) elHk1.innerHTML = hk1Subs.map(renderSubjRow).join('');
-  if (elHk2) elHk2.innerHTML = hk2Subs.map(renderSubjRow).join('');
-
-  const s1El = document.getElementById('tcHk1Summary');
-  const s2El = document.getElementById('tcHk2Summary');
-  if (s1El) s1El.textContent = `DTB HK1 (10): ${calculateSemesterGPA(student.id, 1).toFixed(2)}`;
-  if (s2El) s2El.textContent = `DTB HKII (10): ${calculateSemesterGPA(student.id, 2).toFixed(2)}`;
+  const extra = document.getElementById('tcExtraSemestersContainer');
+  extra.replaceChildren();
+  const tableHeader = document.getElementById('tcHk1TableBody').closest('table').querySelector('thead').outerHTML;
+  let visibleSemesters = 0, recordedCredits = 0;
+  for (let semester = 1; semester <= 10; semester++) {
+    const subjects = getSubjectsForClass(student.class, semester).filter(hasRecordedScore);
+    const credits = subjects.reduce((sum, subject) => sum + (Number(subject.credits) || 0), 0);
+    let section;
+    if (semester <= 2) {
+      section = document.getElementById(`tcHk${semester}TableBody`).closest('table').parentElement;
+    } else if (subjects.length) {
+      section = document.createElement('div'); section.className = 'space-y-2';
+      section.innerHTML = `<div class="flex flex-wrap items-center justify-between gap-2 border-b pb-1"><h4 class="font-bold text-army-900 uppercase"></h4><span id="tcHk${semester}Summary" class="text-[11px] font-semibold text-slate-600"></span></div><table class="w-full text-xs text-left border-collapse border border-slate-200">${tableHeader}<tbody id="tcHk${semester}TableBody" class="divide-y divide-slate-100"></tbody></table>`;
+      extra.append(section);
+    }
+    if (!section) continue;
+    section.dataset.semester = String(semester);
+    section.hidden = !subjects.length;
+    const tbody = section.querySelector('tbody');
+    tbody.innerHTML = subjects.map(renderSubjRow).join('');
+    if (!subjects.length) continue;
+    visibleSemesters++; recordedCredits += credits;
+    section.querySelector('h4').textContent = `Học kỳ ${semester} (${credits} tín chỉ đã có điểm)`;
+    document.getElementById(`tcHk${semester}Summary`).textContent = `ĐTB HK${semester} (10): ${calculateSemesterGPA(student.id, semester).toFixed(2)}`;
+  }
+  document.getElementById('tcNoGradedSubjects').hidden = visibleSemesters > 0;
+  document.getElementById('transcriptModalSubtitle').textContent = `Các học phần đã có điểm • ${recordedCredits} tín chỉ`;
 
   showModal('modalTranscriptDetail');
 }
