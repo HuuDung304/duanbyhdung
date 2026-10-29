@@ -14,20 +14,26 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
    await page.waitForFunction(()=>window.AppState?.students.length===5);
    await page.emulateMedia({reducedMotion:'reduce'});
 
+   await page.emulateMedia({colorScheme:'dark'});
+   assert.equal(await page.locator('body').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(250, 250, 250)');
+   assert.equal(await page.locator('#dashboardKpis>div').first().evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(255, 255, 255)');
+   await page.locator('.sidebar-account-trigger').click();
+   assert.equal(await page.locator('#sidebarAccountMenu').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(255, 255, 255)');
+   await page.keyboard.press('Escape');
    for(const theme of ['light','dark']){
     await page.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);
-    const primary=theme==='light'?'rgb(135, 61, 89)':'rgb(237, 175, 200)';
-    assert.equal(await page.locator('body').evaluate(el=>getComputedStyle(el).backgroundColor),theme==='light'?'rgb(246, 239, 235)':'rgb(33, 26, 32)');
+    const primary=theme==='light'?'rgb(82, 91, 145)':'rgb(188, 196, 239)';
+    assert.equal(await page.locator('body').evaluate(el=>getComputedStyle(el).backgroundColor),theme==='light'?'rgb(250, 250, 250)':'rgb(33, 26, 32)');
     assert.equal(await page.locator('.u040-it[aria-current="page"]').evaluate(el=>getComputedStyle(el).color),primary);
-    assert.equal(await page.locator('#dashboardKpis>div').first().evaluate(el=>getComputedStyle(el).backgroundColor),theme==='light'?'rgb(255, 252, 250)':'rgb(48, 38, 45)');
+    assert.equal(await page.locator('#dashboardKpis>div').first().evaluate(el=>getComputedStyle(el).backgroundColor),theme==='light'?'rgb(255, 255, 255)':'rgb(48, 38, 45)');
     await page.screenshot({path:`/tmp/rose-dashboard-${width}-${theme}.png`});
     await page.locator('.sidebar-account-trigger').click();
-    assert.equal(await page.locator('#sidebarAccountMenu').evaluate(el=>getComputedStyle(el).backgroundColor),theme==='light'?'rgb(255, 252, 250)':'rgb(48, 38, 45)');
+    assert.equal(await page.locator('#sidebarAccountMenu').evaluate(el=>getComputedStyle(el).backgroundColor),theme==='light'?'rgb(255, 255, 255)':'rgb(48, 38, 45)');
     await page.keyboard.press('Escape');
     await page.evaluate(()=>window.switchTab('tab-reports'));
     const button=page.locator('#btnExportClassExcel');
     assert.match(await button.evaluate(el=>getComputedStyle(el).backgroundImage),/gradient/);
-    assert.equal(await button.evaluate(el=>getComputedStyle(el).color),'rgb(255, 250, 252)');
+    assert.equal(await button.evaluate(el=>getComputedStyle(el).color),'rgb(255, 255, 255)');
     await button.click();assert.equal(await page.locator('#reportExportDialog').evaluate(el=>el.open),true);
     await page.keyboard.press('Escape');
     await page.screenshot({path:`/tmp/rose-exports-${width}-${theme}.png`});
@@ -35,7 +41,7 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
     await page.screenshot({path:`/tmp/rose-subjects-${width}-${theme}.png`});
     await page.evaluate(()=>window.switchTab('tab-sheet'));
     const cell=page.locator('.grid-cell-input:not([disabled])').first();
-    if(await cell.count()){await cell.focus();assert.equal(await cell.evaluate(el=>getComputedStyle(el).outlineColor),theme==='light'?'rgb(164, 72, 107)':'rgb(243, 180, 204)');}
+    if(await cell.count()){await cell.focus();assert.equal(await cell.evaluate(el=>getComputedStyle(el).outlineColor),theme==='light'?'rgb(115, 123, 178)':'rgb(188, 196, 239)');}
     await page.screenshot({path:`/tmp/rose-sheet-${width}-${theme}.png`});
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
     for(const tab of ['tab-profiles','tab-cumulative','tab-master']){
@@ -45,7 +51,7 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
     }
     await page.evaluate(()=>window.switchTab('tab-dashboard'));
     await page.getByRole('tab',{name:'Xếp loại điểm quá trình',exact:true}).click();
-    assert.equal(await page.locator('#yearBreakdownTable tbody td').first().evaluate(el=>getComputedStyle(el).backgroundColor),theme==='light'?'rgb(255, 252, 250)':'rgb(48, 38, 45)');
+    assert.equal(await page.locator('#yearBreakdownTable tbody td').first().evaluate(el=>getComputedStyle(el).backgroundColor),theme==='light'?'rgb(255, 255, 255)':'rgb(48, 38, 45)');
     await page.screenshot({path:`/tmp/rose-year-${width}-${theme}.png`});
    }
    assert.deepEqual(errors,[]);

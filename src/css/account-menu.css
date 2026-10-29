@@ -4,10 +4,10 @@
 .u037 #sidebarAccountMenu.u037-menu{position:fixed;z-index:100;min-width:0;max-width:none;padding:8px;border:0;border-radius:22px;background:var(--ux-surface);color:var(--ux-ink);box-shadow:0 0 0 1px var(--ux-line),0 34px 64px -30px var(--ux-shadow-strong);overflow:auto;transform-origin:30px 100%;opacity:0;transform:translateY(10px) scale(.9);visibility:hidden;transition:opacity .2s var(--ux-ease),transform .45s var(--ux-spring),visibility 0s .45s}
 .u037.is-open #sidebarAccountMenu.u037-menu{opacity:1;transform:none;visibility:visible;transition:opacity .2s var(--ux-ease),transform .5s var(--ux-spring)}
 .u037 .u037-sec{margin:6px 10px;font-size:11.5px;font-weight:750;letter-spacing:.06em;color:var(--ux-ink-3)}
-.u037 .u037-list{position:relative;margin:0;padding:0;list-style:none}
-.u037 .u037-hl{position:absolute;left:0;right:0;top:0;height:var(--h,52px);border-radius:14px;background:var(--ux-surface-2);transform:translateY(var(--y,0));opacity:0;transition:transform .3s var(--ux-spring),height .3s var(--ux-spring),opacity .2s;pointer-events:none}
+.u037 .u037-list{position:relative;isolation:isolate;margin:0;padding:0;list-style:none}
+.u037 .u037-hl{position:absolute;z-index:0;left:0;right:0;top:0;height:var(--h,52px);border-radius:14px;background:var(--ux-surface-2);transform:translateY(var(--y,0));opacity:0;transition:transform .3s var(--ux-spring),height .3s var(--ux-spring),opacity .2s;pointer-events:none}
 .u037 .u037-list.is-hl .u037-hl{opacity:1}
-.u037 #sidebarAccountMenu .u037-it{position:relative;display:flex;align-items:center;justify-content:flex-start;gap:12px;width:100%;height:52px;margin:0;padding:0 10px;border:0;border-radius:14px;background:none;color:var(--ux-ink);font:inherit;font-size:14.5px;font-weight:630;text-align:left;cursor:pointer;box-shadow:none;opacity:0;transform:translateY(8px);transition:opacity .25s var(--ux-ease),transform .45s var(--ux-spring)}
+.u037 #sidebarAccountMenu .u037-it{position:relative;z-index:1;display:flex;align-items:center;justify-content:flex-start;gap:12px;width:100%;height:52px;margin:0;padding:0 10px;border:0;border-radius:14px;background:none;color:var(--ux-ink);font:inherit;font-size:14.5px;font-weight:630;text-align:left;cursor:pointer;box-shadow:none;opacity:0;transform:translateY(8px);transition:opacity .25s var(--ux-ease),transform .45s var(--ux-spring)}
 .u037.is-open #sidebarAccountMenu .u037-it{opacity:1;transform:none;transition-delay:calc(var(--i) * 32ms)}
 .u037 #sidebarAccountMenu .u037-it.out{color:var(--ux-danger)}
 .u037 #sidebarAccountMenu .u037-it svg{width:19px;height:19px;color:inherit;stroke-width:1.9}
@@ -32,3 +32,6 @@ html[data-theme="dark"] .u037,html.dark .u037{--ux-surface:#13141c;--ux-surface-
 .u037 .u037-chip i.u037-ws{display:grid;place-items:center;font-style:normal;font-size:16px;font-weight:800;color:#fff}
 .u037 #sidebarAccountMenu #btnAccountSettings{display:flex}
 .u037 #sidebarAccountMenu .u037-it span{display:inline;opacity:1;transform:none;font:inherit;color:inherit;white-space:normal}
+
+/* The component owns its transition; the legacy popover animation must not compete. */
+.u037 #sidebarAccountMenu.u037-menu{animation:none}
