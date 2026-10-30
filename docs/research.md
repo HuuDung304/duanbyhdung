@@ -1,6 +1,6 @@
 # Nghiên cứu khoa học
 
-Menu **Nghiên cứu khoa học** có số đề tài, số học viên không trùng, bảng thông tin và nhập tay/Excel. Hai chỉ số dùng cùng phạm vi với bảng.
+Menu **Nghiên cứu khoa học** có số đề tài, số học viên không trùng và bảng thông tin. Thanh công cụ chỉ có **Nhập Excel**, cùng kiểu nút và vùng kéo thả ở các mục khác. File mẫu và nút **Nhập thủ công** nằm trong hộp nhập. **Xuất báo cáo → Nghiên cứu khoa học** là nơi xuất Excel; Admin/cán bộ chọn toàn đại đội hoặc lớp chủ đề tài, tài khoản lớp/học viên được khóa phạm vi. Không có nút Tải lại/Thêm đề tài ở góc trên. Hai chỉ số dùng cùng phạm vi với bảng.
 
 ## Phạm vi và quyền sửa
 
@@ -13,9 +13,9 @@ Chủ đề tài phải là một học viên thực hiện. Chọn thành viên
 
 ## Excel
 
-Tải file mẫu trong mục Nghiên cứu khoa học. Mỗi dòng là một đề tài, giữ nguyên tiêu đề:
+Tải file mẫu trong **Nghiên cứu khoa học → Nhập Excel**. Mỗi dòng là một đề tài, giữ nguyên tiêu đề:
 
-- Thêm mới: để trống Mã đề tài. Cập nhật: dùng mã từ file **Xuất Excel**. Không đối chiếu/gộp theo tên.
+- Thêm mới: để trống Mã đề tài. Cập nhật: dùng mã từ file **Xuất báo cáo → Nghiên cứu khoa học**. Không đối chiếu/gộp theo tên.
 - Thành viên được đối chiếu bằng mã học viên (cột mã nên đặt Text để giữ số 0 đầu). Nhiều mã cách nhau bằng `;`. Mã chủ đề tài luôn được thêm vào thành viên.
 - Mỗi cán bộ hướng dẫn một dòng `Họ tên | Đơn vị`. Năm học từ 1–5; nhiều giải thưởng cách nhau bằng `;`.
 - Kiểm tra tất cả dòng trước khi cho xác nhận nhập. Hủy xem trước không ghi dữ liệu. Giới hạn 10 MB, 200 đề tài/lần.

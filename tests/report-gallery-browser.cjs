@@ -13,7 +13,7 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
    await page.waitForFunction(()=>window.AppState?.students.length===3);
    await page.evaluate(()=>window.switchTab('tab-reports'));
    await page.emulateMedia({reducedMotion:'reduce'});
-   const cards=page.locator('.report-gallery .report-export-card');assert.equal(await cards.count(),4);
+   const cards=page.locator('.report-gallery .report-export-card');assert.equal(await cards.count(),5);
    const positions=await cards.evaluateAll(items=>items.map(item=>{const r=item.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width};}));
    if(width>640){assert.equal(positions[0].y,positions[1].y);assert.ok(positions[1].x>positions[0].x);assert.equal(positions[2].y,positions[3].y);}else{assert.ok(positions[1].y>positions[0].y);}
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);

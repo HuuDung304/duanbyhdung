@@ -15,7 +15,7 @@ export function createResearchStore(getState, getClient = getSupabaseClient, cre
       const records = [];
       for (let offset = 0; ; offset += 500) {
         const result = await executeWithRetry(() => getClient().from('unit_settings').select('unit_id,locks').ilike('unit_id', RESEARCH_PREFIX + '%').order('unit_id').range(offset, offset + 499));
-        if (result.error) throw new Error('Không tải được đề tài. Kiểm tra kết nối rồi bấm Tải lại.');
+        if (result.error) throw new Error('Không tải được đề tài. Kiểm tra kết nối rồi mở lại mục Nghiên cứu khoa học.');
         if (!Array.isArray(result.data)) throw new Error('Phản hồi danh sách đề tài không hợp lệ.');
         records.push(...result.data.filter(row => row.unit_id?.startsWith(RESEARCH_PREFIX)).map(decode));
         if (result.data.length < 500) break;
@@ -40,7 +40,7 @@ export function createResearchStore(getState, getClient = getSupabaseClient, cre
       query = current ? query.update({ locks: row.locks, updated_at: row.updated_at }).eq('unit_id', row.unit_id).eq('locks->>revision', current.revision) : query.insert(row);
       // Do not retry mutations: a lost response can follow a committed insert/update.
       const result = await query.select('unit_id,locks');
-      if (result.error) throw new Error('Chưa xác nhận lưu đề tài. Bấm Tải lại để kiểm tra trước khi thử lại.');
+      if (result.error) throw new Error('Chưa xác nhận lưu đề tài. Mở lại mục Nghiên cứu khoa học để kiểm tra trước khi thử lại.');
       if (!Array.isArray(result.data) || result.data.length !== 1) throw new Error('Đề tài vừa thay đổi ở phiên khác. Hãy tải lại trước khi lưu.');
       return decode(result.data[0]);
     }

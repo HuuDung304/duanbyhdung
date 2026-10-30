@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="app-release" content="f4cc3c79c4dc">
+  <meta name="app-release" content="b635aea060e0">
   <script id="theme-preference-bootstrap">
     try { document.documentElement.dataset.theme = localStorage.getItem('dd460_display_theme') === 'dark' ? 'dark' : 'light'; }
     catch { document.documentElement.dataset.theme = 'light'; }
@@ -270,10 +270,13 @@ body {
   <!-- MAIN APP CONTAINER -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 flex-1 w-full">
     <section id="tab-research" class="tab-content hidden" aria-label="Nghiên cứu khoa học">
-      <div class="research-header"><div><div class="research-eyebrow">Học tập &amp; nghiên cứu</div><h2>Nghiên cứu khoa học</h2><p id="researchScope"></p></div><div class="research-actions"><button type="button" id="researchReload" class="research-btn">Tải lại</button><button type="button" id="researchAdd" class="research-btn primary" hidden>+ Thêm đề tài</button></div></div>
+      <div class="research-header"><div><div class="research-eyebrow">Học tập &amp; nghiên cứu</div><h2>Nghiên cứu khoa học</h2><p id="researchScope"></p></div></div>
       <div class="research-stats"><article class="research-stat"><div><p>Số lượng đề tài</p><strong id="researchTopicCount">—</strong></div><span class="research-stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 3h14v18H5zM8 8h8M8 12h8M8 16h5"/></svg></span></article><article class="research-stat"><div><p>Số lượng học viên tham gia đề tài</p><strong id="researchStudentCount">—</strong></div><span class="research-stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="8" r="3"/><path d="M3 21v-3a6 6 0 0 1 12 0v3M16 5a3 3 0 0 1 0 6M18 15a5 5 0 0 1 3 4v2"/></svg></span></article></div>
       <div id="researchClassTabs" class="research-tabs" role="tablist" aria-label="Lọc theo lớp của chủ đề tài" hidden></div>
-      <div class="research-table-toolbar"><strong>Danh sách đề tài</strong><div class="research-actions"><button type="button" id="researchTemplate" class="research-btn">Tải Excel mẫu</button><button type="button" id="researchImport" class="research-btn" hidden>Nhập Excel</button><button type="button" id="researchExport" class="research-btn" disabled>Xuất Excel</button><input type="file" id="researchFile" accept=".xlsx,.xls" hidden></div></div>
+      <div class="research-table-toolbar"><strong>Danh sách đề tài</strong><div class="research-actions"><button type="button" id="researchImport" hidden class="inline-flex items-center gap-1.5 text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 px-3 py-2 rounded-lg transition">
+              <svg class="w-4 h-4 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+              Nhập Excel
+            </button></div></div>
       <p id="researchStatus" class="research-status" role="status" aria-live="polite"></p>
       <div class="research-table-card"><div class="research-scroll" tabindex="0" role="region" aria-label="Bảng đề tài, cuộn ngang để xem đủ cột"><table class="research-table"><thead><tr><th scope="col">TT</th><th scope="col">Tên đề tài</th><th scope="col">Thông tin đề tài</th><th scope="col">Học viên thực hiện,<br>Cán bộ hướng dẫn</th><th scope="col">Đơn vị<br>(Lớp, c, d)</th><th scope="col">Điểm<br>TBNH</th><th scope="col">Mã học viên</th><th scope="col">Giải thưởng</th><th scope="col">Thao tác</th></tr></thead><tbody id="researchTableBody"></tbody></table></div></div>
     </section>
@@ -1148,6 +1151,8 @@ body {
     <section id="tab-reports" class="tab-content hidden space-y-4">
       <header class="report-gallery-header"><h2>Xuất báo cáo</h2><p>Chọn báo cáo để tải file Excel.</p></header>
       <div class="report-export-grid report-gallery">
+        <article id="researchReportCard" class="report-export-card"><h3>Nghiên cứu khoa học</h3><p>Thông tin đề tài, học viên thực hiện, cán bộ hướng dẫn và giải thưởng trong phạm vi tài khoản.</p><div class="report-card-actions"><button type="button" id="researchExport" class="report-download" aria-label="Tải báo cáo nghiên cứu khoa học" title="Tải báo cáo nghiên cứu khoa học"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m-5-5 5 5 5-5M5 16v4h14v-4"/></svg></button><span class="report-file-type" aria-hidden="true">.xlsx</span></div></article>
+
         <article class="report-export-card export-unit-only"><h3>Bảng điểm lớp</h3><p>Điểm từng môn, tín chỉ, ĐTB học kỳ và cả năm. Chỉ gồm các kỳ đã đủ điểm toàn lớp.</p><div class="report-card-actions"><button type="button" id="btnExportClassExcel" class="report-download" aria-label="Tải bảng điểm lớp" title="Tải bảng điểm lớp"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m-5-5 5 5 5-5M5 16v4h14v-4"/></svg></button><span class="report-file-type" aria-hidden="true">.xlsx</span></div></article>
         <article class="report-export-card export-unit-only"><h3>Danh sách tiếng Nga</h3><p>Trình độ thực tế, chuẩn yêu cầu và thống kê đạt/chưa đạt. Toàn đơn vị hoặc lớp phụ trách.</p><div class="report-card-actions"><button type="button" id="btnExportLangExcel" class="report-download" aria-label="Tải danh sách tiếng Nga" title="Tải danh sách tiếng Nga"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m-5-5 5 5 5-5M5 16v4h14v-4"/></svg></button><span class="report-file-type" aria-hidden="true">.xlsx</span></div></article>
         <article class="report-export-card export-unit-only"><h3>Danh sách trích ngang</h3><p>Thông tin quân nhân, liên hệ và thân nhân bố, mẹ; kèm cột ghi chú.</p><div class="report-card-actions"><button type="button" id="btnExportCadetRoster" class="report-download" aria-label="Tải danh sách trích ngang" title="Tải danh sách trích ngang"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m-5-5 5 5 5-5M5 16v4h14v-4"/></svg></button><span class="report-file-type" aria-hidden="true">.xlsx</span></div></article>
@@ -2198,6 +2203,15 @@ body {
       </div>
     </div>
   </div>
+  <dialog id="researchUploadDialog" class="research-dialog" aria-labelledby="researchUploadTitle">
+    <div class="research-dialog-header"><h3 id="researchUploadTitle">Nhập đề tài nghiên cứu khoa học</h3><button type="button" class="research-btn" data-research-close>Đóng</button></div>
+    <div class="research-form-body"><p class="research-form-note">Mỗi dòng Excel là một đề tài. Dùng mã học viên để chọn chủ đề tài và các thành viên; dữ liệu sẽ được xem trước khi lưu.</p>
+      <div id="researchDropZone" class="u032"><button type="button" id="researchChooseFile" class="u032-zone" aria-describedby="researchUploadHint"><svg class="u032-dash" aria-hidden="true"><rect width="100%" height="100%" rx="25"/></svg><span class="u032-orb" aria-hidden="true"><svg viewBox="0 0 28 28"><path d="M8.5 20.5H7a5 5 0 01-.6-10 7 7 0 0113.4-1.6A5.5 5.5 0 0121 20.5h-1.5M14 13v10M10.5 16.5L14 13l3.5 3.5"/></svg></span><b>Kéo file vào đây hoặc <em>chọn file</em></b><small id="researchUploadHint">.xlsx, .xls · Một file mỗi lần · Tối đa 10 MB</small></button></div>
+      <input type="file" id="researchFile" accept=".xlsx,.xls" hidden><p id="researchUploadStatus" class="research-status" role="status" aria-live="polite"></p>
+    </div><div class="research-dialog-footer"><button type="button" id="researchTemplate" class="research-btn">Tải Excel mẫu</button><button type="button" id="researchManual" class="research-btn">Nhập thủ công</button></div>
+  </dialog>
+  <dialog id="researchExportDialog" class="research-dialog" aria-labelledby="researchExportTitle"><div class="research-dialog-header"><h3 id="researchExportTitle">Xuất báo cáo nghiên cứu khoa học</h3><button type="button" class="research-btn" data-research-close>Đóng</button></div><form id="researchExportForm"><div class="research-form-body"><label id="researchExportClassLabel">Lớp của chủ đề tài<select id="researchExportClass"></select></label><p id="researchExportScope" class="research-form-note"></p><p id="researchExportError" class="research-error" role="alert"></p></div><div class="research-dialog-footer"><button type="button" class="research-btn" data-research-close>Hủy</button><button type="submit" class="research-btn primary">Tải Excel</button></div></form></dialog>
+
   <dialog id="researchEditor" class="research-dialog" aria-labelledby="researchEditorTitle">
     <div class="research-dialog-header"><h3 id="researchEditorTitle">Thêm đề tài</h3><button type="button" class="research-btn" data-research-close aria-label="Đóng form đề tài">Đóng</button></div>
     <form id="researchForm"><div class="research-form-body"><fieldset id="researchInfoFields"><legend>Thông tin đề tài</legend><div class="research-form-grid">
@@ -2237,8 +2251,8 @@ body {
     "./src/js/database/mappers.js": "./src/js/database/mappers.js?v=f2762b9cfdf7",
     "./src/js/database/realtime.js": "./src/js/database/realtime.js?v=08238ad1e200",
     "./src/js/database/repository.js": "./src/js/database/repository.js?v=7d0c39435b2e",
-    "./src/js/grades.js": "./src/js/grades.js?v=6dbf629dd913",
-    "./src/js/main.js": "./src/js/main.js?v=f4cc3c79c4dc",
+    "./src/js/grades.js": "./src/js/grades.js?v=faf11c7fbc53",
+    "./src/js/main.js": "./src/js/main.js?v=b635aea060e0",
     "./src/js/profile-rules.js": "./src/js/profile-rules.js?v=3a3bbf350b00",
     "./src/js/report-workbook.js": "./src/js/report-workbook.js?v=1cd3836da746",
     "./src/js/reports/dashboard.js": "./src/js/reports/dashboard.js?v=ecacb5e5a926",
@@ -2246,8 +2260,8 @@ body {
     "./src/js/reports/statistics.js": "./src/js/reports/statistics.js?v=0ec34478e300",
     "./src/js/reports/year-breakdown.js": "./src/js/reports/year-breakdown.js?v=599b847f964a",
     "./src/js/research/model.js": "./src/js/research/model.js?v=5e2d41f872ce",
-    "./src/js/research/store.js": "./src/js/research/store.js?v=eca6d17bbfc8",
-    "./src/js/research/ui.js": "./src/js/research/ui.js?v=ea19c5cfdc3a",
+    "./src/js/research/store.js": "./src/js/research/store.js?v=238b68d00855",
+    "./src/js/research/ui.js": "./src/js/research/ui.js?v=7859fff0e1a4",
     "./src/js/safe-html.js": "./src/js/safe-html.js?v=07b6fe69e868",
     "./src/js/students.js": "./src/js/students.js?v=e96b1613b663",
     "./src/js/subjects/catalog-view.js": "./src/js/subjects/catalog-view.js?v=0dfc729a1b3b",
@@ -2257,7 +2271,7 @@ body {
   }
 }
   </script>
-  <script type="module" src="./src/js/main.js?v=f4cc3c79c4dc"></script>
+  <script type="module" src="./src/js/main.js?v=b635aea060e0"></script>
   <script type="module" src="./src/js/components/expanding-rail.js?v=75a8090525a1"></script>
   <script type="module" src="./src/js/components/notched-field.js?v=553608c192ae"></script>
   <script type="module" src="./src/js/components/bento-dashboard.js?v=c76ec853266e"></script>

@@ -4,7 +4,7 @@ import { createResearchStore } from './store.js';
 
 export function mountResearch({ state, classes, subjectsForClass, notify }) {
   const $ = id => document.getElementById(id);
-  const root = $('tab-research'), editor = $('researchEditor'), importDialog = $('researchImportDialog');
+  const root = $('tab-research'), editor = $('researchEditor'), importDialog = $('researchImportDialog'), uploadDialog = $('researchUploadDialog'), exportDialog = $('researchExportDialog');
   if (!root || root.dataset.mounted) return;
   root.dataset.mounted = 'true';
   const store = createResearchStore(() => state);
@@ -20,9 +20,11 @@ export function mountResearch({ state, classes, subjectsForClass, notify }) {
       identity = key; filter = 'all'; generation++; projects = []; loaded = false; error = ''; loading = false;
       if (editor.open) editor.close();
       if (importDialog.open) importDialog.close();
+      if (uploadDialog.open) uploadDialog.close();
+      if (exportDialog.open) exportDialog.close();
       importing = [];
     }
-    if (editor.open || importDialog.open) return;
+    if (editor.open || importDialog.open || uploadDialog.open) return;
     const global = ['admin', 'company_officer'].includes(state.role), visible = scopedProjects(projects, state, filter);
     const stats = researchStats(visible);
     $('researchTopicCount').textContent = loaded ? stats.projects : '—';
@@ -30,12 +32,12 @@ export function mountResearch({ state, classes, subjectsForClass, notify }) {
     $('researchScope').textContent = global ? (filter === 'all' ? 'Toàn đại đội · Xếp theo lớp của chủ đề tài' : `Chủ đề tài thuộc lớp ${filter}`) : actor(state).className ? `Đề tài có học viên lớp ${actor(state).className} tham gia` : 'Đề tài bạn tham gia';
     $('researchClassTabs').hidden = !global;
     setHTML($('researchClassTabs'), global ? ['all', ...classes].map(cls => `<button type="button" role="tab" aria-selected="${filter === cls}" data-research-class="${cls}">${cls === 'all' ? 'Tất cả' : esc(cls)}</button>`).join('') : '');
-    $('researchAdd').hidden = !canCreate(state);
     $('researchImport').hidden = !canCreate(state);
-    $('researchExport').disabled = !loaded || !visible.length;
-    $('researchReload').disabled = loading;
+    $('researchExport').disabled = loading;
+    $('researchReportCard').hidden = state.role === 'guest';
     $('researchStatus').textContent = error || (loading ? 'Đang tải đề tài…' : !loaded ? 'Mở mục này để tải đề tài.' : `${visible.length} đề tài · Điểm TBNH tính theo năm học của từng đề tài; học viên được đếm không trùng.`);
     $('researchStatus').setAttribute('role', error ? 'alert' : 'status');
+    if (error) { const retry = document.createElement('button'); retry.type = 'button'; retry.className = 'research-btn'; retry.dataset.researchRetry = 'true'; retry.textContent = 'Thử lại'; $('researchStatus').append(' ', retry); }
     setHTML($('researchTableBody'), !loaded ? '<tr><td colspan="9" class="research-empty">Chưa tải được danh sách đề tài.</td></tr>' : !visible.length ? '<tr><td colspan="9" class="research-empty">Chưa có đề tài trong phạm vi này.</td></tr>' : visible.map((project, i) => {
       const people = participants(project, state.students);
       const gpas = people.map(p => yearGPA(p, state, project.year, subjectsForClass(p.class)));
@@ -118,15 +120,17 @@ export function mountResearch({ state, classes, subjectsForClass, notify }) {
   });
   editor.addEventListener('cancel', event => { if (busy) event.preventDefault(); });
   importDialog.addEventListener('cancel', event => { if (busy) event.preventDefault(); });
+  uploadDialog.addEventListener('cancel', event => { if (busy) event.preventDefault(); });
   document.querySelectorAll('[data-research-close]').forEach(btn => btn.addEventListener('click', () => { if (!busy) btn.closest('dialog').close(); }));
   root.addEventListener('click', event => {
+    if (event.target.closest('[data-research-retry]')) { reload(); return; }
     const tab = event.target.closest('[data-research-class]');
     if (tab) { filter = tab.dataset.researchClass; render(); }
     const action = event.target.closest('[data-research-action]');
     if (action?.dataset.researchAction === 'edit') openEditor(projects.find(p => p.id === action.dataset.projectId));
   });
-  $('researchReload').addEventListener('click', reload);
-  $('researchAdd').addEventListener('click', () => openEditor());
+  $('researchManual').addEventListener('click', () => { if (!busy) { uploadDialog.close(); openEditor(); } });
+  $('researchChooseFile').addEventListener('click', () => { if (!busy) $('researchFile').click(); });
   const requireXLSX = () => { if (!window.XLSX) throw new Error('Thư viện Excel chưa tải được. Kiểm tra kết nối rồi thử lại.'); return window.XLSX; };
   function writeWorkbook(rows, filename) {
     const XLSX = requireXLSX(), sheet = XLSX.utils.aoa_to_sheet(rows);
@@ -137,23 +141,64 @@ export function mountResearch({ state, classes, subjectsForClass, notify }) {
     try { writeWorkbook([EXCEL_HEADERS], 'Mau_Nghien_Cuu_Khoa_Hoc.xlsx'); notify('File mẫu đã tải. Mỗi dòng là một đề tài; nhập mã học viên đang có trong Hồ sơ quân nhân.', 'info'); }
     catch (e) { notify(e.message, 'error'); }
   });
-  $('researchExport').addEventListener('click', () => {
-    try { writeWorkbook([EXCEL_HEADERS, ...scopedProjects(projects, state, filter).map(p => [p.id, p.title, p.objective, p.content, p.product, participants(p, state.students).find(s => s.studentId === p.leaderId)?.code || '', participants(p, state.students).map(s => s.code).join('; '), p.advisors.map(a => a.name + ' | ' + a.unit).join('\n'), p.year, p.awards.join('; ')])], 'De_Tai_Nghien_Cuu_Khoa_Hoc.xlsx'); }
-    catch (e) { notify(e.message, 'error'); }
+  $('researchExport').addEventListener('click', async () => {
+    if (loading || state.role === 'guest') return;
+    await reload();
+    if (!loaded) { notify(error || 'Chưa tải được đề tài.', 'error'); return; }
+    const global = ['admin', 'company_officer'].includes(state.role);
+    $('researchExportClassLabel').hidden = !global;
+    setHTML($('researchExportClass'), ['all', ...classes].map(cls => `<option value="${cls}">${cls === 'all' ? 'Toàn đại đội' : 'Lớp ' + esc(cls)}</option>`).join(''));
+    $('researchExportScope').textContent = global ? 'Lọc theo lớp của chủ đề tài hoặc xuất toàn đại đội.' : actor(state).className ? `Xuất các đề tài có học viên lớp ${actor(state).className} tham gia.` : 'Xuất các đề tài bạn tham gia.';
+    $('researchExportError').textContent = '';
+    exportDialog.showModal();
   });
-  $('researchImport').addEventListener('click', () => { if (canCreate(state) && loaded) $('researchFile').click(); });
-  $('researchFile').addEventListener('change', async event => {
-    const file = event.target.files[0]; event.target.value = ''; if (!file || !canCreate(state)) return;
+  $('researchExportForm').addEventListener('submit', event => {
+    event.preventDefault();
     try {
+      const selected = ['admin', 'company_officer'].includes(state.role) ? $('researchExportClass').value : 'all';
+      const visible = scopedProjects(projects, state, selected);
+      if (!visible.length) throw new Error('Chưa có đề tài trong phạm vi này.');
+      writeWorkbook([EXCEL_HEADERS, ...visible.map(p => [p.id, p.title, p.objective, p.content, p.product, participants(p, state.students).find(s => s.studentId === p.leaderId)?.code || '', participants(p, state.students).map(s => s.code).join('; '), p.advisors.map(a => a.name + ' | ' + a.unit).join('\n'), p.year, p.awards.join('; ')])], 'De_Tai_Nghien_Cuu_Khoa_Hoc.xlsx');
+      exportDialog.close();
+    } catch (e) { $('researchExportError').textContent = e.message; }
+  });
+  $('researchImport').addEventListener('click', async () => {
+    if (!canCreate(state)) return;
+    if (!loaded) await reload();
+    if (!loaded) return;
+    $('researchUploadStatus').textContent = '';
+    uploadDialog.showModal();
+  });
+  let dragDepth = 0;
+  const dropZone = $('researchDropZone');
+  dropZone.addEventListener('dragenter', event => { event.preventDefault(); if (!busy) { dragDepth++; dropZone.classList.add('is-over'); } });
+  dropZone.addEventListener('dragover', event => { event.preventDefault(); if (event.dataTransfer) event.dataTransfer.dropEffect = busy ? 'none' : 'copy'; });
+  dropZone.addEventListener('dragleave', () => { if (--dragDepth <= 0) { dragDepth = 0; dropZone.classList.remove('is-over'); } });
+  dropZone.addEventListener('drop', event => {
+    event.preventDefault(); dragDepth = 0; dropZone.classList.remove('is-over');
+    if (busy || !canCreate(state)) return;
+    const files = event.dataTransfer?.files;
+    if (!files?.length) return;
+    if (files.length !== 1) { $('researchUploadStatus').textContent = 'Chỉ nhận một file mỗi lần.'; return; }
+    const transfer = new DataTransfer(); transfer.items.add(files[0]); $('researchFile').files = transfer.files;
+    $('researchFile').dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  $('researchFile').addEventListener('change', async event => {
+    const file = event.target.files[0]; event.target.value = ''; if (!file || busy || !canCreate(state)) return;
+    const user = identityKey(); busy = true; $('researchChooseFile').disabled = true;
+    $('researchUploadStatus').textContent = 'Đang đọc và kiểm tra file…';
+    try {
+      if (!/\.(xlsx|xls)$/i.test(file.name) || file.size === 0) throw new Error('Chọn một file .xlsx hoặc .xls có dữ liệu.');
       if (file.size > 10 * 1024 * 1024) throw new Error('File tối đa 10 MB.');
       const XLSX = requireXLSX(), workbook = XLSX.read(await file.arrayBuffer(), { type: 'array' });
-      if (!canCreate(state)) return;
+      if (!canCreate(state) || user !== identityKey()) return;
       importing = parseResearchRows(XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1, defval: '' }), state, projects, () => crypto.randomUUID());
       $('researchImportSummary').textContent = `${importing.length} đề tài: ${importing.filter(x => !x.existing).length} thêm mới, ${importing.filter(x => x.existing).length} cập nhật. Kiểm tra trước khi xác nhận.`;
       setHTML($('researchImportRows'), importing.map((d, i) => `<tr><td>${i + 1}</td><td>${esc(d.project.title)}</td><td>${d.project.participants.length}</td><td>${esc(leaderClass(d.project, state.students))}</td><td data-import-status="${i}">Chờ xác nhận</td></tr>`).join(''));
       $('researchImportConfirm').disabled = false; $('researchImportResult').textContent = '';
-      importDialog.showModal();
-    } catch (e) { importing = []; notify(e.message, 'error'); }
+      uploadDialog.close(); importDialog.showModal();
+    } catch (e) { importing = []; $('researchUploadStatus').textContent = e.message; notify(e.message, 'error'); }
+    finally { busy = false; $('researchChooseFile').disabled = false; }
   });
   $('researchImportConfirm').addEventListener('click', async () => {
     if (busy || !importing.length || !canCreate(state)) return;
@@ -166,7 +211,7 @@ export function mountResearch({ state, classes, subjectsForClass, notify }) {
       try { const saved = await store.save(draft.project, draft.existing); replaceProject(saved); success++; status.textContent = 'Đã lưu'; }
       catch (e) { failed++; status.textContent = e.message; }
     }
-    $('researchImportResult').textContent = `${success} thành công, ${failed} chưa xác nhận. ${failed ? 'Các đề tài thành công đã được lưu. Đóng và Tải lại để kiểm tra trước khi nhập lại; không gửi lại cả file.' : 'Đóng để xem danh sách.'}`;
+    $('researchImportResult').textContent = `${success} thành công, ${failed} chưa xác nhận. ${failed ? 'Các đề tài thành công đã được lưu. Đóng rồi mở lại mục Nghiên cứu khoa học để kiểm tra trước khi nhập lại; không gửi lại cả file.' : 'Đóng để xem danh sách.'}`;
     busy = false; $('researchImportConfirm').removeAttribute('aria-busy');
   });
   importDialog.addEventListener('close', () => { importing = []; render(); });
