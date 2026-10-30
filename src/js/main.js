@@ -1,3 +1,4 @@
+import { mountResearch } from './research/ui.js';
 import { planOffering, subjectHasGrades, offeringClasses } from './subjects/offerings.js';
 import { sanitizeHTML } from './safe-html.js';
 import { syncReportExportScope, requestReportOptions } from './components/report-center.js';
@@ -18,6 +19,7 @@ import {
   AUTH_STORAGE_KEY,
   CLOUD_CFG_STORAGE_KEY,
   DEFAULT_CLASSES,
+  getSubjectsForClass,
   DEFAULT_SUBJECTS,
   LANGUAGE_LEVEL_OPTIONS,
   AppState,
@@ -1523,7 +1525,9 @@ export function initApp() {
   }
 
   // 2. Đăng ký các hook liên kết giữa các module và biến toàn cục trên window
+  const research = mountResearch({ state: AppState, classes: DEFAULT_CLASSES, subjectsForClass: getSubjectsForClass, notify: showToast });
   registerExternalHooks({
+    renderResearch: () => research?.render(),
     renderProfilesTable,
     renderStudentView,
     handleRoleChange,

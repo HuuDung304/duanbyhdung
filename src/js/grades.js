@@ -153,6 +153,7 @@ export const {
 
 export const ExternalHooks = {
   renderBentoDashboard: null,
+  renderResearch: null,
   renderProfilesTable: null,
   renderStudentView: null,
   handleRoleChange: null,
@@ -193,6 +194,7 @@ export function isAnyEditFormActive() {
     return true;
   }
   if (typeof document === 'undefined') return false;
+  if (document.querySelector('#researchEditor[open], #researchImportDialog[open]')) return true;
 
   for (const id of EDIT_MODAL_IDS) {
     const m = document.getElementById(id);
@@ -2044,6 +2046,7 @@ export function updateAllViews(options = {}) {
   if (!force && isAnyEditFormActive()) {
     return;
   }
+  if (typeof ExternalHooks.renderResearch === 'function') ExternalHooks.renderResearch();
   if (typeof renderSpreadsheet === 'function') renderSpreadsheet();
   if (typeof ExternalHooks.renderProfilesTable === 'function') ExternalHooks.renderProfilesTable({ force });
   if (typeof renderCumulativeTable === 'function') renderCumulativeTable();

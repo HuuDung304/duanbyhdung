@@ -2,6 +2,10 @@
 
 Dự án Web Application phục vụ công tác quản lý điểm số (theo Năm học từ Năm 1 đến Năm 5), tính điểm tích lũy toàn khóa, quản lý chuẩn ngoại ngữ và hồ sơ trích ngang quân nhân tại **Đại đội 460 - Tiểu đoàn 4 - Học viện Kỹ thuật Quân sự**.
 
+## Nghiên cứu khoa học
+
+Mục **Nghiên cứu khoa học** có hai chỉ số số đề tài/số học viên tham gia, lọc theo lớp chủ đề tài cho Admin/cán bộ, và phạm vi theo thành viên cho tài khoản lớp/học viên. Hỗ trợ thêm/sửa thủ công, nhập Excel có xem trước, xuất Excel, thông tin mục tiêu/nội dung/sản phẩm, cán bộ hướng dẫn, đơn vị, TBNH và giải thưởng. Chủ đề tài được sửa thông tin; giải thưởng chỉ Admin/tài khoản lớp cập nhật. Dùng bảng cấu hình hiện có, không cần chạy SQL. Xem [hướng dẫn và giới hạn phân quyền](docs/research.md).
+
 ## Giao diện Bento Dashboard
 
 Giao diện mới gồm sidebar cố định, thanh tìm kiếm theo quyền tài khoản, thao tác nhanh, thẻ KPI theo toàn khóa/năm/học kỳ, biểu đồ 10 học kỳ, học phần cần bồi dưỡng và nhật ký. Dashboard dùng dữ liệu thật; khi chưa có điểm sẽ hiển thị trạng thái trống. Tài khoản học viên vẫn vào bảng điểm cá nhân; cán bộ và tài khoản lớp vào Dashboard theo phạm vi được xem.

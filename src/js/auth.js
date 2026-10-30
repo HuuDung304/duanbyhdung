@@ -306,6 +306,7 @@ export const AuthState = {
   },
 
   _notify() {
+    window.dispatchEvent(new Event('research-context-change'));
     this._listeners.forEach(fn => {
       try {
         fn(this._user, AppState.role);
@@ -378,6 +379,7 @@ export function switchTab(targetTabId) {
   else if (targetTabId === 'tab-audit') renderAuditLog();
   else if (targetTabId === 'tab-settings') renderSubjectsSettings();
   if (targetTabId === 'tab-reports') window.dispatchEvent(new Event('report-role-change'));
+  window.dispatchEvent(new Event('research-context-change'));
 }
 
 /**
