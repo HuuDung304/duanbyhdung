@@ -487,15 +487,15 @@ export function renderStudentInlineProfile(options = {}) {
             </div>
             <div class="sm:col-span-2">
               <label class="block font-bold text-slate-600 mb-1">Quê quán (2 cấp):</label>
-              <input type="text" id="inlineProfHometown" value="${escapeHTML(student.hometown || '')}" placeholder="VD: Quảng Xương, Thanh Hóa" autocomplete="off" ${disAttr} class="w-full border rounded-lg p-2.5 ${inputBg}">
+              <input type="text" id="inlineProfHometown" value="${escapeHTML(student.hometown || '')}" placeholder="VD: xã Cẩm Hưng, tỉnh Hà Tĩnh" autocomplete="off" ${disAttr} class="w-full border rounded-lg p-2.5 ${inputBg}">
             </div>
             <div class="sm:col-span-2">
               <label class="block font-bold text-slate-600 mb-1">Hộ khẩu thường trú (2 cấp):</label>
-              <input type="text" id="inlineProfPermAddr" value="${escapeHTML(student.permanentAddress || '')}" placeholder="VD: Quảng Xương, Thanh Hóa" autocomplete="off" ${disAttr} class="w-full border rounded-lg p-2.5 ${inputBg}">
+              <input type="text" id="inlineProfPermAddr" value="${escapeHTML(student.permanentAddress || '')}" placeholder="VD: phường Đống Đa, Thành phố Hà Nội" autocomplete="off" ${disAttr} class="w-full border rounded-lg p-2.5 ${inputBg}">
             </div>
             <div class="sm:col-span-2">
               <label class="block font-bold text-slate-600 mb-1">Nơi ở hiện nay (2 cấp):</label>
-              <input type="text" id="inlineProfCurrAddr" value="${escapeHTML(student.currentAddress || '')}" placeholder="VD: Quảng Xương, Thanh Hóa" autocomplete="off" ${disAttr} class="w-full border rounded-lg p-2.5 ${inputBg}">
+              <input type="text" id="inlineProfCurrAddr" value="${escapeHTML(student.currentAddress || '')}" placeholder="VD: Đặc Khu Cát Hải, Thành phố Hải Phòng" autocomplete="off" ${disAttr} class="w-full border rounded-lg p-2.5 ${inputBg}">
             </div>
             <div>
               <label class="block font-bold text-slate-600 mb-1 flex items-center justify-between">
@@ -555,7 +555,7 @@ export function renderStudentInlineProfile(options = {}) {
                 </div>
                 <div class="sm:col-span-2">
                   <label class="block font-semibold text-slate-600 mb-1">Quê quán Bố (2 cấp):</label>
-                  <input type="text" id="inlineFatherHometown" value="${escapeHTML(student.father_hometown || '')}" placeholder="VD: Quảng Xương, Thanh Hóa" autocomplete="off" ${disAttr} class="w-full border rounded-lg p-2 ${inputBg}">
+                  <input type="text" id="inlineFatherHometown" value="${escapeHTML(student.father_hometown || '')}" placeholder="VD: xã Cẩm Hưng, tỉnh Hà Tĩnh" autocomplete="off" ${disAttr} class="w-full border rounded-lg p-2 ${inputBg}">
                 </div>
               </div>
             </div>
@@ -579,7 +579,7 @@ export function renderStudentInlineProfile(options = {}) {
                 </div>
                 <div class="sm:col-span-2">
                   <label class="block font-semibold text-slate-600 mb-1">Quê quán Mẹ (2 cấp):</label>
-                  <input type="text" id="inlineMotherHometown" value="${escapeHTML(student.mother_hometown || '')}" placeholder="VD: Quảng Xương, Thanh Hóa" autocomplete="off" ${disAttr} class="w-full border rounded-lg p-2 ${inputBg}">
+                  <input type="text" id="inlineMotherHometown" value="${escapeHTML(student.mother_hometown || '')}" placeholder="VD: xã Cẩm Hưng, tỉnh Hà Tĩnh" autocomplete="off" ${disAttr} class="w-full border rounded-lg p-2 ${inputBg}">
                 </div>
               </div>
             </div>
@@ -861,10 +861,10 @@ export function downloadQuickImportTemplate() {
     [
       'HV2022-0138', 'Nguyễn Văn Minh', cls, 'Thượng sĩ', 'Học viên',
       '15/01/2003', '02/2022', '0987654321',
-      'Quảng Xương, Thanh Hóa', 'Quảng Xương, Thanh Hóa', 'Bắc Từ Liêm, Hà Nội',
+      'xã Cẩm Hưng, tỉnh Hà Tĩnh', 'phường Đống Đa, Thành phố Hà Nội', 'Đặc Khu Cát Hải, Thành phố Hải Phòng',
       'Đảng viên chính thức', '19/05/2023', '19/05/2024',
-      'Nguyễn Văn Hòa', '1975', 'Quảng Xương, Thanh Hóa', 'Sĩ quan Quân đội',
-      'Trần Thị Lan', '1978', 'Quảng Xương, Thanh Hóa', 'Giáo viên',
+      'Nguyễn Văn Hòa', '1975', 'xã Cẩm Hưng, tỉnh Hà Tĩnh', 'Sĩ quan Quân đội',
+      'Trần Thị Lan', '1978', 'xã Cẩm Hưng, tỉnh Hà Tĩnh', 'Giáo viên',
       'Chiến sĩ Thi đua cơ sở, Học viên Giỏi'
     ]
   ];
