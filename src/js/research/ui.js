@@ -35,7 +35,8 @@ export function mountResearch({ state, classes, subjectsForClass, notify }) {
     $('researchImport').hidden = !canCreate(state);
     $('researchExport').disabled = loading;
     $('researchReportCard').hidden = state.role === 'guest';
-    $('researchStatus').textContent = error || (loading ? 'Đang tải đề tài…' : !loaded ? 'Mở mục này để tải đề tài.' : `${visible.length} đề tài · Điểm TBNH tính theo năm học của từng đề tài; học viên được đếm không trùng.`);
+    $('researchStatus').textContent = error || (loading ? 'Đang tải đề tài…' : !loaded ? 'Mở mục này để tải đề tài.' : `${visible.length} đề tài`);
+    $('researchStatus').title = 'Điểm TBNH tính theo năm học của đề tài; học viên được đếm không trùng.';
     $('researchStatus').setAttribute('role', error ? 'alert' : 'status');
     if (error) { const retry = document.createElement('button'); retry.type = 'button'; retry.className = 'research-btn'; retry.dataset.researchRetry = 'true'; retry.textContent = 'Thử lại'; $('researchStatus').append(' ', retry); }
     setHTML($('researchTableBody'), !loaded ? '<tr><td colspan="9" class="research-empty">Chưa tải được danh sách đề tài.</td></tr>' : !visible.length ? '<tr><td colspan="9" class="research-empty">Chưa có đề tài trong phạm vi này.</td></tr>' : visible.map((project, i) => {
@@ -64,7 +65,7 @@ export function mountResearch({ state, classes, subjectsForClass, notify }) {
     editing = project ? structuredClone(project) : null;
     draftId = project?.id || crypto.randomUUID();
     const infoAllowed = !project || canEdit(project, state);
-    $('researchEditorTitle').textContent = project ? infoAllowed ? 'Chỉnh sửa đề tài' : 'Cập nhật giải thưởng' : 'Thêm đề tài nghiên cứu khoa học';
+    $('researchEditorTitle').textContent = project ? infoAllowed ? 'Chỉnh sửa đề tài' : 'Cập nhật giải thưởng' : 'Thêm đề tài';
     $('researchForm').reset(); $('researchFormError').textContent = '';
     $('researchInfoFields').disabled = !infoAllowed;
     const leader = project?.leaderId || (state.role === 'student' ? actor(state).studentId : '');

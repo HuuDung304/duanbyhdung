@@ -2,6 +2,10 @@
 
 Dự án Web Application phục vụ công tác quản lý điểm số (theo Năm học từ Năm 1 đến Năm 5), tính điểm tích lũy toàn khóa, quản lý chuẩn ngoại ngữ và hồ sơ trích ngang quân nhân tại **Đại đội 460 - Tiểu đoàn 4 - Học viện Kỹ thuật Quân sự**.
 
+## Giao diện tối giản
+
+Giao diện hiện tại dùng nền trung tính và một màu nhấn, thống nhất button/form/bảng/hộp thoại, có tìm kiếm trên thanh tiêu đề và đổi sáng/tối. Menu điện thoại là ngăn kéo có hỗ trợ bàn phím; hướng dẫn dài chỉ mở khi cần. Animation ngắn và tôn trọng `prefers-reduced-motion`. Thiết kế này thay cho các kiểu màu/gradient được mô tả trong các phần giao diện cũ bên dưới. Xem [quy tắc giao diện và kiểm tra](docs/interface.md).
+
 ## Nghiên cứu khoa học
 
 Mục **Nghiên cứu khoa học** có hai chỉ số số đề tài/số học viên tham gia, lọc theo lớp chủ đề tài cho Admin/cán bộ, và phạm vi theo thành viên cho tài khoản lớp/học viên. Hỗ trợ thêm/sửa thủ công, nhập Excel có xem trước, xuất Excel, thông tin mục tiêu/nội dung/sản phẩm, cán bộ hướng dẫn, đơn vị, TBNH và giải thưởng. Chủ đề tài được sửa thông tin; giải thưởng chỉ Admin/tài khoản lớp cập nhật. Dùng bảng cấu hình hiện có, không cần chạy SQL. Xem [hướng dẫn và giới hạn phân quyền](docs/research.md).

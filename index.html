@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="app-release" content="b635aea060e0">
+  <meta name="app-release" content="072d5cdd6030">
   <script id="theme-preference-bootstrap">
     try { document.documentElement.dataset.theme = localStorage.getItem('dd460_display_theme') === 'dark' ? 'dark' : 'light'; }
     catch { document.documentElement.dataset.theme = 'light'; }
@@ -132,8 +132,9 @@ body {
   <link rel="stylesheet" href="./src/css/rose-theme.css?v=65bc7811b37c">
   <link rel="stylesheet" href="./src/css/display-settings.css?v=ca0a0c9bd694">
   <link rel="stylesheet" href="./src/css/research.css?v=78d63552b9c4">
+  <link rel="stylesheet" href="./src/css/interface.css?v=4df82db30194">
 </head>
-<body class="bento-app bg-slate-100 text-slate-800 min-h-screen flex flex-col">
+<body class="bento-app ui-modern bg-slate-100 text-slate-800 min-h-screen flex flex-col">
 
   <!-- TOP MILITARY BANNER -->
   <header class="bg-army-900 text-white border-b-4 border-gold-500 shadow-md">
@@ -271,7 +272,7 @@ body {
   <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 flex-1 w-full">
     <section id="tab-research" class="tab-content hidden" aria-label="Nghiên cứu khoa học">
       <div class="research-header"><div><div class="research-eyebrow">Học tập &amp; nghiên cứu</div><h2>Nghiên cứu khoa học</h2><p id="researchScope"></p></div></div>
-      <div class="research-stats"><article class="research-stat"><div><p>Số lượng đề tài</p><strong id="researchTopicCount">—</strong></div><span class="research-stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 3h14v18H5zM8 8h8M8 12h8M8 16h5"/></svg></span></article><article class="research-stat"><div><p>Số lượng học viên tham gia đề tài</p><strong id="researchStudentCount">—</strong></div><span class="research-stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="8" r="3"/><path d="M3 21v-3a6 6 0 0 1 12 0v3M16 5a3 3 0 0 1 0 6M18 15a5 5 0 0 1 3 4v2"/></svg></span></article></div>
+      <div class="research-stats"><article class="research-stat"><div><p>Đề tài</p><strong id="researchTopicCount">—</strong></div><span class="research-stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 3h14v18H5zM8 8h8M8 12h8M8 16h5"/></svg></span></article><article class="research-stat"><div><p>Học viên tham gia</p><strong id="researchStudentCount">—</strong></div><span class="research-stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="8" r="3"/><path d="M3 21v-3a6 6 0 0 1 12 0v3M16 5a3 3 0 0 1 0 6M18 15a5 5 0 0 1 3 4v2"/></svg></span></article></div>
       <div id="researchClassTabs" class="research-tabs" role="tablist" aria-label="Lọc theo lớp của chủ đề tài" hidden></div>
       <div class="research-table-toolbar"><strong>Danh sách đề tài</strong><div class="research-actions"><button type="button" id="researchImport" hidden class="inline-flex items-center gap-1.5 text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 px-3 py-2 rounded-lg transition">
               <svg class="w-4 h-4 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
@@ -439,7 +440,7 @@ body {
 
           <button id="btnImportExcel" class="inline-flex items-center gap-1.5 text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 px-3 py-2 rounded-lg transition">
             <svg class="w-4 h-4 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-            Nhập từ Excel
+            Nhập Excel
           </button>
 
 
@@ -526,18 +527,18 @@ body {
       <div id="adminProfilesToolbar" class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
         <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
-            <h3 class="text-base font-bold text-slate-900 uppercase">Danh Sách Trích Ngang Quân Nhân - Đại Đội 460</h3>
+            <h3 class="text-base font-bold text-slate-900 uppercase">Danh sách quân nhân</h3>
             <p class="text-xs text-slate-500">Quản lý toàn diện lý lịch, quê quán, thông tin thân nhân và phân loại chính trị Đoàn - Đảng</p>
           </div>
           <div class="flex flex-wrap items-center gap-2">
             <button id="btnAddNewProfile" class="leader-allowed inline-flex items-center gap-1.5 text-xs font-bold bg-army-700 hover:bg-army-800 text-white px-3.5 py-2 rounded-lg shadow-sm transition">
               <svg class="w-4 h-4 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-              + Thêm Quân Nhân Mới (Thủ Công)
+              Thêm quân nhân
             </button>
 
             <button id="btnImportProfileExcel" class="inline-flex items-center gap-1.5 text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 px-3 py-2 rounded-lg transition">
               <svg class="w-4 h-4 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-              Nhập Excel Hồ Sơ
+              Nhập Excel
             </button>
 
 
@@ -958,7 +959,7 @@ body {
           <div class="flex items-center gap-2">
             <span class="w-2.5 h-2.5 rounded-full bg-army-700"></span>
             <div>
-              <h4 class="font-bold text-xs sm:text-sm text-army-900 uppercase">Bảng 1: Tỷ Lệ Tích Lũy (Từ Đầu Khóa Đến Nay)</h4>
+              <h4 class="font-bold text-xs sm:text-sm text-army-900 uppercase">Học lực tích lũy</h4>
               <p class="text-[11px] text-slate-500">Phân bố học lực từ đầu khóa đến hiện tại theo 7 mức xếp loại.</p>
             </div>
           </div>
@@ -997,7 +998,7 @@ body {
           <div class="flex items-center gap-2">
             <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
             <div>
-              <h4 class="font-bold text-xs sm:text-sm text-army-900 uppercase">Bảng 2: Tỷ Lệ Theo Từng Năm &amp; Từng Học Kỳ (Năm 1 &rarr; Năm 2 &rarr; Năm 3 &rarr; Năm 4 &rarr; Năm 5)</h4>
+              <h4 class="font-bold text-xs sm:text-sm text-army-900 uppercase">Kết quả theo năm học</h4>
               <p class="text-[11px] text-slate-500">Bố cục chia rõ theo từng năm học: Năm 1 (HK1, HK2, Cả năm, Số học viên rớt môn, Số lượt rớt) &rarr; Năm 2 (HK1, HK2, Cả năm, Số học viên rớt môn, Số lượt rớt)... cho đến hết khóa học</p>
             </div>
           </div>
@@ -1026,7 +1027,7 @@ body {
           <div class="flex items-center gap-2">
             <span class="w-2.5 h-2.5 rounded-full bg-rose-600"></span>
             <div>
-              <h4 class="font-bold text-xs sm:text-sm text-rose-950 uppercase">Bảng 3: Danh Sách Học Viên Rớt Môn (Thi Lại / Nợ Học Phần) Cần Bồi Dưỡng</h4>
+              <h4 class="font-bold text-xs sm:text-sm text-rose-950 uppercase">Học viên cần bồi dưỡng</h4>
               <p class="text-[11px] text-rose-700">Hiển thị danh sách chi tiết các học viên có môn rớt (&lt; 4.0) cần bồi dưỡng kèm đầy đủ Tên môn học (không viết tắt) và Điểm số cụ thể</p>
             </div>
           </div>
@@ -1083,7 +1084,7 @@ body {
     <section id="tab-audit" class="tab-content hidden space-y-4">
       <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h3 class="text-base font-bold text-slate-900 uppercase">Nhật Ký Lịch Sử Chỉnh Sửa Điểm (Audit Trail)</h3>
+          <h3 class="text-base font-bold text-slate-900 uppercase">Nhật ký hoạt động</h3>
           <p class="text-xs text-slate-500">Ghi nhận minh bạch mọi thao tác can thiệp dữ liệu điểm số, người thực hiện và thời gian</p>
         </div>
 
@@ -1188,8 +1189,8 @@ body {
             </div>
             <div>
               <div class="text-[10px] font-bold uppercase tracking-widest text-gold-300">Học viện Kỹ thuật Quân sự • Tiểu đoàn 4</div>
-              <h3 class="text-sm sm:text-base font-black uppercase tracking-wider text-white mt-0.5">Đăng Nhập Hệ Thống Đại Đội 460</h3>
-              <div class="text-[11px] text-slate-300">Cổng xác thực tập trung & đồng bộ đám mây Supabase</div>
+              <h3 class="text-sm sm:text-base font-black uppercase tracking-wider text-white mt-0.5">Đăng nhập</h3>
+              <div class="text-[11px] text-slate-300">Không gian quản lý Đại đội 460</div>
             </div>
           </div>
           <button type="button" class="modal-close hidden text-slate-300 hover:text-white text-2xl leading-none">&times;</button>
@@ -1198,10 +1199,10 @@ body {
         <!-- Chuyển chế độ đăng nhập: Cán bộ / Lớp vs Học viên -->
         <div class="grid grid-cols-2 gap-2 mt-5 bg-army-950/70 p-1 rounded-xl border border-army-700 text-xs">
           <button type="button" id="tabBtnAdminLogin" onclick="if(window.switchLoginTab)window.switchLoginTab('admin')" class="py-2.5 px-3 rounded-lg bg-gold-500 text-slate-950 font-black shadow-sm transition">
-            🎖️ Quản Lý / Tài Khoản Lớp
+            Quản lý · Lớp
           </button>
           <button type="button" id="tabBtnCadetLogin" onclick="if(window.switchLoginTab)window.switchLoginTab('cadet')" class="py-2.5 px-3 rounded-lg text-slate-300 hover:text-white font-bold transition">
-            🎓 Học Viên (Mã HV)
+            Học viên
           </button>
         </div>
       </div>
@@ -1252,7 +1253,7 @@ body {
         </div>
 
         <button type="button" id="btnSubmitAdminLogin" onclick="if(window.handleMockLogin)window.handleMockLogin(event)" class="w-full py-3 px-4 rounded-xl bg-army-800 hover:bg-army-900 text-gold-300 font-black text-xs uppercase tracking-wider transition shadow-md flex items-center justify-center gap-2 cursor-pointer">
-          <span>ĐĂNG NHẬP HỆ THỐNG</span>
+          <span>Đăng nhập</span>
         </button>
       </form>
 
@@ -1286,7 +1287,7 @@ body {
         </div>
 
         <button type="button" id="btnSubmitCadetLogin" onclick="if(window.handleCadetSubmit)window.handleCadetSubmit(event)" class="w-full py-3 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs uppercase tracking-wider transition shadow-md cursor-pointer">
-          ĐĂNG NHẬP HỌC VIÊN
+          Đăng nhập
         </button>
       </form>
     </div>
@@ -1400,7 +1401,7 @@ body {
   <div id="modalImportExcel" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
     <div class="bg-white rounded-xl shadow-xl max-w-md w-full overflow-hidden border border-slate-200">
       <div class="bg-army-900 text-white p-4 flex items-center justify-between">
-        <h3 class="text-sm font-bold uppercase tracking-wide">Nhập Dữ Liệu Từ File Excel (.xlsx)</h3>
+        <h3 class="text-sm font-bold uppercase tracking-wide">Nhập bảng điểm</h3>
         <button class="modal-close text-slate-300 hover:text-white">&times;</button>
       </div>
       <div class="p-5 space-y-4 text-xs">
@@ -1435,16 +1436,16 @@ body {
   <div id="modalAddCadet" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
     <div class="bg-white rounded-xl shadow-xl max-w-md w-full overflow-hidden border border-slate-200">
       <div class="bg-army-900 text-white p-4 flex items-center justify-between">
-        <h3 class="text-sm font-bold uppercase tracking-wide">Thêm Học Viên Mới Vào Đơn Vị</h3>
+        <h3 class="text-sm font-bold uppercase tracking-wide">Thêm quân nhân</h3>
         <button class="modal-close text-slate-300 hover:text-white">&times;</button>
       </div>
       <form id="formAddCadet" class="p-5 space-y-3 text-xs" autocomplete="off">
         <div>
-          <label class="block font-semibold text-slate-700 mb-1">Mã Học Viên (Nhập tự do):</label>
+          <label class="block font-semibold text-slate-700 mb-1">Mã học viên:</label>
           <input type="text" id="newCadetCode" autocomplete="off" placeholder="Nhập tự do mã HV (VD: HV2022-0109)" required class="w-full border rounded-lg p-2 font-mono font-bold uppercase focus:ring-1 focus:ring-army-600 focus:outline-none">
         </div>
         <div>
-          <label class="block font-semibold text-slate-700 mb-1">Họ và Tên (Nhập tự do):</label>
+          <label class="block font-semibold text-slate-700 mb-1">Họ và tên:</label>
           <input type="text" id="newCadetName" autocomplete="off" placeholder="Nhập họ và tên quân nhân..." required class="w-full border rounded-lg p-2 font-semibold focus:ring-1 focus:ring-army-600 focus:outline-none">
         </div>
         <div class="grid grid-cols-2 gap-3">
@@ -1491,7 +1492,7 @@ body {
   <div id="modalUpdateLang" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
     <div class="bg-white rounded-xl shadow-xl max-w-sm w-full overflow-hidden border border-slate-200">
       <div class="bg-army-900 text-white p-4 flex items-center justify-between">
-        <h3 class="text-sm font-bold uppercase tracking-wide">Cập Nhật Chứng Chỉ Ngoại Ngữ</h3>
+        <h3 class="text-sm font-bold uppercase tracking-wide">Chứng chỉ ngoại ngữ</h3>
         <button class="modal-close text-slate-300 hover:text-white">&times;</button>
       </div>
       <form id="formUpdateLang" class="p-5 space-y-3 text-xs">
@@ -1692,8 +1693,8 @@ body {
             📊
           </span>
           <div>
-            <h3 class="text-sm font-bold uppercase tracking-wide">Nhập Nhanh Hồ Sơ Trích Ngang Từ Excel (Đầy Đủ Tất Cả Trường Hồ Sơ)</h3>
-            <div class="text-[11px] text-blue-200">Cơ chế Upsert theo Mã HV • Đầy đủ Lý lịch cá nhân, Đảng/Đoàn & Thân nhân Bố/Mẹ</div>
+            <h3 class="text-sm font-bold uppercase tracking-wide">Nhập hồ sơ</h3>
+            <div class="text-[11px] text-blue-200">Đối chiếu theo mã học viên</div>
           </div>
         </div>
         <button class="modal-close text-slate-300 hover:text-white text-xl font-bold p-1 leading-none">&times;</button>
@@ -1715,7 +1716,7 @@ body {
             </div>
             <button type="button" id="btnDownloadQuickTemplate" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-semibold shadow-sm transition whitespace-nowrap flex-shrink-0">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-              Tải File Mẫu Đầy Đủ (.xlsx)
+              Tải file mẫu
             </button>
           </div>
         </div>
@@ -1887,11 +1888,11 @@ body {
         <div id="subtab-personal" class="profile-subtab-content space-y-3">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label class="block font-semibold text-slate-700 mb-1">Mã Học Viên (Nhập tự do):</label>
+              <label class="block font-semibold text-slate-700 mb-1">Mã học viên:</label>
               <input type="text" id="profFormCode" autocomplete="off" placeholder="Nhập tự do mã HV (VD: HV2022-0101)" required class="w-full border rounded-lg p-2 font-mono font-bold uppercase focus:ring-1 focus:ring-army-600 focus:outline-none">
             </div>
             <div>
-              <label class="block font-semibold text-slate-700 mb-1">Họ và Tên (Nhập tự do):</label>
+              <label class="block font-semibold text-slate-700 mb-1">Họ và tên:</label>
               <input type="text" id="profFormName" autocomplete="off" placeholder="Nhập họ và tên quân nhân..." required class="w-full border rounded-lg p-2 font-bold focus:ring-1 focus:ring-army-600 focus:outline-none">
             </div>
           </div>
@@ -2204,8 +2205,8 @@ body {
     </div>
   </div>
   <dialog id="researchUploadDialog" class="research-dialog" aria-labelledby="researchUploadTitle">
-    <div class="research-dialog-header"><h3 id="researchUploadTitle">Nhập đề tài nghiên cứu khoa học</h3><button type="button" class="research-btn" data-research-close>Đóng</button></div>
-    <div class="research-form-body"><p class="research-form-note">Mỗi dòng Excel là một đề tài. Dùng mã học viên để chọn chủ đề tài và các thành viên; dữ liệu sẽ được xem trước khi lưu.</p>
+    <div class="research-dialog-header"><h3 id="researchUploadTitle">Nhập đề tài</h3><button type="button" class="research-btn" data-research-close>Đóng</button></div>
+    <div class="research-form-body"><p class="research-form-note">Chọn file Excel để xem trước và nhập đề tài.</p>
       <div id="researchDropZone" class="u032"><button type="button" id="researchChooseFile" class="u032-zone" aria-describedby="researchUploadHint"><svg class="u032-dash" aria-hidden="true"><rect width="100%" height="100%" rx="25"/></svg><span class="u032-orb" aria-hidden="true"><svg viewBox="0 0 28 28"><path d="M8.5 20.5H7a5 5 0 01-.6-10 7 7 0 0113.4-1.6A5.5 5.5 0 0121 20.5h-1.5M14 13v10M10.5 16.5L14 13l3.5 3.5"/></svg></span><b>Kéo file vào đây hoặc <em>chọn file</em></b><small id="researchUploadHint">.xlsx, .xls · Một file mỗi lần · Tối đa 10 MB</small></button></div>
       <input type="file" id="researchFile" accept=".xlsx,.xls" hidden><p id="researchUploadStatus" class="research-status" role="status" aria-live="polite"></p>
     </div><div class="research-dialog-footer"><button type="button" id="researchTemplate" class="research-btn">Tải Excel mẫu</button><button type="button" id="researchManual" class="research-btn">Nhập thủ công</button></div>
@@ -2238,6 +2239,7 @@ body {
     "./src/js/components/drop-upload.js": "./src/js/components/drop-upload.js?v=71abf0bb0378",
     "./src/js/components/expanding-rail.js": "./src/js/components/expanding-rail.js?v=75a8090525a1",
     "./src/js/components/import-review.js": "./src/js/components/import-review.js?v=57e0aa5e92d0",
+    "./src/js/components/interface.js": "./src/js/components/interface.js?v=1965d30fb449",
     "./src/js/components/notched-field.js": "./src/js/components/notched-field.js?v=553608c192ae",
     "./src/js/components/readability.js": "./src/js/components/readability.js?v=3099cc2c00eb",
     "./src/js/components/report-center.js": "./src/js/components/report-center.js?v=ede7ff02097f",
@@ -2251,8 +2253,8 @@ body {
     "./src/js/database/mappers.js": "./src/js/database/mappers.js?v=f2762b9cfdf7",
     "./src/js/database/realtime.js": "./src/js/database/realtime.js?v=08238ad1e200",
     "./src/js/database/repository.js": "./src/js/database/repository.js?v=7d0c39435b2e",
-    "./src/js/grades.js": "./src/js/grades.js?v=faf11c7fbc53",
-    "./src/js/main.js": "./src/js/main.js?v=b635aea060e0",
+    "./src/js/grades.js": "./src/js/grades.js?v=34f4a80cee88",
+    "./src/js/main.js": "./src/js/main.js?v=072d5cdd6030",
     "./src/js/profile-rules.js": "./src/js/profile-rules.js?v=3a3bbf350b00",
     "./src/js/report-workbook.js": "./src/js/report-workbook.js?v=1cd3836da746",
     "./src/js/reports/dashboard.js": "./src/js/reports/dashboard.js?v=ecacb5e5a926",
@@ -2261,7 +2263,7 @@ body {
     "./src/js/reports/year-breakdown.js": "./src/js/reports/year-breakdown.js?v=599b847f964a",
     "./src/js/research/model.js": "./src/js/research/model.js?v=5e2d41f872ce",
     "./src/js/research/store.js": "./src/js/research/store.js?v=238b68d00855",
-    "./src/js/research/ui.js": "./src/js/research/ui.js?v=7859fff0e1a4",
+    "./src/js/research/ui.js": "./src/js/research/ui.js?v=a5f169f1dff4",
     "./src/js/safe-html.js": "./src/js/safe-html.js?v=07b6fe69e868",
     "./src/js/students.js": "./src/js/students.js?v=e96b1613b663",
     "./src/js/subjects/catalog-view.js": "./src/js/subjects/catalog-view.js?v=0dfc729a1b3b",
@@ -2271,12 +2273,13 @@ body {
   }
 }
   </script>
-  <script type="module" src="./src/js/main.js?v=b635aea060e0"></script>
+  <script type="module" src="./src/js/main.js?v=072d5cdd6030"></script>
   <script type="module" src="./src/js/components/expanding-rail.js?v=75a8090525a1"></script>
   <script type="module" src="./src/js/components/notched-field.js?v=553608c192ae"></script>
   <script type="module" src="./src/js/components/bento-dashboard.js?v=c76ec853266e"></script>
   <script type="module" src="./src/js/components/readability.js?v=3099cc2c00eb"></script>
   <script type="module" src="./src/js/components/drop-upload.js?v=71abf0bb0378"></script>
   <script type="module" src="./src/js/components/workspace-reports.js?v=03ae1d213e37"></script>
+  <script type="module" src="./src/js/components/interface.js?v=1965d30fb449"></script>
 </body>
 </html>

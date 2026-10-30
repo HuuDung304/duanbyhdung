@@ -28,6 +28,7 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
    };
    for(const role of ['admin','company_officer','class_account','student']){
     await page.evaluate(role=>window.AuthState.setUser({type:role,class:'OTQS1',studentId:'s1',code:'HV001',displayName:'Kiểm thử'}),role);
+    if(width<=760&&await page.locator('#interfaceMenuButton').count())await page.locator('#interfaceMenuButton').click();
     await page.locator('.sidebar-account-trigger').click();await page.locator('#btnAccountSettings').click();
     assert.equal(await page.locator('#themeToggle').isVisible(),true);
     assert.equal(await page.locator('.unit-settings-only').isVisible(),role!=='student');

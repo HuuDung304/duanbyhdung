@@ -2046,6 +2046,7 @@ export function updateAllViews(options = {}) {
   if (!force && isAnyEditFormActive()) {
     return;
   }
+  if (typeof ExternalHooks.renderInterface === 'function') ExternalHooks.renderInterface();
   if (typeof ExternalHooks.renderResearch === 'function') ExternalHooks.renderResearch();
   if (typeof renderSpreadsheet === 'function') renderSpreadsheet();
   if (typeof ExternalHooks.renderProfilesTable === 'function') ExternalHooks.renderProfilesTable({ force });
