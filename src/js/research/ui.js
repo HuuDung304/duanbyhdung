@@ -151,7 +151,7 @@ export function mountResearch({ state, classes, subjectsForClass, notify }) {
     const book = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(book, sheet, 'Nghien_Cuu_Khoa_Hoc'); XLSX.writeFile(book, filename);
   }
   $('researchTemplate').addEventListener('click', () => {
-    try { writeWorkbook([EXCEL_HEADERS], 'Mau_Nghien_Cuu_Khoa_Hoc.xlsx'); notify('File mẫu đã tải. Mỗi dòng là một đề tài; nhập mã học viên đang có trong Hồ sơ quân nhân.', 'info'); }
+    try { writeWorkbook([EXCEL_HEADERS, [1, 'VD-NCKH-01', 'Ví dụ: Nâng cao kỹ năng đọc hiểu tiếng Nga', 'MA_HV_01', 'MA_HV_01; MA_HV_02', 'Nguyễn Văn A | K13; Trần Thị B | K13']], 'Mau_Nghien_Cuu_Khoa_Hoc.xlsx'); notify('Đã tải mẫu có ví dụ. Thay dòng ví dụ và mã học viên bằng dữ liệu của bạn trước khi nhập.', 'info'); }
     catch (e) { notify(e.message, 'error'); }
   });
   $('researchExport').addEventListener('click', async () => {
