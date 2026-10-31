@@ -51,7 +51,7 @@ export function mountResearch({ state, classes, subjectsForClass, notify }) {
       const people = participants(project, state.students);
       const gpas = people.map(p => yearGPA(p, state, project.year, subjectsForClass(p.class)));
       const awards = `<div class="research-award-list">${AWARDS.map(a => `<label class="research-award-check"><input type="checkbox" data-research-award="${esc(a)}" data-project-id="${esc(project.id)}" aria-label="${esc(a + ': ' + project.title)}" ${normalizeAwards(project.awards || []).includes(a) ? 'checked' : ''} ${canAward(project, state) ? '' : 'disabled'}><span>${esc(a)}</span></label>`).join('')}</div>`;
-      return `<tr><td>${i + 1}</td><td class="research-topic">${canEdit(project, state) || canAward(project, state) ? button(esc(project.title), 'edit', project.id) : `<strong>${esc(project.title)}</strong>`}<small>Năm ${project.year} · ${esc(leaderClass(project, state.students))}</small></td><td class="research-description">${project.information ? `<p>${formatResearchInformation(project.information)}</p>` : ''}${[['Mục tiêu', project.objective], ['Nội dung nghiên cứu', project.content], ['Sản phẩm dự kiến', project.product]].filter(([, value]) => value).map(([label, value]) => `<b>${label}:</b><p>${esc(value)}</p>`).join('') || (project.information ? '' : 'Chưa cập nhật')}</td><td class="research-people"><b class="research-guide-label">Học viên thực hiện:</b>${people.map(p => studentLine(p, project)).join('')}${project.advisors?.length ? '<b class="research-guide-label">Cán bộ hướng dẫn:</b>' + project.advisors.map(a => `<div class="research-person">${esc(a.name)}</div>`).join('') : ''}</td><td><div class="research-guide-label" aria-hidden="true">&nbsp;</div>${people.map(p => `<div class="research-person">${esc(p.class || '—')}/c460/d4</div>`).join('')}${blankGuides(project, a => a.unit || '—')}</td><td><div class="research-guide-label" aria-hidden="true">&nbsp;</div>${gpas.map(g => `<div class="research-person">${g === null ? '—' : g.toFixed(2).replace('.', ',')}</div>`).join('')}${blankGuides(project, () => '—')}</td><td><div class="research-guide-label" aria-hidden="true">&nbsp;</div>${people.map(p => `<div class="research-person">${esc(p.code || '—')}</div>`).join('')}${blankGuides(project, () => '—')}</td><td>${awards}</td><td class="research-notes">${esc(project.notes || '—')}</td></tr>`;
+      return `<tr><td>${i + 1}</td><td class="research-topic">${canEdit(project, state) || canAward(project, state) ? button(esc(project.title), 'open', project.id) : `<strong>${esc(project.title)}</strong>`}<small>Năm ${project.year} · ${esc(leaderClass(project, state.students))}</small></td><td class="research-description">${project.information ? `<p>${formatResearchInformation(project.information)}</p>` : ''}${[['Mục tiêu', project.objective], ['Nội dung nghiên cứu', project.content], ['Sản phẩm dự kiến', project.product]].filter(([, value]) => value).map(([label, value]) => `<b>${label}:</b><p>${esc(value)}</p>`).join('') || (project.information ? '' : 'Chưa cập nhật')}</td><td class="research-people"><b class="research-guide-label">Học viên thực hiện:</b>${people.map(p => studentLine(p, project)).join('')}${project.advisors?.length ? '<b class="research-guide-label">Cán bộ hướng dẫn:</b>' + project.advisors.map(a => `<div class="research-person">${esc(a.name)}</div>`).join('') : ''}</td><td><div class="research-guide-label" aria-hidden="true">&nbsp;</div>${people.map(p => `<div class="research-person">${esc(p.class || '—')}/c460/d4</div>`).join('')}${blankGuides(project, a => a.unit || '—')}</td><td><div class="research-guide-label" aria-hidden="true">&nbsp;</div>${gpas.map(g => `<div class="research-person">${g === null ? '—' : g.toFixed(2).replace('.', ',')}</div>`).join('')}${blankGuides(project, () => '—')}</td><td><div class="research-guide-label" aria-hidden="true">&nbsp;</div>${people.map(p => `<div class="research-person">${esc(p.code || '—')}</div>`).join('')}${blankGuides(project, () => '—')}</td><td>${awards}</td><td class="research-notes"><div>${esc(project.notes || '—')}</div>${canEdit(project, state) || canAward(project, state) ? `<div class="research-row-actions">${button('Chỉnh sửa', 'edit', project.id)}</div>` : ''}</td></tr>`;
     }).join(''));
   }
   async function reload() {
@@ -143,13 +143,23 @@ export function mountResearch({ state, classes, subjectsForClass, notify }) {
   editor.addEventListener('cancel', event => { if (busy) event.preventDefault(); });
   importDialog.addEventListener('cancel', event => { if (busy) event.preventDefault(); });
   uploadDialog.addEventListener('cancel', event => { if (busy) event.preventDefault(); });
-  document.querySelectorAll('[data-research-close]').forEach(btn => btn.addEventListener('click', () => { if (!busy) btn.closest('dialog').close(); }));
+  function cancelStudentResolution() {
+    const sameUser = pendingImport?.user === identityKey(); pendingImport = null; importing = [];
+    resolveDialog.close();
+    if (sameUser && canCreate(state)) uploadDialog.showModal();
+  }
+  resolveDialog.addEventListener('cancel', event => { event.preventDefault(); if (!busy) cancelStudentResolution(); });
+  document.querySelectorAll('[data-research-close]').forEach(btn => btn.addEventListener('click', () => {
+    if (busy) return;
+    const dialog = btn.closest('dialog');
+    if (dialog === resolveDialog) cancelStudentResolution(); else dialog.close();
+  }));
   root.addEventListener('click', event => {
     if (event.target.closest('[data-research-retry]')) { reload(); return; }
     const tab = event.target.closest('[data-research-class]');
     if (tab) { filter = tab.dataset.researchClass; render(); }
     const action = event.target.closest('[data-research-action]');
-    if (action?.dataset.researchAction === 'edit') openEditor(projects.find(p => p.id === action.dataset.projectId));
+    if (['edit', 'open'].includes(action?.dataset.researchAction)) openEditor(projects.find(p => p.id === action.dataset.projectId));
   });
   root.addEventListener('change', async event => {
     const checkbox = event.target.closest('[data-research-award]');
@@ -245,11 +255,6 @@ export function mountResearch({ state, classes, subjectsForClass, notify }) {
       pendingImport = null; importing = []; resolveDialog.close();
       $('researchUploadStatus').textContent = error.message; uploadDialog.showModal();
     }
-  });
-  resolveDialog.addEventListener('close', () => {
-    if (!pendingImport) return;
-    const sameUser = pendingImport.user === identityKey(); pendingImport = null; importing = [];
-    if (sameUser && canCreate(state)) uploadDialog.showModal();
   });
   $('researchFile').addEventListener('change', async event => {
     const file = event.target.files[0]; event.target.value = ''; if (!file || busy || !canCreate(state)) return;

@@ -1,6 +1,6 @@
 # Nghiên cứu khoa học
 
-Menu **Nghiên cứu khoa học** có số đề tài, số học viên không trùng và bảng thông tin, có cột Ghi chú thay cho Thao tác. Mở form chỉnh sửa bằng tên đề tài (chỉ hiện liên kết khi có quyền). Thanh công cụ chỉ có **Nhập Excel**, cùng kiểu nút và vùng kéo thả ở các mục khác. File mẫu và nút **Nhập thủ công** nằm trong hộp nhập. **Xuất báo cáo → Nghiên cứu khoa học** là nơi xuất Excel; Admin/cán bộ chọn toàn đại đội hoặc lớp chủ đề tài, tài khoản lớp/học viên được khóa phạm vi. Không có nút Tải lại/Thêm đề tài ở góc trên. Hai chỉ số dùng cùng phạm vi với bảng.
+Menu **Nghiên cứu khoa học** có số đề tài, số học viên không trùng và bảng thông tin, có cột Ghi chú thay cho Thao tác. Mở form bằng tên đề tài hoặc nút **Chỉnh sửa** bên dưới ghi chú. Nút chỉ hiện khi tài khoản có quyền sửa thông tin hoặc giải thưởng; các trường vẫn khóa theo quyền. Thanh công cụ chỉ có **Nhập Excel**, cùng kiểu nút và vùng kéo thả ở các mục khác. File mẫu và nút **Nhập thủ công** nằm trong hộp nhập. **Xuất báo cáo → Nghiên cứu khoa học** là nơi xuất Excel; Admin/cán bộ chọn toàn đại đội hoặc lớp chủ đề tài, tài khoản lớp/học viên được khóa phạm vi. Không có nút Tải lại/Thêm đề tài ở góc trên. Hai chỉ số dùng cùng phạm vi với bảng.
 
 ## Phạm vi và quyền sửa
 
