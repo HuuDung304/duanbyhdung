@@ -11,3 +11,5 @@ Giao diện dùng nền trung tính, một màu nhấn và cùng quy tắc cho s
 `src/css/interface.css` là lớp quy tắc giao diện chung cuối cùng; sử dụng các biến `--theme-*` để các component cũ cùng nhận màu mới. `src/js/components/interface.js` sắp xếp lại các node giao diện, giữ nguyên ID, event handler, trạng thái nhập, thuật toán và cơ chế phân quyền. Không sở hữu dữ liệu ứng dụng.
 
 Kiểm tra bằng `npm test`, `npm run build` và `tests/interface-browser.cjs` trên máy chủ HTTP cổng 3000. Đặt `UI_TEST_CSS_PATH` tới CSS Tailwind 3.4.17 được biên dịch từ cấu hình trong `index.html` khi CDN không sẵn có. Fixture chặn toàn bộ dịch vụ ngoài và kiểm tra desktop/mobile, đăng nhập, drawer, tìm kiếm, độ tương phản, form đang nhập, giảm chuyển động và không ghi database. `tests/research-browser.cjs` kiểm tra các luồng đề tài, phân quyền và Excel trên giao diện mới.
+
+Bản trùng tu Edu460 V2 được ghi lại tại [docs/edu460-v2](edu460-v2/README.md), kèm ảnh trước/sau và phạm vi kiểm thử. Bộ token và các quy tắc mới vẫn nằm trong `interface.css`; không thay đổi mã JavaScript ứng dụng.
