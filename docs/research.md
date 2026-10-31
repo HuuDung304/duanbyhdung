@@ -2,7 +2,7 @@
 
 Menu **Nghiên cứu khoa học** có số đề tài, số học viên không trùng và bảng thông tin, có cột Ghi chú thay cho Thao tác. Bấm tên đề tài để mở trang chi tiết toàn phần (cả tài khoản chỉ xem). Mỗi dòng có mũi tên xuống và mở/thu gọn nội dung: Mã đề tài, Tên đề tài, Thông tin đề tài, Chủ đề tài, Học viên thực hiện, Cán bộ hướng dẫn, Giải thưởng. Nếu có ghi chú thì hiển thị riêng, không có nút sửa trong cột Ghi chú.
 
-Mỗi mục được phép sửa có nút **Chỉnh sửa** nhỏ khi mở dòng. Thông tin dài được sửa trong hộp lớn giữa màn hình; thông tin cấu trúc cũ được gộp đầy đủ khi mở sửa. Lưu từng mục giữ nguyên các mục còn lại và kiểm tra revision để tránh ghi đè phiên khác. Năm học tính điểm nằm trong phần sửa Thông tin đề tài. Học viên không được chuyển chủ đề tài; tài khoản chỉ sửa giải thưởng không được sửa thông tin. Thanh công cụ chỉ có **Nhập Excel**, cùng kiểu nút và vùng kéo thả ở các mục khác. File mẫu và nút **Nhập thủ công** nằm trong hộp nhập. **Xuất báo cáo → Nghiên cứu khoa học** là nơi xuất Excel; Admin/cán bộ chọn toàn đại đội hoặc lớp chủ đề tài, tài khoản lớp/học viên được khóa phạm vi. Không có nút Tải lại/Thêm đề tài ở góc trên. Hai chỉ số dùng cùng phạm vi với bảng.
+Mỗi mục được phép sửa có nút **Chỉnh sửa** nhỏ khi mở dòng. Thông tin dài được sửa trong hộp lớn giữa màn hình; thông tin cấu trúc cũ được gộp đầy đủ khi mở sửa. Lưu từng mục giữ nguyên các mục còn lại và kiểm tra revision để tránh ghi đè phiên khác. Năm học đề tài không quyết định năm tính điểm của học viên. Học viên không được chuyển chủ đề tài; tài khoản chỉ sửa giải thưởng không được sửa thông tin. Thanh công cụ chỉ có **Nhập Excel**, cùng kiểu nút và vùng kéo thả ở các mục khác. File mẫu và nút **Nhập thủ công** nằm trong hộp nhập. **Xuất báo cáo → Nghiên cứu khoa học** là nơi xuất Excel; Admin/cán bộ chọn toàn đại đội hoặc lớp chủ đề tài, tài khoản lớp/học viên được khóa phạm vi. Không có nút Tải lại/Thêm đề tài ở góc trên. Hai chỉ số dùng cùng phạm vi với bảng.
 
 ## Phạm vi và quyền sửa
 
@@ -11,7 +11,7 @@ Mỗi mục được phép sửa có nút **Chỉnh sửa** nhỏ khi mở dòng
 - Học viên: chỉ thấy đề tài mình tham gia. Được tạo đề tài do mình làm chủ và chỉnh sửa thông tin đề tài mình làm chủ; không được chuyển chủ đề tài hay sửa giải thưởng. Thành viên khác chỉ xem.
 - Giải thưởng: 5 ô tích độc lập: Bằng khen, Giấy khen, Xuất sắc, Giỏi, Khá; tích được ngay trong bảng; chỉ Admin/tài khoản lớp được sửa.
 
-Chủ đề tài phải là một học viên thực hiện. Thành viên được thêm bằng ô nhập họ tên/mã và nút **+**, thay cho checkbox, cả khi tạo mới và khi sửa. Trùng tên phải chọn mã/lớp đúng; có thể bỏ thành viên bằng **×**, nhưng không bỏ chủ đề tài khỏi nhóm. Hỗ trợ nhóm nhiều lớp. Có thể tìm chủ đề tài và thành viên theo họ tên (có dấu hoặc không dấu) hoặc mã; tên trùng phải chọn người theo mã và lớp, không chọn ngầm người đầu tiên. Đơn vị học viên là lớp/c460/d4; đơn vị cán bộ hướng dẫn nhập riêng. Điểm TBNH được tính theo tín chỉ trong hai học kỳ của năm học chọn trên đề tài, chỉ dùng môn áp dụng cho lớp; chưa có điểm hiển thị `—`.
+Chủ đề tài phải là một học viên thực hiện. Thành viên được thêm bằng ô nhập họ tên/mã và nút **+**, thay cho checkbox, cả khi tạo mới và khi sửa. Trùng tên phải chọn mã/lớp đúng; có thể bỏ thành viên bằng **×**, nhưng không bỏ chủ đề tài khỏi nhóm. Hỗ trợ nhóm nhiều lớp. Có thể tìm chủ đề tài và thành viên theo họ tên (có dấu hoặc không dấu) hoặc mã; tên trùng phải chọn người theo mã và lớp, không chọn ngầm người đầu tiên. Đơn vị học viên là lớp/c460/d4; đơn vị cán bộ hướng dẫn nhập riêng. Điểm TBNH lấy năm học mới nhất có điểm của từng học viên, tính theo tín chỉ trong hai học kỳ của năm đó và chỉ dùng môn áp dụng cho lớp. Điểm 0 vẫn tính; chưa có điểm hiển thị `—`. Năm được ghi cạnh điểm để dễ đối chiếu.
 
 ## Excel
 
@@ -41,3 +41,5 @@ Khi sửa, đọc lại bản ghi rồi kiểm tra revision; PATCH có điều k
 - `npm test`: phạm vi, chủ đề tài, quyền giải thưởng, Excel và tính TBNH.
 - `npm run build`: cập nhật import map và đóng gói `dist/`.
 - Máy chủ tĩnh cổng 3000; chạy `NODE_PATH=/workspace/onboarding-tools/node_modules node tests/research-browser.cjs`. REST/CDN đều được giả lập, không ghi Supabase thật. Có thể đặt `RESEARCH_TEST_CSS_PATH` tới CSS Tailwind 3.4.17 biên dịch từ cấu hình trong `index.html` để kiểm tra đầy đủ giao diện khi CDN không truy cập được. Kiểm tra các vai trò, nhóm nhiều lớp, nhập tay/tải lại, xung đột phiên sửa, XSS, màn hình nhỏ, Excel thật, hủy nhập, lỗi một dòng và file xuất.
+
+Mã đề tài chưa nhập được để trống trong trang chi tiết, ô sửa và Excel mẫu/xuất; không thay bằng mã nội bộ. Bản xuất giữ khóa nhận diện ở cột ẩn để nhập lại đúng đề tài kể cả khi mã hiển thị để trống.

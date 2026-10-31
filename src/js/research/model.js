@@ -57,11 +57,24 @@ export function yearGPA(student, state, year, applicableSubjects) {
   }
   return credits ? points / credits : null;
 }
+export function latestYearGPA(student, state, applicableSubjects) {
+  if (!student?.id) return { year: null, gpa: null };
+  const scores = state.grades[student.id] || {};
+  const years = applicableSubjects.filter(subject => {
+    const semester = Number(subject.semester), score = scores[subject.id];
+    return Number.isInteger(semester) && semester >= 1 && semester <= 10 && Number.isFinite(Number(subject.credits)) && Number(subject.credits) > 0
+      && score !== '' && score !== null && score !== undefined && Number.isFinite(Number(score));
+  }).map(subject => Math.ceil(Number(subject.semester) / 2));
+  if (!years.length) return { year: null, gpa: null };
+  const year = Math.max(...years);
+  return { year, gpa: yearGPA(student, state, year, applicableSubjects) };
+}
+
 export function normalizeProject(input, state, existing = null) {
   const title = text(input.title);
   if (!title || title.length > 500) throw new Error('Tên đề tài bắt buộc, tối đa 500 ký tự.');
   const year = Number(input.year);
-  if (!Number.isInteger(year) || year < 1 || year > 5) throw new Error('Chọn năm học từ 1 đến 5 để tính điểm TBNH.');
+  if (!Number.isInteger(year) || year < 1 || year > 5) throw new Error('Chọn năm học đề tài từ 1 đến 5.');
   const ids = [...new Set((input.memberIds || []).map(text).filter(Boolean))];
   if (!ids.length || !ids.includes(input.leaderId)) throw new Error('Chủ đề tài phải nằm trong danh sách học viên thực hiện.');
   const members = ids.map(id => {
@@ -99,7 +112,7 @@ export function normalizeProject(input, state, existing = null) {
   return project;
 }
 export const EXCEL_HEADERS = ['STT', 'Mã đề tài', 'Tên đề tài', 'Thông tin đề tài', 'Mã HV / Họ tên chủ đề tài', 'Mã HV / Họ tên tham gia (cách nhau bằng ;)', 'Cán bộ hướng dẫn (Họ tên | Đơn vị) (cách nhau bằng dấu ;)'];
-export const EXPORT_HEADERS = [...EXCEL_HEADERS, 'Mục tiêu', 'Nội dung nghiên cứu', 'Sản phẩm dự kiến', 'Năm học', 'Giải thưởng (cách nhau bằng ;)', 'Ghi chú'];
+export const EXPORT_HEADERS = [...EXCEL_HEADERS, 'Mục tiêu', 'Nội dung nghiên cứu', 'Sản phẩm dự kiến', 'Năm học', 'Giải thưởng (cách nhau bằng ;)', 'Ghi chú', 'ID bản ghi'];
 export const studentNameKey = value => text(value).toLocaleLowerCase('vi').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/\s+/g, ' ');
 export function researchStudentCandidates(value, students) {
   const code = codeKey(value);
@@ -144,7 +157,7 @@ export function parseResearchRows(rows, state, existingProjects, createId, selec
     for (const ref of researchReferences(row, column, index + 2)) resolved.set(ref.key, resolve(ref));
   }
   if (choices.length) throw new ResearchStudentChoiceError(choices);
-  const seen = new Set(), drafts = [];
+  const seen = new Set(), seenRecords = new Set(), drafts = [];
   for (const [index, row] of rows.slice(1).entries()) {
     if (!row.some(v => text(v))) continue;
     const get = (name, fallback = '') => column(name) < 0 ? fallback : row[column(name)] ?? '';
@@ -152,7 +165,11 @@ export function parseResearchRows(rows, state, existingProjects, createId, selec
       const code = text(get('mã đề tài'));
       if (code && seen.has(codeKey(code))) throw new Error('Mã đề tài bị lặp trong file.');
       if (code) seen.add(codeKey(code));
-      const existing = code ? existingProjects.find(p => p.id === code || p.projectCode && codeKey(p.projectCode) === codeKey(code)) : null;
+      const recordId = text(get('id bản ghi'));
+      const existing = recordId ? existingProjects.find(p => p.id === recordId) : code ? existingProjects.find(p => p.id === code || p.projectCode && codeKey(p.projectCode) === codeKey(code)) : null;
+      if (existing && seenRecords.has(existing.id)) throw new Error('Đề tài bị lặp trong file.');
+      if (existing) seenRecords.add(existing.id);
+      if (recordId && !existing) throw new Error('Đề tài cần cập nhật không còn tồn tại. Hãy xuất lại danh sách mới.');
       if (existing && !canEdit(existing, state)) throw new Error('Không có quyền sửa thông tin đề tài này.');
       const refs = researchReferences(row, column, index + 2);
       const leaderId = resolved.get(refs[0].key);

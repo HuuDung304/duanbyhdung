@@ -1,7 +1,7 @@
 import { mountResearchDetail } from './detail.js';
 import { createResearchPeoplePicker } from './people-picker.js';
 import { escapeHTML as esc, sanitizeHTML } from '../safe-html.js';
-import { AWARDS, actor, participants, leaderClass, canView, canEdit, canAward, canCreate, scopedProjects, researchStats, yearGPA, EXCEL_HEADERS, EXPORT_HEADERS, normalizeAwards, parseResearchRows, researchStudentCandidates, studentNameKey, ResearchStudentChoiceError } from './model.js';
+import { AWARDS, actor, participants, leaderClass, canView, canEdit, canAward, canCreate, scopedProjects, researchStats, latestYearGPA, EXCEL_HEADERS, EXPORT_HEADERS, normalizeAwards, parseResearchRows, researchStudentCandidates, studentNameKey, ResearchStudentChoiceError } from './model.js';
 import { createResearchStore } from './store.js';
 
 export function formatResearchInformation(value) {
@@ -19,7 +19,7 @@ export function mountResearch({ state, classes, subjectsForClass, notify }) {
   let projects = [], loaded = false, loading = false, error = '', filter = 'all', editing = null, draftId = '', importing = [], busy = false, identity = '', generation = 0, pendingImport = null, memberPicker = null;
   const identityKey = () => JSON.stringify([state.role, state.currentUser?.studentId, state.currentUser?.code]);
   const setHTML = (element, html) => { element.innerHTML = sanitizeHTML(html); };
-  const detail = mountResearchDetail({state,getProjects:()=>projects,formatInformation:formatResearchInformation,onSaved:()=>render(),save:async(input,existing)=>{const key=identityKey();const saved=await store.save(input,existing);if(key!==identityKey())throw new Error('Tài khoản đã thay đổi.');replaceProject(saved);return saved;}});
+  const detail = mountResearchDetail({state,getProjects:()=>projects,formatInformation:formatResearchInformation,latestScore:student=>latestYearGPA(student,state,subjectsForClass(student.class)),onSaved:()=>render(),save:async(input,existing)=>{const key=identityKey();const saved=await store.save(input,existing);if(key!==identityKey())throw new Error('Tài khoản đã thay đổi.');replaceProject(saved);return saved;}});
   const button = (label, action, id) => `<button type="button" class="research-btn" data-research-action="${action}" data-project-id="${esc(id)}">${label}</button>`;
   const studentLine = (student, project) => `<div class="research-person">${esc(student.name || student.code)}${student.studentId === project.leaderId ? ' <span class="research-owner">Chủ đề tài</span>' : ''}</div>`;
   const blankGuides = (project, values) => project.advisors?.length ? `<div class="research-guide-label" aria-hidden="true">&nbsp;</div>${project.advisors.map((a, i) => `<div class="research-person">${esc(values(a, i))}</div>`).join('')}` : '';
@@ -47,14 +47,14 @@ export function mountResearch({ state, classes, subjectsForClass, notify }) {
     $('researchExport').disabled = loading;
     $('researchReportCard').hidden = state.role === 'guest';
     $('researchStatus').textContent = error || (loading ? 'Đang tải đề tài…' : !loaded ? 'Mở mục này để tải đề tài.' : `${visible.length} đề tài`);
-    $('researchStatus').title = 'Điểm TBNH tính theo năm học của đề tài; học viên được đếm không trùng.';
+    $('researchStatus').title = 'Điểm trung bình của năm học mới nhất có điểm của từng học viên; học viên được đếm không trùng.';
     $('researchStatus').setAttribute('role', error ? 'alert' : 'status');
     if (error) { const retry = document.createElement('button'); retry.type = 'button'; retry.className = 'research-btn'; retry.dataset.researchRetry = 'true'; retry.textContent = 'Thử lại'; $('researchStatus').append(' ', retry); }
     setHTML($('researchTableBody'), !loaded ? '<tr><td colspan="9" class="research-empty">Chưa tải được danh sách đề tài.</td></tr>' : !visible.length ? '<tr><td colspan="9" class="research-empty">Chưa có đề tài trong phạm vi này.</td></tr>' : visible.map((project, i) => {
       const people = participants(project, state.students);
-      const gpas = people.map(p => yearGPA(p, state, project.year, subjectsForClass(p.class)));
+      const gpas = people.map(p => latestYearGPA(p, state, subjectsForClass(p.class)));
       const awards = `<div class="research-award-list">${AWARDS.map(a => `<label class="research-award-check"><input type="checkbox" data-research-award="${esc(a)}" data-project-id="${esc(project.id)}" aria-label="${esc(a + ': ' + project.title)}" ${normalizeAwards(project.awards || []).includes(a) ? 'checked' : ''} ${canAward(project, state) ? '' : 'disabled'}><span>${esc(a)}</span></label>`).join('')}</div>`;
-      return `<tr><td>${i + 1}</td><td class="research-topic">${button(esc(project.title), 'open', project.id)}<small>Năm ${project.year} · ${esc(leaderClass(project, state.students))}</small></td><td class="research-description">${project.information ? `<p>${formatResearchInformation(project.information)}</p>` : ''}${[['Mục tiêu', project.objective], ['Nội dung nghiên cứu', project.content], ['Sản phẩm dự kiến', project.product]].filter(([, value]) => value).map(([label, value]) => `<b>${label}:</b><p>${esc(value)}</p>`).join('') || (project.information ? '' : 'Chưa cập nhật')}</td><td class="research-people"><b class="research-guide-label">Học viên thực hiện:</b>${people.map(p => studentLine(p, project)).join('')}${project.advisors?.length ? '<b class="research-guide-label">Cán bộ hướng dẫn:</b>' + project.advisors.map(a => `<div class="research-person">${esc(a.name)}</div>`).join('') : ''}</td><td><div class="research-guide-label" aria-hidden="true">&nbsp;</div>${people.map(p => `<div class="research-person">${esc(p.class || '—')}/c460/d4</div>`).join('')}${blankGuides(project, a => a.unit || '—')}</td><td><div class="research-guide-label" aria-hidden="true">&nbsp;</div>${gpas.map(g => `<div class="research-person">${g === null ? '—' : g.toFixed(2).replace('.', ',')}</div>`).join('')}${blankGuides(project, () => '—')}</td><td><div class="research-guide-label" aria-hidden="true">&nbsp;</div>${people.map(p => `<div class="research-person">${esc(p.code || '—')}</div>`).join('')}${blankGuides(project, () => '—')}</td><td>${awards}</td><td class="research-notes"><div>${esc(project.notes || '—')}</div></td></tr>`;
+      return `<tr><td>${i + 1}</td><td class="research-topic">${button(esc(project.title), 'open', project.id)}<small>${esc(leaderClass(project, state.students))}</small></td><td class="research-description">${project.information ? `<p>${formatResearchInformation(project.information)}</p>` : ''}${[['Mục tiêu', project.objective], ['Nội dung nghiên cứu', project.content], ['Sản phẩm dự kiến', project.product]].filter(([, value]) => value).map(([label, value]) => `<b>${label}:</b><p>${esc(value)}</p>`).join('') || (project.information ? '' : 'Chưa cập nhật')}</td><td class="research-people"><b class="research-guide-label">Học viên thực hiện:</b>${people.map(p => studentLine(p, project)).join('')}${project.advisors?.length ? '<b class="research-guide-label">Cán bộ hướng dẫn:</b>' + project.advisors.map(a => `<div class="research-person">${esc(a.name)}</div>`).join('') : ''}</td><td><div class="research-guide-label" aria-hidden="true">&nbsp;</div>${people.map(p => `<div class="research-person">${esc(p.class || '—')}/c460/d4</div>`).join('')}${blankGuides(project, a => a.unit || '—')}</td><td><div class="research-guide-label" aria-hidden="true">&nbsp;</div>${gpas.map(({year,gpa}) => `<div class="research-person" title="${year ? 'Điểm trung bình năm học ' + year : 'Chưa có điểm'}">${gpa === null ? '—' : gpa.toFixed(2).replace('.', ',')}${year ? `<small class="research-score-year">Năm ${year}</small>` : ''}</div>`).join('')}${blankGuides(project, () => '—')}</td><td><div class="research-guide-label" aria-hidden="true">&nbsp;</div>${people.map(p => `<div class="research-person">${esc(p.code || '—')}</div>`).join('')}${blankGuides(project, () => '—')}</td><td>${awards}</td><td class="research-notes"><div>${esc(project.notes || '—')}</div></td></tr>`;
     }).join(''));
     detail.render();
   }
@@ -179,11 +179,11 @@ export function mountResearch({ state, classes, subjectsForClass, notify }) {
   const requireXLSX = () => { if (!window.XLSX) throw new Error('Thư viện Excel chưa tải được. Kiểm tra kết nối rồi thử lại.'); return window.XLSX; };
   function writeWorkbook(rows, filename) {
     const XLSX = requireXLSX(), sheet = XLSX.utils.aoa_to_sheet(rows);
-    sheet['!cols'] = rows[0].map((_, i) => ({ wch: i === 0 ? 8 : i === 1 ? 28 : i === 3 ? 60 : 42 }));
+    sheet['!cols'] = rows[0].map((header, i) => ({ wch: i === 0 ? 8 : i === 1 ? 28 : i === 3 ? 60 : 42, hidden: header === 'ID bản ghi' }));
     const book = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(book, sheet, 'Nghien_Cuu_Khoa_Hoc'); XLSX.writeFile(book, filename);
   }
   $('researchTemplate').addEventListener('click', () => {
-    try { writeWorkbook([EXCEL_HEADERS, [1, 'VD-NCKH-01', 'Ví dụ: Nâng cao kỹ năng đọc hiểu tiếng Nga', 'Mục tiêu: Cải thiện kỹ năng đọc hiểu.\nNội dung nghiên cứu: Khảo sát và xây dựng phương pháp tự học.\nSản phẩm dự kiến: Báo cáo tổng kết đề tài.', 'HỌ_TÊN_HỌC_VIÊN_01', 'HỌ_TÊN_HỌC_VIÊN_01; MA_HV_02', 'Nguyễn Văn A | K13; Trần Thị B | K13']], 'Mau_Nghien_Cuu_Khoa_Hoc.xlsx'); notify('Đã tải mẫu có ví dụ. Thay dòng ví dụ bằng dữ liệu thật; có thể dùng mã hoặc họ tên học viên.', 'info'); }
+    try { writeWorkbook([EXCEL_HEADERS, [1, '', 'Ví dụ: Nâng cao kỹ năng đọc hiểu tiếng Nga', 'Mục tiêu: Cải thiện kỹ năng đọc hiểu.\nNội dung nghiên cứu: Khảo sát và xây dựng phương pháp tự học.\nSản phẩm dự kiến: Báo cáo tổng kết đề tài.', 'HỌ_TÊN_HỌC_VIÊN_01', 'HỌ_TÊN_HỌC_VIÊN_01; MA_HV_02', 'Nguyễn Văn A | K13; Trần Thị B | K13']], 'Mau_Nghien_Cuu_Khoa_Hoc.xlsx'); notify('Đã tải mẫu có ví dụ. Thay dòng ví dụ bằng dữ liệu thật; có thể dùng mã hoặc họ tên học viên.', 'info'); }
     catch (e) { notify(e.message, 'error'); }
   });
   $('researchExport').addEventListener('click', async () => {
@@ -203,7 +203,7 @@ export function mountResearch({ state, classes, subjectsForClass, notify }) {
       const selected = ['admin', 'company_officer'].includes(state.role) ? $('researchExportClass').value : 'all';
       const visible = scopedProjects(projects, state, selected);
       if (!visible.length) throw new Error('Chưa có đề tài trong phạm vi này.');
-      writeWorkbook([EXPORT_HEADERS, ...visible.map((p, i) => [i + 1, p.projectCode || p.id, p.title, p.information || '', participants(p, state.students).find(s => s.studentId === p.leaderId)?.code || '', participants(p, state.students).map(s => s.code).join('; '), p.advisors.map(a => a.name + ' | ' + a.unit).join('; '), p.objective, p.content, p.product, p.year, normalizeAwards(p.awards).join('; '), p.notes || ''])], 'De_Tai_Nghien_Cuu_Khoa_Hoc.xlsx');
+      writeWorkbook([EXPORT_HEADERS, ...visible.map((p, i) => [i + 1, p.projectCode || '', p.title, p.information || '', participants(p, state.students).find(s => s.studentId === p.leaderId)?.code || '', participants(p, state.students).map(s => s.code).join('; '), p.advisors.map(a => a.name + ' | ' + a.unit).join('; '), p.objective, p.content, p.product, p.year, normalizeAwards(p.awards).join('; '), p.notes || '', p.id])], 'De_Tai_Nghien_Cuu_Khoa_Hoc.xlsx');
       exportDialog.close();
     } catch (e) { $('researchExportError').textContent = e.message; }
   });

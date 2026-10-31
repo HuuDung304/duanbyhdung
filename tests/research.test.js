@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { canView, canEdit, canAward, normalizeProject, researchStats, scopedProjects, parseResearchRows, EXCEL_HEADERS, AWARDS, yearGPA, ResearchStudentChoiceError, researchStudentCandidates } from '../src/js/research/model.js';
+import { canView, canEdit, canAward, normalizeProject, researchStats, scopedProjects, parseResearchRows, EXCEL_HEADERS, AWARDS, yearGPA, latestYearGPA, EXPORT_HEADERS, ResearchStudentChoiceError, researchStudentCandidates } from '../src/js/research/model.js';
 const students = [{ id: 'a', code: '001', name: 'An', class: 'OTQS1' }, { id: 'b', code: '002', name: 'Bình', class: 'TTG2' }, { id: 'c', code: '003', name: 'Chi', class: 'XMCB' }];
 const state = (role = 'admin', id = 'a') => ({ role, currentUser: { studentId: id, code: students.find(s => s.id === id)?.code }, students, grades: {} });
 const input = { id: 'r1', title: 'Nghiên cứu', year: 1, leaderId: 'a', memberIds: ['a', 'b'], awards: [], advisors: [] };
@@ -99,4 +99,20 @@ test('editing topic metadata keeps its stable identity and other project fields'
   assert.equal(saved.projectCode,'NEW');
   assert.equal(saved.notes,previous.notes);
   assert.deepEqual(saved.participants,previous.participants);
+});
+
+test('latest academic year is chosen per student from valid applicable scores, including zero', () => {
+  const s=state();s.grades={a:{old:9,new:0,blank:''},b:{old:7},c:{blank:''}};
+  const subjects=[{id:'old',semester:2,credits:3},{id:'new',semester:9,credits:2},{id:'blank',semester:10,credits:2}];
+  assert.deepEqual(latestYearGPA(students[0],s,subjects),{year:5,gpa:0});
+  assert.deepEqual(latestYearGPA(students[1],s,subjects),{year:1,gpa:7});
+  assert.deepEqual(latestYearGPA(students[2],s,subjects),{year:null,gpa:null});
+  assert.deepEqual(latestYearGPA(students[0],s,subjects.filter(p=>p.id!=='new')),{year:1,gpa:9});
+});
+test('an exported topic with a blank public code updates by its hidden record identity', () => {
+  const previous={...project,projectCode:''};
+  const row=EXPORT_HEADERS.map(header=>({'STT':1,'Mã đề tài':'','Tên đề tài':'Đổi tên','Mã HV / Họ tên chủ đề tài':'001','Mã HV / Họ tên tham gia (cách nhau bằng ;)':'002','Năm học':1,'ID bản ghi':project.id}[header]??''));
+  const [draft]=parseResearchRows([EXPORT_HEADERS,row],state(),[previous],()=> 'wrong-new-id');
+  assert.equal(draft.project.id,project.id);assert.equal(draft.project.projectCode,'');assert.equal(draft.project.title,'Đổi tên');
+  assert.throws(()=>parseResearchRows([EXPORT_HEADERS,row,row],state(),[previous],()=> 'new'),/bị lặp/);
 });

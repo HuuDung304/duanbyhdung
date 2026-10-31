@@ -309,3 +309,4 @@ body.ui-modern .research-selected-people small { display:block; font-size:11px; 
 body.ui-modern .research-selected-people button { width:30px; min-height:30px; padding:4px; font-size:18px; }
 body.ui-modern [data-person-choices] { display:flex; gap:8px; align-items:center; margin-top:10px; }
 @media(max-width:640px) { body.ui-modern .research-detail-heading h2 { font-size:22px; } body.ui-modern .research-detail-body { padding-left:22px; } body.ui-modern .research-detail-sections summary { padding:17px; } body.ui-modern #researchFieldDialog .research-long-editor { min-height:48dvh; } }
+body.ui-modern .research-score-year { display:inline; margin-left:6px; font-size:10px; color:var(--theme-muted); line-height:1.3; }
