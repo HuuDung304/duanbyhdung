@@ -194,7 +194,7 @@ export function isAnyEditFormActive() {
     return true;
   }
   if (typeof document === 'undefined') return false;
-  if (document.querySelector('#researchEditor[open], #researchImportDialog[open], #researchUploadDialog[open], #researchResolveDialog[open]')) return true;
+  if (document.querySelector('#researchEditor[open], #researchImportDialog[open], #researchUploadDialog[open], #researchResolveDialog[open], #researchFieldDialog[open]')) return true;
 
   for (const id of EDIT_MODAL_IDS) {
     const m = document.getElementById(id);

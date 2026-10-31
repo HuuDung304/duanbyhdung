@@ -279,3 +279,33 @@ body.ui-modern .research-resolution-list { display:grid; gap:16px; }
 body.ui-modern #researchLeaderMatches { display:block; margin-top:6px; font-size:11px; color:var(--theme-muted); }
 
 body.ui-modern .research-row-actions { margin-top:12px; white-space:normal; }
+body.ui-modern .research-detail-page { max-width:1080px; margin:0 auto; }
+body.ui-modern .research-detail-heading { padding:24px 0; }
+body.ui-modern .research-detail-heading small { color:var(--theme-muted); font-size:12px; }
+body.ui-modern .research-detail-heading h2 { margin:8px 0 0; font-size:26px; font-weight:650; line-height:1.4; overflow-wrap:anywhere; }
+body.ui-modern .research-detail-sections { border:1px solid var(--theme-border); border-radius:14px; overflow:hidden; background:var(--theme-card); }
+body.ui-modern .research-detail-sections>details+details { border-top:1px solid var(--theme-border); }
+body.ui-modern .research-detail-sections summary { display:flex; align-items:center; gap:12px; padding:20px 22px; font-size:14px; font-weight:600; cursor:pointer; list-style:none; color:var(--theme-ink); }
+body.ui-modern .research-detail-sections summary::-webkit-details-marker { display:none; }
+body.ui-modern .research-detail-sections summary:hover { background:var(--theme-soft); }
+body.ui-modern .research-detail-arrow { font-size:18px; color:var(--theme-muted); }
+body.ui-modern .research-detail-sections details[open] .research-detail-arrow { color:var(--theme-primary); }
+body.ui-modern .research-detail-body { padding:0 22px 22px 48px; }
+body.ui-modern .research-detail-value { white-space:pre-wrap; overflow-wrap:anywhere; line-height:1.85; font-size:14px; }
+body.ui-modern .research-detail-person { display:flex; flex-direction:column; padding:8px 0; }
+body.ui-modern .research-detail-person strong { font-weight:550; }
+body.ui-modern .research-detail-person span { color:var(--theme-muted); font-size:12px; }
+body.ui-modern .research-detail-body .research-section-edit { margin-top:16px; font-size:11px; min-height:30px; padding:6px 10px; }
+body.ui-modern #researchFieldDialog.research-field-wide { width:min(1000px,calc(100vw - 24px)); }
+body.ui-modern #researchFieldDialog .research-long-editor { min-height:370px; line-height:1.8; resize:vertical; }
+body.ui-modern .research-person-entry { display:flex; gap:8px; align-items:center; }
+body.ui-modern .research-person-entry input { flex:1; min-width:0; margin:0; }
+body.ui-modern .research-person-entry button { flex:none; width:40px; font-size:22px; }
+body.ui-modern .research-person-message { font-size:12px; color:var(--theme-muted); margin:8px 0; }
+body.ui-modern .research-selected-people { list-style:none; padding:0; margin:10px 0 0; display:grid; gap:8px; }
+body.ui-modern .research-selected-people li { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:10px 12px; border:1px solid var(--theme-border); border-radius:9px; background:var(--theme-soft); }
+body.ui-modern .research-selected-people strong { display:block; font-size:13px; font-weight:550; }
+body.ui-modern .research-selected-people small { display:block; font-size:11px; color:var(--theme-muted); }
+body.ui-modern .research-selected-people button { width:30px; min-height:30px; padding:4px; font-size:18px; }
+body.ui-modern [data-person-choices] { display:flex; gap:8px; align-items:center; margin-top:10px; }
+@media(max-width:640px) { body.ui-modern .research-detail-heading h2 { font-size:22px; } body.ui-modern .research-detail-body { padding-left:22px; } body.ui-modern .research-detail-sections summary { padding:17px; } body.ui-modern #researchFieldDialog .research-long-editor { min-height:48dvh; } }

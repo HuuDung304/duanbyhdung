@@ -70,10 +70,10 @@ export function normalizeProject(input, state, existing = null) {
     return { studentId: student.id, code: student.code, name: student.name, class: student.class };
   });
   const project = { id: existing?.id || input.id, title, year, leaderId: input.leaderId, participants: members,
-    information: text(input.information ?? existing?.information), objective: text(input.objective), content: text(input.content), product: text(input.product), notes: text(input.notes ?? existing?.notes), projectCode: text(existing?.projectCode || input.projectCode),
+    information: text(input.information ?? existing?.information), objective: text(input.objective), content: text(input.content), product: text(input.product), notes: text(input.notes ?? existing?.notes), projectCode: text(input.projectCode ?? existing?.projectCode),
     advisors: (input.advisors || []).map(a => ({ name: text(a.name), unit: text(a.unit) })).filter(a => a.name),
     awards: Array.isArray(input.awards) ? normalizeAwards(input.awards) : [] };
-  for (const key of ['information', 'objective', 'content', 'product', 'notes']) if (project[key].length > 20000) throw new Error('Thông tin đề tài quá dài (tối đa 20.000 ký tự mỗi mục).');
+  for (const key of ['information', 'objective', 'content', 'product', 'notes']) if (project[key].length > (key === 'information' ? 60000 : 20000)) throw new Error('Nội dung quá dài (Thông tin đề tài tối đa 60.000 ký tự, các mục khác 20.000 ký tự).');
   if (project.awards.some(a => !AWARDS.includes(a))) throw new Error('Chọn giải thưởng trong năm mục có sẵn.');
   if (project.projectCode.length > 100) throw new Error('Mã đề tài tối đa 100 ký tự.');
   if (existing) {

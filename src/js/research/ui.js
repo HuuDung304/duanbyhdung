@@ -1,3 +1,5 @@
+import { mountResearchDetail } from './detail.js';
+import { createResearchPeoplePicker } from './people-picker.js';
 import { escapeHTML as esc, sanitizeHTML } from '../safe-html.js';
 import { AWARDS, actor, participants, leaderClass, canView, canEdit, canAward, canCreate, scopedProjects, researchStats, yearGPA, EXCEL_HEADERS, EXPORT_HEADERS, normalizeAwards, parseResearchRows, researchStudentCandidates, studentNameKey, ResearchStudentChoiceError } from './model.js';
 import { createResearchStore } from './store.js';
@@ -14,9 +16,10 @@ export function mountResearch({ state, classes, subjectsForClass, notify }) {
   if (!root || root.dataset.mounted) return;
   root.dataset.mounted = 'true';
   const store = createResearchStore(() => state);
-  let projects = [], loaded = false, loading = false, error = '', filter = 'all', editing = null, draftId = '', importing = [], busy = false, identity = '', generation = 0, pendingImport = null;
+  let projects = [], loaded = false, loading = false, error = '', filter = 'all', editing = null, draftId = '', importing = [], busy = false, identity = '', generation = 0, pendingImport = null, memberPicker = null;
   const identityKey = () => JSON.stringify([state.role, state.currentUser?.studentId, state.currentUser?.code]);
   const setHTML = (element, html) => { element.innerHTML = sanitizeHTML(html); };
+  const detail = mountResearchDetail({state,getProjects:()=>projects,formatInformation:formatResearchInformation,onSaved:()=>render(),save:async(input,existing)=>{const key=identityKey();const saved=await store.save(input,existing);if(key!==identityKey())throw new Error('Tài khoản đã thay đổi.');replaceProject(saved);return saved;}});
   const button = (label, action, id) => `<button type="button" class="research-btn" data-research-action="${action}" data-project-id="${esc(id)}">${label}</button>`;
   const studentLine = (student, project) => `<div class="research-person">${esc(student.name || student.code)}${student.studentId === project.leaderId ? ' <span class="research-owner">Chủ đề tài</span>' : ''}</div>`;
   const blankGuides = (project, values) => project.advisors?.length ? `<div class="research-guide-label" aria-hidden="true">&nbsp;</div>${project.advisors.map((a, i) => `<div class="research-person">${esc(values(a, i))}</div>`).join('')}` : '';
@@ -24,7 +27,7 @@ export function mountResearch({ state, classes, subjectsForClass, notify }) {
     const key = identityKey();
     if (key !== identity) {
       identity = key; filter = 'all'; generation++; projects = []; loaded = false; error = ''; loading = false;
-      pendingImport = null;
+      pendingImport = null; detail.reset(); memberPicker?.destroy();
       if (resolveDialog.open) resolveDialog.close();
       if (editor.open) editor.close();
       if (importDialog.open) importDialog.close();
@@ -32,7 +35,7 @@ export function mountResearch({ state, classes, subjectsForClass, notify }) {
       if (exportDialog.open) exportDialog.close();
       importing = [];
     }
-    if (editor.open || importDialog.open || uploadDialog.open || resolveDialog.open) return;
+    if (editor.open || importDialog.open || uploadDialog.open || resolveDialog.open || $('researchFieldDialog').open) return;
     const global = ['admin', 'company_officer'].includes(state.role), visible = scopedProjects(projects, state, filter);
     const stats = researchStats(visible);
     $('researchTopicCount').textContent = loaded ? stats.projects : '—';
@@ -51,8 +54,9 @@ export function mountResearch({ state, classes, subjectsForClass, notify }) {
       const people = participants(project, state.students);
       const gpas = people.map(p => yearGPA(p, state, project.year, subjectsForClass(p.class)));
       const awards = `<div class="research-award-list">${AWARDS.map(a => `<label class="research-award-check"><input type="checkbox" data-research-award="${esc(a)}" data-project-id="${esc(project.id)}" aria-label="${esc(a + ': ' + project.title)}" ${normalizeAwards(project.awards || []).includes(a) ? 'checked' : ''} ${canAward(project, state) ? '' : 'disabled'}><span>${esc(a)}</span></label>`).join('')}</div>`;
-      return `<tr><td>${i + 1}</td><td class="research-topic">${canEdit(project, state) || canAward(project, state) ? button(esc(project.title), 'open', project.id) : `<strong>${esc(project.title)}</strong>`}<small>Năm ${project.year} · ${esc(leaderClass(project, state.students))}</small></td><td class="research-description">${project.information ? `<p>${formatResearchInformation(project.information)}</p>` : ''}${[['Mục tiêu', project.objective], ['Nội dung nghiên cứu', project.content], ['Sản phẩm dự kiến', project.product]].filter(([, value]) => value).map(([label, value]) => `<b>${label}:</b><p>${esc(value)}</p>`).join('') || (project.information ? '' : 'Chưa cập nhật')}</td><td class="research-people"><b class="research-guide-label">Học viên thực hiện:</b>${people.map(p => studentLine(p, project)).join('')}${project.advisors?.length ? '<b class="research-guide-label">Cán bộ hướng dẫn:</b>' + project.advisors.map(a => `<div class="research-person">${esc(a.name)}</div>`).join('') : ''}</td><td><div class="research-guide-label" aria-hidden="true">&nbsp;</div>${people.map(p => `<div class="research-person">${esc(p.class || '—')}/c460/d4</div>`).join('')}${blankGuides(project, a => a.unit || '—')}</td><td><div class="research-guide-label" aria-hidden="true">&nbsp;</div>${gpas.map(g => `<div class="research-person">${g === null ? '—' : g.toFixed(2).replace('.', ',')}</div>`).join('')}${blankGuides(project, () => '—')}</td><td><div class="research-guide-label" aria-hidden="true">&nbsp;</div>${people.map(p => `<div class="research-person">${esc(p.code || '—')}</div>`).join('')}${blankGuides(project, () => '—')}</td><td>${awards}</td><td class="research-notes"><div>${esc(project.notes || '—')}</div>${canEdit(project, state) || canAward(project, state) ? `<div class="research-row-actions">${button('Chỉnh sửa', 'edit', project.id)}</div>` : ''}</td></tr>`;
+      return `<tr><td>${i + 1}</td><td class="research-topic">${button(esc(project.title), 'open', project.id)}<small>Năm ${project.year} · ${esc(leaderClass(project, state.students))}</small></td><td class="research-description">${project.information ? `<p>${formatResearchInformation(project.information)}</p>` : ''}${[['Mục tiêu', project.objective], ['Nội dung nghiên cứu', project.content], ['Sản phẩm dự kiến', project.product]].filter(([, value]) => value).map(([label, value]) => `<b>${label}:</b><p>${esc(value)}</p>`).join('') || (project.information ? '' : 'Chưa cập nhật')}</td><td class="research-people"><b class="research-guide-label">Học viên thực hiện:</b>${people.map(p => studentLine(p, project)).join('')}${project.advisors?.length ? '<b class="research-guide-label">Cán bộ hướng dẫn:</b>' + project.advisors.map(a => `<div class="research-person">${esc(a.name)}</div>`).join('') : ''}</td><td><div class="research-guide-label" aria-hidden="true">&nbsp;</div>${people.map(p => `<div class="research-person">${esc(p.class || '—')}/c460/d4</div>`).join('')}${blankGuides(project, a => a.unit || '—')}</td><td><div class="research-guide-label" aria-hidden="true">&nbsp;</div>${gpas.map(g => `<div class="research-person">${g === null ? '—' : g.toFixed(2).replace('.', ',')}</div>`).join('')}${blankGuides(project, () => '—')}</td><td><div class="research-guide-label" aria-hidden="true">&nbsp;</div>${people.map(p => `<div class="research-person">${esc(p.code || '—')}</div>`).join('')}${blankGuides(project, () => '—')}</td><td>${awards}</td><td class="research-notes"><div>${esc(project.notes || '—')}</div></td></tr>`;
     }).join(''));
+    detail.render();
   }
   async function reload() {
     render();
@@ -88,8 +92,8 @@ export function mountResearch({ state, classes, subjectsForClass, notify }) {
     $('researchNotes').value = project?.notes || '';
     $('researchProduct').value = project?.product || '';
     $('researchAdvisors').value = (project?.advisors || []).map(a => a.name + (a.unit ? ' | ' + a.unit : '')).join('\n');
-    const selected = new Set(project?.participants.map(p => p.studentId) || (leader ? [leader] : []));
-    setHTML($('researchMembers'), state.students.map(s => `<label data-member-search="${esc((s.name + ' ' + s.code + ' ' + s.class).toLocaleLowerCase('vi'))}"><input type="checkbox" name="researchMember" value="${esc(s.id)}" ${selected.has(s.id) ? 'checked' : ''}><span>${esc(s.name)}<small>${esc(s.code)} · ${esc(s.class)}</small></span></label>`).join(''));
+    memberPicker?.destroy();
+    memberPicker = createResearchPeoplePicker($('researchMembers'),{getStudents:()=>state.students,initialIds:project?.participants.map(p=>p.studentId) || (leader?[leader]:[]),leaderId:leader,disabled:!infoAllowed});
     setHTML($('researchAwards'), AWARDS.map(a => `<label><input type="checkbox" name="researchAward" value="${esc(a)}" ${normalizeAwards(project?.awards || []).includes(a) ? 'checked' : ''}>${esc(a)}</label>`).join(''));
     $('researchAwardFields').disabled = project ? !canAward(project, state) : state.role === 'student';
     $('researchAwardNote').textContent = $('researchAwardFields').disabled ? 'Chỉ Admin và tài khoản lớp được cập nhật giải thưởng.' : 'Tích chọn các mục giải thưởng.';
@@ -98,7 +102,7 @@ export function mountResearch({ state, classes, subjectsForClass, notify }) {
   function formInput() {
     return { id: draftId, title: $('researchTitle').value, year: $('researchYear').value,
       information: $('researchInformation').value, notes: $('researchNotes').value, objective: $('researchObjective').value, content: $('researchContent').value, product: $('researchProduct').value,
-      leaderId: $('researchLeader').value, memberIds: [...document.querySelectorAll('[name="researchMember"]:checked')].map(el => el.value),
+      leaderId: $('researchLeader').value, memberIds: memberPicker?.getIds() || [],
       advisors: $('researchAdvisors').value.split('\n').filter(line => line.trim()).map(line => { const [name, ...unit] = line.split('|'); return { name, unit: unit.join('|') }; }),
       awards: [...document.querySelectorAll('[name="researchAward"]:checked')].map(el => el.value) };
   }
@@ -131,14 +135,9 @@ export function mountResearch({ state, classes, subjectsForClass, notify }) {
     }
   });
   $('researchLeader').addEventListener('change', () => {
-    const checkbox = [...document.querySelectorAll('[name="researchMember"]')].find(el => el.value === $('researchLeader').value);
-    if (checkbox) checkbox.checked = true;
+    memberPicker?.setLeader($('researchLeader').value);
     const chosen = state.students.find(s => s.id === $('researchLeader').value);
     $('researchLeaderMatches').textContent = chosen ? `${chosen.code} · ${chosen.class}` : '';
-  });
-  $('researchMemberSearch').addEventListener('input', event => {
-    const term = studentNameKey(event.target.value);
-    $('researchMembers').querySelectorAll('label').forEach(label => { label.hidden = !studentNameKey(label.dataset.memberSearch).includes(term); });
   });
   editor.addEventListener('cancel', event => { if (busy) event.preventDefault(); });
   importDialog.addEventListener('cancel', event => { if (busy) event.preventDefault(); });
@@ -159,7 +158,7 @@ export function mountResearch({ state, classes, subjectsForClass, notify }) {
     const tab = event.target.closest('[data-research-class]');
     if (tab) { filter = tab.dataset.researchClass; render(); }
     const action = event.target.closest('[data-research-action]');
-    if (['edit', 'open'].includes(action?.dataset.researchAction)) openEditor(projects.find(p => p.id === action.dataset.projectId));
+    if (action?.dataset.researchAction === 'open') detail.open(projects.find(p => p.id === action.dataset.projectId));
   });
   root.addEventListener('change', async event => {
     const checkbox = event.target.closest('[data-research-award]');
@@ -287,6 +286,7 @@ export function mountResearch({ state, classes, subjectsForClass, notify }) {
   importDialog.addEventListener('close', () => { importing = []; render(); });
   editor.addEventListener('close', render);
   window.addEventListener('research-context-change', () => {
+    if (state.activeTab !== 'tab-research') detail.reset();
     render();
     if (state.activeTab === 'tab-research') reload();
   });

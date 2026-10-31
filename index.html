@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="app-release" content="ee6635f3d4a6">
+  <meta name="app-release" content="0ec7c2945b25">
   <script id="theme-preference-bootstrap">
     try { document.documentElement.dataset.theme = localStorage.getItem('dd460_display_theme') === 'dark' ? 'dark' : 'light'; }
     catch { document.documentElement.dataset.theme = 'light'; }
@@ -132,7 +132,7 @@ body {
   <link rel="stylesheet" href="./src/css/rose-theme.css?v=65bc7811b37c">
   <link rel="stylesheet" href="./src/css/display-settings.css?v=ca0a0c9bd694">
   <link rel="stylesheet" href="./src/css/research.css?v=78d63552b9c4">
-  <link rel="stylesheet" href="./src/css/interface.css?v=d135f16b5a1f">
+  <link rel="stylesheet" href="./src/css/interface.css?v=4f994feebf3a">
 </head>
 <body class="bento-app ui-modern bg-slate-100 text-slate-800 min-h-screen flex flex-col">
 
@@ -271,6 +271,7 @@ body {
   <!-- MAIN APP CONTAINER -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 flex-1 w-full">
     <section id="tab-research" class="tab-content hidden" aria-label="Nghiên cứu khoa học">
+      <div id="researchListView">
       <div class="research-header"><div><div class="research-eyebrow">Học tập &amp; nghiên cứu</div><h2>Nghiên cứu khoa học</h2><p id="researchScope"></p></div></div>
       <div class="research-stats"><article class="research-stat"><div><p>Đề tài</p><strong id="researchTopicCount">—</strong></div><span class="research-stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 3h14v18H5zM8 8h8M8 12h8M8 16h5"/></svg></span></article><article class="research-stat"><div><p>Học viên tham gia</p><strong id="researchStudentCount">—</strong></div><span class="research-stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="8" r="3"/><path d="M3 21v-3a6 6 0 0 1 12 0v3M16 5a3 3 0 0 1 0 6M18 15a5 5 0 0 1 3 4v2"/></svg></span></article></div>
       <div id="researchClassTabs" class="research-tabs" role="tablist" aria-label="Lọc theo lớp của chủ đề tài" hidden></div>
@@ -280,6 +281,8 @@ body {
             </button></div></div>
       <p id="researchStatus" class="research-status" role="status" aria-live="polite"></p>
       <div class="research-table-card"><div class="research-scroll" tabindex="0" role="region" aria-label="Bảng đề tài, cuộn ngang để xem đủ cột"><table class="research-table"><thead><tr><th scope="col">TT</th><th scope="col">Tên đề tài</th><th scope="col">Thông tin đề tài</th><th scope="col">Học viên thực hiện,<br>Cán bộ hướng dẫn</th><th scope="col">Đơn vị<br>(Lớp, c, d)</th><th scope="col">Điểm<br>TBNH</th><th scope="col">Mã học viên</th><th scope="col">Giải thưởng</th><th scope="col">Ghi chú</th></tr></thead><tbody id="researchTableBody"></tbody></table></div></div>
+      </div>
+      <article id="researchDetailView" class="research-detail-page" aria-label="Chi tiết đề tài" hidden></article>
     </section>
 
     <!-- STUDENT VIEW PANEL (ONLY VISIBLE IN STUDENT ROLE) -->
@@ -2214,13 +2217,14 @@ body {
   <dialog id="researchExportDialog" class="research-dialog" aria-labelledby="researchExportTitle"><div class="research-dialog-header"><h3 id="researchExportTitle">Xuất báo cáo nghiên cứu khoa học</h3><button type="button" class="research-btn" data-research-close>Đóng</button></div><form id="researchExportForm"><div class="research-form-body"><label id="researchExportClassLabel">Lớp của chủ đề tài<select id="researchExportClass"></select></label><p id="researchExportScope" class="research-form-note"></p><p id="researchExportError" class="research-error" role="alert"></p></div><div class="research-dialog-footer"><button type="button" class="research-btn" data-research-close>Hủy</button><button type="submit" class="research-btn primary">Tải Excel</button></div></form></dialog>
 
   <dialog id="researchResolveDialog" class="research-dialog" aria-labelledby="researchResolveTitle"><div class="research-dialog-header"><h3 id="researchResolveTitle">Chọn học viên trùng tên</h3><button type="button" class="research-btn" data-research-close>Hủy</button></div><form id="researchResolveForm"><div class="research-form-body"><p class="research-form-note">Chọn đúng học viên theo mã và lớp. Dữ liệu chưa được lưu.</p><div id="researchResolveChoices" class="research-resolution-list"></div></div><div class="research-dialog-footer"><button type="button" class="research-btn" data-research-close>Hủy</button><button type="submit" class="research-btn primary">Tiếp tục</button></div></form></dialog>
+  <dialog id="researchFieldDialog" class="research-dialog" aria-labelledby="researchFieldTitle"><div class="research-dialog-header"><h3 id="researchFieldTitle">Chỉnh sửa</h3><button type="button" class="research-btn" data-research-field-close>Đóng</button></div><form id="researchFieldForm"><div class="research-form-body"><div id="researchFieldBody"></div><p id="researchFieldError" class="research-error" role="alert"></p></div><div class="research-dialog-footer"><button type="button" class="research-btn" data-research-field-close>Hủy</button><button type="submit" id="researchFieldSave" class="research-btn primary">Lưu</button></div></form></dialog>
   <dialog id="researchEditor" class="research-dialog" aria-labelledby="researchEditorTitle">
     <div class="research-dialog-header"><h3 id="researchEditorTitle">Thêm đề tài</h3><button type="button" class="research-btn" data-research-close aria-label="Đóng form đề tài">Đóng</button></div>
     <form id="researchForm"><div class="research-form-body"><fieldset id="researchInfoFields"><legend>Thông tin đề tài</legend><div class="research-form-grid">
       <label class="research-full">Tên đề tài<input id="researchTitle" type="text" maxlength="500" required></label>
       <label>Chủ đề tài<input type="text" id="researchLeaderSearch" placeholder="Nhập tên hoặc mã học viên" autocomplete="off"><select id="researchLeader" aria-label="Chọn học viên làm chủ đề tài" required></select><small id="researchLeaderMatches" role="status" aria-live="polite"></small></label><label>Năm học tính điểm TBNH<select id="researchYear"><option value="1">Năm 1</option><option value="2">Năm 2</option><option value="3">Năm 3</option><option value="4">Năm 4</option><option value="5">Năm 5</option></select></label>
       <label class="research-full">Thông tin đề tài<textarea id="researchInformation" maxlength="20000"></textarea></label><label class="research-full">Mục tiêu<textarea id="researchObjective" maxlength="20000"></textarea></label><label class="research-full">Nội dung nghiên cứu<textarea id="researchContent" maxlength="20000"></textarea></label><label class="research-full">Sản phẩm dự kiến<textarea id="researchProduct" maxlength="20000"></textarea></label><label class="research-full">Ghi chú<textarea id="researchNotes" maxlength="20000"></textarea></label>
-      <div class="research-full"><label for="researchMemberSearch">Học viên thực hiện</label><input type="text" id="researchMemberSearch" placeholder="Tìm theo tên, mã học viên hoặc lớp"><p class="research-form-note">Tích chọn các thành viên. Chủ đề tài cũng phải được chọn trong danh sách.</p><div id="researchMembers" class="research-members"></div></div>
+      <div class="research-full"><label>Học viên thực hiện</label><div id="researchMembers"></div></div>
       <label class="research-full">Cán bộ hướng dẫn và đơn vị<textarea id="researchAdvisors" placeholder="Mỗi dòng một cán bộ: Họ và tên | Đơn vị"></textarea></label>
     </div></fieldset><fieldset id="researchAwardFields"><legend>Giải thưởng</legend><div id="researchAwards" class="research-award-options"></div></fieldset><p id="researchAwardNote" class="research-form-note"></p><p id="researchFormError" class="research-error" role="alert"></p></div><div class="research-dialog-footer"><button type="button" class="research-btn" data-research-close>Hủy</button><button type="submit" id="researchSave" class="research-btn primary">Lưu đề tài</button></div></form>
   </dialog>
@@ -2254,17 +2258,19 @@ body {
     "./src/js/database/mappers.js": "./src/js/database/mappers.js?v=f2762b9cfdf7",
     "./src/js/database/realtime.js": "./src/js/database/realtime.js?v=08238ad1e200",
     "./src/js/database/repository.js": "./src/js/database/repository.js?v=7d0c39435b2e",
-    "./src/js/grades.js": "./src/js/grades.js?v=7f5d784c8ee8",
-    "./src/js/main.js": "./src/js/main.js?v=ee6635f3d4a6",
+    "./src/js/grades.js": "./src/js/grades.js?v=68a4a4c6eea2",
+    "./src/js/main.js": "./src/js/main.js?v=0ec7c2945b25",
     "./src/js/profile-rules.js": "./src/js/profile-rules.js?v=3a3bbf350b00",
     "./src/js/report-workbook.js": "./src/js/report-workbook.js?v=1cd3836da746",
     "./src/js/reports/dashboard.js": "./src/js/reports/dashboard.js?v=ecacb5e5a926",
     "./src/js/reports/exports.js": "./src/js/reports/exports.js?v=4c778da05b96",
     "./src/js/reports/statistics.js": "./src/js/reports/statistics.js?v=0ec34478e300",
     "./src/js/reports/year-breakdown.js": "./src/js/reports/year-breakdown.js?v=599b847f964a",
-    "./src/js/research/model.js": "./src/js/research/model.js?v=9466c28631dd",
+    "./src/js/research/detail.js": "./src/js/research/detail.js?v=980cd3fe7809",
+    "./src/js/research/model.js": "./src/js/research/model.js?v=cd4b4cbd5e87",
+    "./src/js/research/people-picker.js": "./src/js/research/people-picker.js?v=0fd4eaad2591",
     "./src/js/research/store.js": "./src/js/research/store.js?v=e81d75d79491",
-    "./src/js/research/ui.js": "./src/js/research/ui.js?v=2e317e908792",
+    "./src/js/research/ui.js": "./src/js/research/ui.js?v=2e15cf7fdb91",
     "./src/js/safe-html.js": "./src/js/safe-html.js?v=07b6fe69e868",
     "./src/js/students.js": "./src/js/students.js?v=e96b1613b663",
     "./src/js/subjects/catalog-view.js": "./src/js/subjects/catalog-view.js?v=0dfc729a1b3b",
@@ -2274,7 +2280,7 @@ body {
   }
 }
   </script>
-  <script type="module" src="./src/js/main.js?v=ee6635f3d4a6"></script>
+  <script type="module" src="./src/js/main.js?v=0ec7c2945b25"></script>
   <script type="module" src="./src/js/components/expanding-rail.js?v=75a8090525a1"></script>
   <script type="module" src="./src/js/components/notched-field.js?v=553608c192ae"></script>
   <script type="module" src="./src/js/components/bento-dashboard.js?v=c76ec853266e"></script>

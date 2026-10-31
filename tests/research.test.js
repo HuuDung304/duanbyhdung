@@ -91,3 +91,12 @@ test('Excel accepts full names or codes, but duplicate names require an explicit
   const rows=[EXCEL_HEADERS,[1,'R1','Một','','001','An',''],[2,'R2','Hai','','001','An','']];
   assert.throws(()=>parseResearchRows(rows,s,[],()=> 'id',{'row:2:member:0':'a'}),error=>error instanceof ResearchStudentChoiceError&&error.choices[0].key==='row:3:member:0');
 });
+
+test('editing topic metadata keeps its stable identity and other project fields', () => {
+  const previous={...project,projectCode:'OLD',notes:'Ghi chú giữ nguyên'};
+  const saved=normalizeProject({...input,projectCode:'NEW',notes:previous.notes},state(),previous);
+  assert.equal(saved.id,previous.id);
+  assert.equal(saved.projectCode,'NEW');
+  assert.equal(saved.notes,previous.notes);
+  assert.deepEqual(saved.participants,previous.participants);
+});
