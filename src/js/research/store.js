@@ -1,5 +1,5 @@
 import { getSupabaseClient, executeWithRetry } from '../database/client.js';
-import { RESEARCH_PREFIX, canView, normalizeProject } from './model.js';
+import { RESEARCH_PREFIX, canView, normalizeProject, normalizeAwards } from './model.js';
 
 // Separate records prevent project updates overwriting unit locks or other projects.
 // Existing unit_settings JSONB storage requires no schema changes.
@@ -7,7 +7,7 @@ export function createResearchStore(getState, getClient = getSupabaseClient, cre
   function decode(row) {
     const project = row?.locks?.research_project;
     if (!row?.unit_id?.startsWith(RESEARCH_PREFIX) || !project || row.unit_id !== RESEARCH_PREFIX + project.id || typeof project.title !== 'string' || !Number.isInteger(project.year) || project.year < 1 || project.year > 5 || !Array.isArray(project.advisors) || !Array.isArray(project.awards) || typeof row.locks.revision !== 'string' || !Array.isArray(project.participants) || !project.participants.every(p => p && typeof p.studentId === 'string') || !project.participants.some(p => p.studentId === project.leaderId)) throw new Error('Dữ liệu đề tài không hợp lệ.');
-    return { ...project, revision: row.locks.revision };
+    return { ...project, awards: normalizeAwards(project.awards), notes: project.notes || '', revision: row.locks.revision };
   }
   return {
     async load() {

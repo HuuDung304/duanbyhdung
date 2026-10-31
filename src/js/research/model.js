@@ -1,4 +1,10 @@
-export const AWARDS = ['Bằng Khen', 'Giấy Khen', 'Loại Xuất sắc', 'Loại Giỏi', 'Loại Khá'];
+export const AWARDS = ['Bằng khen', 'Giấy khen', 'Xuất sắc', 'Giỏi', 'Khá'];
+export function normalizeAwards(values = []) {
+  return [...new Set(values.map(value => {
+    const key = String(value).normalize('NFC').trim().replace(/^Loại\s+/i, '').toLocaleLowerCase('vi');
+    return AWARDS.find(a => a.toLocaleLowerCase('vi') === key) || String(value).trim();
+  }))];
+}
 export const RESEARCH_PREFIX = 'research-project:';
 const text = value => String(value ?? '').normalize('NFC').trim();
 export const codeKey = value => text(value).toUpperCase();
@@ -64,11 +70,12 @@ export function normalizeProject(input, state, existing = null) {
     return { studentId: student.id, code: student.code, name: student.name, class: student.class };
   });
   const project = { id: existing?.id || input.id, title, year, leaderId: input.leaderId, participants: members,
-    objective: text(input.objective), content: text(input.content), product: text(input.product),
+    objective: text(input.objective), content: text(input.content), product: text(input.product), notes: text(input.notes ?? existing?.notes), projectCode: text(existing?.projectCode || input.projectCode),
     advisors: (input.advisors || []).map(a => ({ name: text(a.name), unit: text(a.unit) })).filter(a => a.name),
-    awards: Array.isArray(input.awards) ? [...new Set(input.awards)] : [] };
-  for (const key of ['objective', 'content', 'product']) if (project[key].length > 20000) throw new Error('Thông tin đề tài quá dài (tối đa 20.000 ký tự mỗi mục).');
-  if (project.awards.some(a => !AWARDS.includes(a)) || project.awards.filter(a => a.startsWith('Loại ')).length > 1) throw new Error('Chọn giải thưởng hợp lệ và tối đa một loại xếp loại.');
+    awards: Array.isArray(input.awards) ? normalizeAwards(input.awards) : [] };
+  for (const key of ['objective', 'content', 'product', 'notes']) if (project[key].length > 20000) throw new Error('Thông tin đề tài quá dài (tối đa 20.000 ký tự mỗi mục).');
+  if (project.awards.some(a => !AWARDS.includes(a))) throw new Error('Chọn giải thưởng trong năm mục có sẵn.');
+  if (project.projectCode.length > 100) throw new Error('Mã đề tài tối đa 100 ký tự.');
   if (existing) {
     if (!canView(existing, state)) throw new Error('Bạn không có quyền xem đề tài này.');
     if (!canEdit(existing, state)) {
@@ -77,8 +84,8 @@ export function normalizeProject(input, state, existing = null) {
       return { ...existing, awards: project.awards };
     }
     if (!canAward(existing, state)) {
-      if (JSON.stringify(project.awards) !== JSON.stringify(existing.awards || [])) throw new Error('Chỉ Admin và tài khoản lớp được sửa giải thưởng.');
-      project.awards = [...(existing.awards || [])];
+      if (JSON.stringify(project.awards) !== JSON.stringify(normalizeAwards(existing.awards || []))) throw new Error('Chỉ Admin và tài khoản lớp được sửa giải thưởng.');
+      project.awards = normalizeAwards(existing.awards || []);
     }
   } else {
     if (!canCreate(state)) throw new Error('Bạn không có quyền thêm đề tài.');
@@ -91,31 +98,36 @@ export function normalizeProject(input, state, existing = null) {
   if (actor(state).className && !canEdit(project, state)) throw new Error('Chủ đề tài phải thuộc lớp bạn phụ trách.');
   return project;
 }
-export const EXCEL_HEADERS = ['Mã đề tài', 'Tên đề tài', 'Mục tiêu', 'Nội dung nghiên cứu', 'Sản phẩm dự kiến', 'Mã HV chủ đề tài', 'Mã HV tham gia (cách nhau bằng ;)', 'Cán bộ hướng dẫn (mỗi dòng: Họ tên | Đơn vị)', 'Năm học', 'Giải thưởng (cách nhau bằng ;)'];
+export const EXCEL_HEADERS = ['STT', 'Mã đề tài', 'Tên đề tài', 'Mã HV chủ đề tài', 'Mã HV tham gia (cách nhau bằng ;)', 'Cán bộ hướng dẫn (Họ tên | Đơn vị) (cách nhau bằng dấu ;)'];
+export const EXPORT_HEADERS = [...EXCEL_HEADERS, 'Mục tiêu', 'Nội dung nghiên cứu', 'Sản phẩm dự kiến', 'Năm học', 'Giải thưởng (cách nhau bằng ;)', 'Ghi chú'];
 export function parseResearchRows(rows, state, existingProjects, createId) {
-  if (!rows.length || !rows[0].includes('Tên đề tài') || !rows[0].includes('Mã HV chủ đề tài')) throw new Error('Dùng file Excel mẫu Nghiên cứu khoa học, giữ nguyên tiêu đề cột.');
-  const headers = rows[0], seen = new Set();
-  const drafts = [];
+  const key = value => text(value).toLocaleLowerCase('vi').replace(/\s+/g, ' ');
+  const headers = (rows[0] || []).map(key);
+  const column = name => headers.findIndex(h => h === name || h.startsWith(name + ' ('));
+  if (column('tên đề tài') < 0 || column('mã hv chủ đề tài') < 0) throw new Error('File cần cột Tên đề tài và Mã HV chủ đề tài.');
+  const seen = new Set(), drafts = [];
   for (const [index, row] of rows.slice(1).entries()) {
     if (!row.some(v => text(v))) continue;
-    const get = name => row[headers.indexOf(name)] ?? '';
+    const get = (name, fallback = '') => column(name) < 0 ? fallback : row[column(name)] ?? '';
     try {
-      const id = text(get(EXCEL_HEADERS[0]));
-      if (id && seen.has(id)) throw new Error('Mã đề tài bị lặp trong file.');
-      if (id) seen.add(id);
-      const existing = id ? existingProjects.find(p => p.id === id) : null;
-      if (id && !existing) throw new Error('Không tìm thấy Mã đề tài. Để trống mã khi thêm mới.');
+      const code = text(get('mã đề tài'));
+      if (code && seen.has(codeKey(code))) throw new Error('Mã đề tài bị lặp trong file.');
+      if (code) seen.add(codeKey(code));
+      const existing = code ? existingProjects.find(p => p.id === code || p.projectCode && codeKey(p.projectCode) === codeKey(code)) : null;
       if (existing && !canEdit(existing, state)) throw new Error('Không có quyền sửa thông tin đề tài này.');
       const findStudent = code => {
         const student = state.students.find(s => codeKey(s.code) === codeKey(code));
         if (!student) throw new Error('Mã học viên không tồn tại: ' + text(code));
         return student.id;
       };
-      const leaderId = findStudent(get(EXCEL_HEADERS[5]));
-      const codes = text(get(EXCEL_HEADERS[6])).split(/[;,\n]+/).filter(v => text(v));
-      const awards = text(get(EXCEL_HEADERS[9])).split(';').map(text).filter(Boolean);
-      const input = { id: existing?.id || createId(), title: get(EXCEL_HEADERS[1]), objective: get(EXCEL_HEADERS[2]), content: get(EXCEL_HEADERS[3]), product: get(EXCEL_HEADERS[4]), leaderId,
-        memberIds: [leaderId, ...codes.map(findStudent)], advisors: text(get(EXCEL_HEADERS[7])).split('\n').filter(Boolean).map(line => { const [name, ...unit] = line.split('|'); return { name, unit: unit.join('|') }; }), year: get(EXCEL_HEADERS[8]), awards };
+      const leaderId = findStudent(get('mã hv chủ đề tài'));
+      const codes = text(get('mã hv tham gia')).split(/[;,\n]+/).filter(v => text(v));
+      const awards = column('giải thưởng') < 0 ? normalizeAwards(existing?.awards || []) : text(get('giải thưởng')).split(';').map(text).filter(Boolean);
+      const input = { id: existing?.id || (code ? 'code_' + encodeURIComponent(codeKey(code)) : createId()), projectCode: existing?.projectCode || code,
+        title: get('tên đề tài'), objective: get('mục tiêu', existing?.objective), content: get('nội dung nghiên cứu', existing?.content), product: get('sản phẩm dự kiến', existing?.product), notes: get('ghi chú', existing?.notes), leaderId,
+        memberIds: [leaderId, ...codes.map(findStudent)],
+        advisors: text(get('cán bộ hướng dẫn')).split(/[;\n]+/).filter(v => text(v)).map(line => { const [name, ...unit] = line.split('|'); return { name, unit: unit.join('|') }; }),
+        year: get('năm học', existing?.year || 1), awards };
       drafts.push({ project: normalizeProject(input, state, existing), existing });
     } catch (error) { throw new Error(`Dòng ${index + 2}: ${error.message}`); }
   }

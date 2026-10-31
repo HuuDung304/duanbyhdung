@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="app-release" content="072d5cdd6030">
+  <meta name="app-release" content="962b648e1c3f">
   <script id="theme-preference-bootstrap">
     try { document.documentElement.dataset.theme = localStorage.getItem('dd460_display_theme') === 'dark' ? 'dark' : 'light'; }
     catch { document.documentElement.dataset.theme = 'light'; }
@@ -132,7 +132,7 @@ body {
   <link rel="stylesheet" href="./src/css/rose-theme.css?v=65bc7811b37c">
   <link rel="stylesheet" href="./src/css/display-settings.css?v=ca0a0c9bd694">
   <link rel="stylesheet" href="./src/css/research.css?v=78d63552b9c4">
-  <link rel="stylesheet" href="./src/css/interface.css?v=4df82db30194">
+  <link rel="stylesheet" href="./src/css/interface.css?v=22e2550b606d">
 </head>
 <body class="bento-app ui-modern bg-slate-100 text-slate-800 min-h-screen flex flex-col">
 
@@ -279,7 +279,7 @@ body {
               Nhập Excel
             </button></div></div>
       <p id="researchStatus" class="research-status" role="status" aria-live="polite"></p>
-      <div class="research-table-card"><div class="research-scroll" tabindex="0" role="region" aria-label="Bảng đề tài, cuộn ngang để xem đủ cột"><table class="research-table"><thead><tr><th scope="col">TT</th><th scope="col">Tên đề tài</th><th scope="col">Thông tin đề tài</th><th scope="col">Học viên thực hiện,<br>Cán bộ hướng dẫn</th><th scope="col">Đơn vị<br>(Lớp, c, d)</th><th scope="col">Điểm<br>TBNH</th><th scope="col">Mã học viên</th><th scope="col">Giải thưởng</th><th scope="col">Thao tác</th></tr></thead><tbody id="researchTableBody"></tbody></table></div></div>
+      <div class="research-table-card"><div class="research-scroll" tabindex="0" role="region" aria-label="Bảng đề tài, cuộn ngang để xem đủ cột"><table class="research-table"><thead><tr><th scope="col">TT</th><th scope="col">Tên đề tài</th><th scope="col">Thông tin đề tài</th><th scope="col">Học viên thực hiện,<br>Cán bộ hướng dẫn</th><th scope="col">Đơn vị<br>(Lớp, c, d)</th><th scope="col">Điểm<br>TBNH</th><th scope="col">Mã học viên</th><th scope="col">Giải thưởng</th><th scope="col">Ghi chú</th></tr></thead><tbody id="researchTableBody"></tbody></table></div></div>
     </section>
 
     <!-- STUDENT VIEW PANEL (ONLY VISIBLE IN STUDENT ROLE) -->
@@ -2218,7 +2218,7 @@ body {
     <form id="researchForm"><div class="research-form-body"><fieldset id="researchInfoFields"><legend>Thông tin đề tài</legend><div class="research-form-grid">
       <label class="research-full">Tên đề tài<input id="researchTitle" type="text" maxlength="500" required></label>
       <label>Chủ đề tài<select id="researchLeader" required></select></label><label>Năm học tính điểm TBNH<select id="researchYear"><option value="1">Năm 1</option><option value="2">Năm 2</option><option value="3">Năm 3</option><option value="4">Năm 4</option><option value="5">Năm 5</option></select></label>
-      <label class="research-full">Mục tiêu<textarea id="researchObjective" maxlength="20000"></textarea></label><label class="research-full">Nội dung nghiên cứu<textarea id="researchContent" maxlength="20000"></textarea></label><label class="research-full">Sản phẩm dự kiến<textarea id="researchProduct" maxlength="20000"></textarea></label>
+      <label class="research-full">Mục tiêu<textarea id="researchObjective" maxlength="20000"></textarea></label><label class="research-full">Nội dung nghiên cứu<textarea id="researchContent" maxlength="20000"></textarea></label><label class="research-full">Sản phẩm dự kiến<textarea id="researchProduct" maxlength="20000"></textarea></label><label class="research-full">Ghi chú<textarea id="researchNotes" maxlength="20000"></textarea></label>
       <div class="research-full"><label for="researchMemberSearch">Học viên thực hiện</label><input type="text" id="researchMemberSearch" placeholder="Tìm theo tên, mã học viên hoặc lớp"><p class="research-form-note">Tích chọn các thành viên. Chủ đề tài cũng phải được chọn trong danh sách.</p><div id="researchMembers" class="research-members"></div></div>
       <label class="research-full">Cán bộ hướng dẫn và đơn vị<textarea id="researchAdvisors" placeholder="Mỗi dòng một cán bộ: Họ và tên | Đơn vị"></textarea></label>
     </div></fieldset><fieldset id="researchAwardFields"><legend>Giải thưởng</legend><div id="researchAwards" class="research-award-options"></div></fieldset><p id="researchAwardNote" class="research-form-note"></p><p id="researchFormError" class="research-error" role="alert"></p></div><div class="research-dialog-footer"><button type="button" class="research-btn" data-research-close>Hủy</button><button type="submit" id="researchSave" class="research-btn primary">Lưu đề tài</button></div></form>
@@ -2254,16 +2254,16 @@ body {
     "./src/js/database/realtime.js": "./src/js/database/realtime.js?v=08238ad1e200",
     "./src/js/database/repository.js": "./src/js/database/repository.js?v=7d0c39435b2e",
     "./src/js/grades.js": "./src/js/grades.js?v=34f4a80cee88",
-    "./src/js/main.js": "./src/js/main.js?v=072d5cdd6030",
+    "./src/js/main.js": "./src/js/main.js?v=962b648e1c3f",
     "./src/js/profile-rules.js": "./src/js/profile-rules.js?v=3a3bbf350b00",
     "./src/js/report-workbook.js": "./src/js/report-workbook.js?v=1cd3836da746",
     "./src/js/reports/dashboard.js": "./src/js/reports/dashboard.js?v=ecacb5e5a926",
     "./src/js/reports/exports.js": "./src/js/reports/exports.js?v=4c778da05b96",
     "./src/js/reports/statistics.js": "./src/js/reports/statistics.js?v=0ec34478e300",
     "./src/js/reports/year-breakdown.js": "./src/js/reports/year-breakdown.js?v=599b847f964a",
-    "./src/js/research/model.js": "./src/js/research/model.js?v=5e2d41f872ce",
-    "./src/js/research/store.js": "./src/js/research/store.js?v=238b68d00855",
-    "./src/js/research/ui.js": "./src/js/research/ui.js?v=a5f169f1dff4",
+    "./src/js/research/model.js": "./src/js/research/model.js?v=f44990c5e3cd",
+    "./src/js/research/store.js": "./src/js/research/store.js?v=e81d75d79491",
+    "./src/js/research/ui.js": "./src/js/research/ui.js?v=b8665ba7bb3d",
     "./src/js/safe-html.js": "./src/js/safe-html.js?v=07b6fe69e868",
     "./src/js/students.js": "./src/js/students.js?v=e96b1613b663",
     "./src/js/subjects/catalog-view.js": "./src/js/subjects/catalog-view.js?v=0dfc729a1b3b",
@@ -2273,7 +2273,7 @@ body {
   }
 }
   </script>
-  <script type="module" src="./src/js/main.js?v=072d5cdd6030"></script>
+  <script type="module" src="./src/js/main.js?v=962b648e1c3f"></script>
   <script type="module" src="./src/js/components/expanding-rail.js?v=75a8090525a1"></script>
   <script type="module" src="./src/js/components/notched-field.js?v=553608c192ae"></script>
   <script type="module" src="./src/js/components/bento-dashboard.js?v=c76ec853266e"></script>
