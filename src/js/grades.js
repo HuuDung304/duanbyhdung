@@ -194,6 +194,7 @@ export function isAnyEditFormActive() {
     return true;
   }
   if (typeof document === 'undefined') return false;
+  if (document.querySelector('[data-cadet-score]:focus,[data-cadet-score][data-saving="true"]')) return true;
   if (document.querySelector('#researchEditor[open], #researchImportDialog[open], #researchUploadDialog[open], #researchResolveDialog[open], #researchFieldDialog[open]')) return true;
 
   for (const id of EDIT_MODAL_IDS) {
@@ -2046,6 +2047,7 @@ export function updateAllViews(options = {}) {
   if (!force && isAnyEditFormActive()) {
     return;
   }
+  if (typeof ExternalHooks.refreshCadetAcademicResults === 'function') ExternalHooks.refreshCadetAcademicResults();
   if (typeof ExternalHooks.renderInterface === 'function') ExternalHooks.renderInterface();
   if (typeof ExternalHooks.renderResearch === 'function') ExternalHooks.renderResearch();
   if (typeof renderSpreadsheet === 'function') renderSpreadsheet();

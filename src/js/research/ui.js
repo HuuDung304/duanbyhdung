@@ -21,7 +21,7 @@ export function mountResearch({ state, classes, subjectsForClass, notify }) {
   const setHTML = (element, html) => { element.innerHTML = sanitizeHTML(html); };
   const detail = mountResearchDetail({state,getProjects:()=>projects,formatInformation:formatResearchInformation,latestScore:student=>latestYearGPA(student,state,subjectsForClass(student.class)),onSaved:()=>render(),save:async(input,existing)=>{const key=identityKey();const saved=await store.save(input,existing);if(key!==identityKey())throw new Error('Tài khoản đã thay đổi.');replaceProject(saved);return saved;}});
   const button = (label, action, id) => `<button type="button" class="research-btn" data-research-action="${action}" data-project-id="${esc(id)}">${label}</button>`;
-  const studentLine = (student, project) => `<div class="research-person">${esc(student.name || student.code)}${student.studentId === project.leaderId ? ' <span class="research-owner">Chủ đề tài</span>' : ''}</div>`;
+  const studentLine = (student, project) => `<div class="research-person"><button type="button" class="btn-view-cadet-detail research-student-link" data-id="${esc(student.studentId)}">${esc(student.name || student.code)}</button>${student.studentId === project.leaderId ? ' <span class="research-owner">Chủ đề tài</span>' : ''}</div>`;
   const blankGuides = (project, values) => project.advisors?.length ? `<div class="research-guide-label" aria-hidden="true">&nbsp;</div>${project.advisors.map((a, i) => `<div class="research-person">${esc(values(a, i))}</div>`).join('')}` : '';
   function render() {
     const key = identityKey();

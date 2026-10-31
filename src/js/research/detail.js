@@ -21,7 +21,7 @@ export function mountResearchDetail({ state, getProjects, save, onSaved, formatI
     if (!project || !canView(project,state)) { reset(); return; }
     const open = new Set([...view.querySelectorAll('details[open]')].map(d=>d.dataset.researchSection));
     const members = participants(project,state.students), leader = members.find(s=>s.studentId===project.leaderId);
-    const people = values => values.map(s=>{const score=latestScore(s);return `<div class="research-detail-person"><strong>${esc(s.name || s.code)}</strong><span>${esc(s.code || '')} · ${esc(s.class || '')}${s.studentId===project.leaderId?' · Chủ đề tài':''}${score.year ? ' · TBNH năm '+score.year+': '+score.gpa.toFixed(2).replace('.',',') : ''}</span></div>`;}).join('');
+    const people = values => values.map(s=>{const score=latestScore(s);return `<div class="research-detail-person"><button type="button" class="btn-view-cadet-detail research-student-link" data-id="${esc(s.studentId)}">${esc(s.name || s.code)}</button><span>${esc(s.code || '')} · ${esc(s.class || '')}${s.studentId===project.leaderId?' · Chủ đề tài':''}${score.year ? ' · TBNH năm '+score.year+': '+score.gpa.toFixed(2).replace('.',',') : ''}</span></div>`;}).join('');
     const bodies = {
       projectCode:esc(project.projectCode || ''), title:esc(project.title),
       information:formatInformation(infoText(project) || 'Chưa cập nhật'),

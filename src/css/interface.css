@@ -310,3 +310,31 @@ body.ui-modern .research-selected-people button { width:30px; min-height:30px; p
 body.ui-modern [data-person-choices] { display:flex; gap:8px; align-items:center; margin-top:10px; }
 @media(max-width:640px) { body.ui-modern .research-detail-heading h2 { font-size:22px; } body.ui-modern .research-detail-body { padding-left:22px; } body.ui-modern .research-detail-sections summary { padding:17px; } body.ui-modern #researchFieldDialog .research-long-editor { min-height:48dvh; } }
 body.ui-modern .research-score-year { display:inline; margin-left:6px; font-size:10px; color:var(--theme-muted); line-height:1.3; }
+body.ui-modern #tab-research .research-student-link { padding:0; min-height:0; border:0; background:transparent; color:var(--theme-primary); font-size:12px; font-weight:550; text-align:left; line-height:1.6; }
+body.ui-modern #tab-research .research-student-link:hover { border:0; background:transparent; text-decoration:underline; }
+body.ui-modern .cadet-academic-results { display:grid; gap:14px; }
+body.ui-modern .cadet-results-heading { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; padding:20px; border:1px solid var(--theme-border); border-radius:12px; background:var(--theme-card); }
+body.ui-modern .cadet-results-heading h4 { font-size:16px; font-weight:650; }
+body.ui-modern .cadet-results-heading>div { display:flex; gap:18px; font-size:12px; color:var(--theme-muted); }
+body.ui-modern .cadet-academic-year { border:1px solid var(--theme-border); border-radius:12px; background:var(--theme-card); overflow:hidden; }
+body.ui-modern .cadet-academic-year>summary { display:flex; justify-content:space-between; align-items:center; padding:17px 20px; font-weight:600; cursor:pointer; list-style:none; font-size:14px; }
+body.ui-modern .cadet-academic-year>summary::-webkit-details-marker { display:none; }
+body.ui-modern .cadet-academic-year>summary>span:last-child { font-size:12px; color:var(--theme-muted); }
+body.ui-modern .cadet-semester { padding:18px 20px; border-top:1px solid var(--theme-border); }
+body.ui-modern .cadet-semester-heading { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:12px; font-size:12px; color:var(--theme-muted); }
+body.ui-modern .cadet-semester-heading h5 { font-size:13px; font-weight:600; color:var(--theme-ink); }
+body.ui-modern .cadet-semester-heading h5 small { font-weight:400; color:var(--theme-muted); }
+body.ui-modern .cadet-course-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+body.ui-modern .cadet-course { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; border:1px solid var(--theme-border); border-radius:10px; padding:14px; background:var(--theme-surface); min-width:0; }
+body.ui-modern #cadetAcademicResults .cadet-course.is-failed { border-color:var(--theme-danger)!important; box-shadow:inset 0 0 0 1px var(--theme-danger); }
+body.ui-modern .cadet-course-info { flex:1; min-width:0; }
+body.ui-modern .cadet-course-info h6 { font-size:13px; font-weight:600; overflow-wrap:anywhere; line-height:1.6; margin:4px 0; }
+body.ui-modern .cadet-course-info small,body.ui-modern .cadet-course-info>span { font-size:11px; color:var(--theme-muted); }
+body.ui-modern .cadet-course.is-failed [data-cadet-result] { color:var(--theme-danger); }
+body.ui-modern .cadet-course-mark { flex:none; text-align:center; }
+body.ui-modern .cadet-course-mark>small { display:block; font-size:10px; color:var(--theme-muted); }
+body.ui-modern #cadetAcademicResults [data-cadet-score] { width:65px; min-height:38px; padding:6px; border:1px solid var(--theme-border-strong); border-radius:7px; font-size:14px; font-weight:600; text-align:center; font-variant-numeric:tabular-nums; }
+body.ui-modern .cadet-grade-error { flex-basis:100%; font-size:11px; color:var(--theme-danger); }
+body.ui-modern .cadet-grade-error:empty { display:none; }
+@media(max-width:1100px) { body.ui-modern .cadet-course-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:640px) { body.ui-modern .cadet-course-grid { grid-template-columns:1fr; } body.ui-modern .cadet-semester { padding:14px; } body.ui-modern #cadetAcademicResults [data-cadet-score] { font-size:16px; } }

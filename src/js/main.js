@@ -89,6 +89,7 @@ import {
 
 import {
   renderStudentView,
+  refreshCadetAcademicResults,
   populateStudentPicker,
   openConfirmDeleteModal,
   executeCascadeDeleteCadet,
@@ -1528,6 +1529,7 @@ export function initApp() {
   const research = mountResearch({ state: AppState, classes: DEFAULT_CLASSES, subjectsForClass: getSubjectsForClass, notify: showToast });
   registerExternalHooks({
     renderResearch: () => research?.render(),
+    refreshCadetAcademicResults,
     renderProfilesTable,
     renderStudentView,
     handleRoleChange,

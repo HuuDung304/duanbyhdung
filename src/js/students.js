@@ -1,3 +1,4 @@
+import { mountCadetResults } from './academic/cadet-results.js';
 import { trackImportRead } from './components/upload-state.js';
 import { reviewImport } from './components/import-review.js';
 import { sanitizeHTML, escapeHTML } from './safe-html.js';
@@ -31,6 +32,7 @@ import {
   getCurrentUserClassScope,
   getScopedStudents,
   getSubjectsForClass,
+  getFullSubjectName,
   calculateSemesterGPA,
   calculateAcademicYearGPA,
   calculateYearGPA,
@@ -62,7 +64,9 @@ import {
   upsertStudentsBulkToSupabase,
   importExcelTransaction,
   deleteStudentFromSupabase,
-  deleteAllStudentsFromSupabase
+  deleteAllStudentsFromSupabase,
+  upsertGradeToSupabase,
+  deleteGradeFromSupabase
 } from './supabase.js';
 
 export const POLITICAL_BADGES = {
@@ -170,8 +174,12 @@ export function populateStudentPicker() {
   `).join(''));
 }
 
+let cadetResultsController = null;
+export function refreshCadetAcademicResults() { cadetResultsController?.refresh(); }
+
 export function openCadetDetailPage(studentId) {
   const student = AppState.students.find(s => s.id === studentId);
+  if (AppState.role === 'guest') return;
   if (!student) {
     showToast('Không tìm thấy thông tin quân nhân!', 'error');
     return;
@@ -205,40 +213,8 @@ export function openCadetDetailPage(studentId) {
   detailSection.classList.remove('hidden');
   detailSection.style.display = 'block';
 
-  const gpa10 = calculateYearGPA(student.id);
-  const gpa4 = calculateCumulativeGPA4(student.id);
-  const rank = getClassification(gpa10);
-  const passedTC = calculateCreditsPassed(student.id);
-  const totalTC = getTotalCourseCredits(student.class);
   const achArr = normalizeAchievements(student.achievements);
   const l = AppState.languages[student.id] || { lang: 'Tiếng Nga', A1: 'Đ', A21: 'Đ', A22: 'Đ', B11: 'CT', B12: 'CT' };
-
-  let yearRowsHtml = '';
-  for (let y = 1; y <= 5; y++) {
-    const sem1 = 2 * y - 1;
-    const sem2 = 2 * y;
-    const g1 = calculateSemesterGPA(student.id, sem1);
-    const g2 = calculateSemesterGPA(student.id, sem2);
-    const gy = calculateAcademicYearGPA(student.id, y);
-    const yrRank = getClassification(gy);
-    const yDebts = getDebtSubjects(student.id, null, y);
-
-    yearRowsHtml += `
-      <tr class="hover:bg-slate-50">
-        <td class="py-2.5 px-3 font-bold text-army-900">Năm học thứ ${y} (Kỳ ${sem1} & Kỳ ${sem2})</td>
-        <td class="py-2.5 px-3 text-center font-semibold text-slate-800">${g1.toFixed(2)}</td>
-        <td class="py-2.5 px-3 text-center font-semibold text-slate-800">${g2.toFixed(2)}</td>
-        <td class="py-2.5 px-3 text-center font-black text-army-900 bg-gold-50">${gy.toFixed(2)}</td>
-        <td class="py-2.5 px-3 text-center">${getClassificationBadge(yrRank)}</td>
-        <td class="py-2.5 px-3 text-left">
-          ${yDebts.length > 0
-            ? yDebts.map(d => `<span class="inline-block px-2 py-0.5 rounded bg-rose-100 text-rose-800 font-bold text-[11px] mr-1">${formatFailedSubjectItem(d.subject)} (${d.score.toFixed(2)})</span>`).join('')
-            : '<span class="text-emerald-700 font-semibold text-xs">✅ Đạt 100%</span>'
-          }
-        </td>
-      </tr>
-    `;
-  }
 
   detailSection.innerHTML = sanitizeHTML(`
     <div class="space-y-5">
@@ -320,38 +296,19 @@ export function openCadetDetailPage(studentId) {
         </div>
       </div>
 
-      <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        <div class="bg-army-900 text-white px-5 py-3 flex flex-wrap items-center justify-between gap-2">
-          <h4 class="text-xs sm:text-sm font-black uppercase text-gold-300">3. Kết Quả Học Tập & Điểm Tích Lũy Cá Nhân (Năm 1 &rarr; Năm 5)</h4>
-          <div class="flex flex-wrap items-center gap-3 text-xs">
-            <span>Tín chỉ tích lũy: <strong class="text-gold-300">${passedTC}/${totalTC} TC</strong></span>
-            <span>|</span>
-            <span>ĐTB Tích lũy Hệ 10: <strong class="text-gold-300 text-sm">${gpa10.toFixed(2)}</strong> (${rank})</span>
-            <span>|</span>
-            <span>Hệ 4: <strong class="text-emerald-300">${gpa4.toFixed(2)}/4.00</strong></span>
-          </div>
-        </div>
-        <div class="overflow-x-auto">
-          <table class="w-full text-xs text-left border-collapse">
-            <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
-              <tr>
-                <th class="py-2.5 px-3">Năm Học</th>
-                <th class="py-2.5 px-3 text-center">DTB HK1 (10)</th>
-                <th class="py-2.5 px-3 text-center">DTB HKII (10)</th>
-                <th class="py-2.5 px-3 text-center bg-gold-100 text-army-950">Điểm TB 1 Năm Học</th>
-                <th class="py-2.5 px-3 text-center">Xếp Loại Năm Đấy</th>
-                <th class="py-2.5 px-3">Các Học Phần Bị Rớt (&lt; 4.0)</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-200">
-              ${yearRowsHtml}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <section id="cadetAcademicResults" class="cadet-academic-results" aria-label="Kết quả học tập"></section>
     </div>
   `);
 
+  cadetResultsController?.destroy();
+  cadetResultsController = mountCadetResults(document.getElementById('cadetAcademicResults'), {
+    state:AppState,studentId:student.id,subjectsForClass:getSubjectsForClass,fullSubjectName:getFullSubjectName,
+    semesterGPA:calculateSemesterGPA,academicYearGPA:calculateAcademicYearGPA,courseGPA:calculateCourseGPA10,
+    creditsPassed:calculateCreditsPassed,totalCredits:getTotalCourseCredits,upsert:upsertGradeToSupabase,remove:deleteGradeFromSupabase,
+    notify:showToast,onSaved:({studentId,subjectId,previous,value})=>{logAuditTrail(studentId,subjectId,previous??'',value??'Trống','Cập nhật điểm từ hồ sơ quân nhân');updateAllViews();}
+  });
+  const canEditProfile=AppState.role==='admin'||AppState.role==='student'||AppState.role==='class_leader_'+student.class;
+  const editProfileButton=document.getElementById('btnEditFromCadetDetail');if(editProfileButton)editProfileButton.hidden=!canEditProfile;
   document.getElementById('btnBackFromCadetDetail')?.addEventListener('click', () => {
     closeCadetDetailPage();
   });
@@ -364,6 +321,7 @@ export function openCadetDetailPage(studentId) {
 }
 
 export function closeCadetDetailPage(silent = false) {
+  cadetResultsController?.destroy(); cadetResultsController=null;
   const detailSection = document.getElementById('cadetDetailViewSection');
   if (detailSection) {
     detailSection.classList.add('hidden');
