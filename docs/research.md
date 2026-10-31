@@ -15,10 +15,11 @@ Chủ đề tài phải là một học viên thực hiện. Chọn thành viên
 
 Tải file mẫu trong **Nghiên cứu khoa học → Nhập Excel**. Mỗi dòng là một đề tài, giữ nguyên tiêu đề:
 
-- Mẫu nhập gồm 6 cột như ảnh: STT, Mã đề tài, Tên đề tài, Mã HV chủ đề tài, Mã HV tham gia (cách nhau bằng ;), Cán bộ hướng dẫn (Họ tên | Đơn vị) (cách nhau bằng dấu ;). STT không dùng để đối chiếu.
+- Mẫu nhập gồm 7 cột như ảnh: STT, Mã đề tài, Tên đề tài, Thông tin đề tài, Mã HV chủ đề tài, Mã HV tham gia (cách nhau bằng ;), Cán bộ hướng dẫn (Họ tên | Đơn vị) (cách nhau bằng dấu ;). STT không dùng để đối chiếu.
 - Có thể tự điền Mã đề tài khi thêm mới hoặc để trống để tạo mã. Mã đã có dùng để cập nhật đúng đề tài; không đối chiếu/gộp theo tên. Mã tự nhập có khóa lưu xác định để không tạo trùng khi gửi lại file.
 - Thành viên được đối chiếu bằng mã học viên (cột mã nên đặt Text để giữ số 0 đầu). Nhiều mã cách nhau bằng `;`. Mã chủ đề tài luôn được thêm vào thành viên.
 - Nhiều cán bộ hướng dẫn phân cách bằng `;`, mỗi người dạng `Họ tên | Đơn vị`; vẫn nhận xuống dòng của mẫu cũ.
+- Thông tin đề tài nhận văn bản nhiều dòng, được lưu và hiển thị nguyên nội dung; file mẫu có ví dụ. Các file mẫu cũ không có cột này vẫn nhập được và giữ thông tin đang lưu.
 - Các cột Mục tiêu, Nội dung nghiên cứu, Sản phẩm dự kiến, Năm học, Giải thưởng, Ghi chú là tùy chọn. Thiếu cột thì giữ thông tin cũ; đề tài mới mặc định Năm 1 nếu không có Năm học. Bản xuất đầy đủ có các cột này để lưu và nhập lại.
 - Nhãn giải thưởng cũ (Bằng Khen, Giấy Khen, Loại Xuất sắc/Giỏi/Khá) vẫn được nhận và hiển thị bằng tên mới.
 - Kiểm tra tất cả dòng trước khi cho xác nhận nhập. Hủy xem trước không ghi dữ liệu. Giới hạn 10 MB, 200 đề tài/lần.

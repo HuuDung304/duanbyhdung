@@ -55,10 +55,13 @@ test('TBNH weights only the chosen two semesters, preserving zero and excluding 
 });
 
 test('screenshot Excel template accepts custom topic codes, STT and semicolon-separated supervisors', () => {
-  const row = [1, 'DT-2026-01', 'Đề tài theo mẫu', '001', '002;001', 'Cô A | K13; Thầy B | K14'];
+  const row = [1, 'DT-2026-01', 'Đề tài theo mẫu', 'Thông tin theo mẫu\nDòng thứ hai', '001', '002;001', 'Cô A | K13; Thầy B | K14'];
   const [draft] = parseResearchRows([EXCEL_HEADERS, row], state(), [], () => 'new');
   assert.equal(draft.project.projectCode, 'DT-2026-01');
   assert.equal(draft.project.year, 1);
+  assert.equal(draft.project.information, 'Thông tin theo mẫu\nDòng thứ hai');
+  const imageHeaders=EXCEL_HEADERS.map(h=>h==='Thông tin đề tài'?'Thông Tinh Đề Tài':h);
+  assert.equal(parseResearchRows([imageHeaders,row],state(),[],()=> 'sample')[0].project.information,draft.project.information);
   assert.deepEqual(draft.project.advisors, [{name:'Cô A',unit:'K13'}, {name:'Thầy B',unit:'K14'}]);
   const existing = {...draft.project, year: 3, objective:'Giữ nguyên', notes:'Ghi chú cũ', awards:['Loại Giỏi']};
   const [update] = parseResearchRows([EXCEL_HEADERS, [...row.slice(0, 2), 'Tên cập nhật', ...row.slice(3)]], state(), [existing], () => 'other');

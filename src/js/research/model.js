@@ -70,10 +70,10 @@ export function normalizeProject(input, state, existing = null) {
     return { studentId: student.id, code: student.code, name: student.name, class: student.class };
   });
   const project = { id: existing?.id || input.id, title, year, leaderId: input.leaderId, participants: members,
-    objective: text(input.objective), content: text(input.content), product: text(input.product), notes: text(input.notes ?? existing?.notes), projectCode: text(existing?.projectCode || input.projectCode),
+    information: text(input.information ?? existing?.information), objective: text(input.objective), content: text(input.content), product: text(input.product), notes: text(input.notes ?? existing?.notes), projectCode: text(existing?.projectCode || input.projectCode),
     advisors: (input.advisors || []).map(a => ({ name: text(a.name), unit: text(a.unit) })).filter(a => a.name),
     awards: Array.isArray(input.awards) ? normalizeAwards(input.awards) : [] };
-  for (const key of ['objective', 'content', 'product', 'notes']) if (project[key].length > 20000) throw new Error('Thông tin đề tài quá dài (tối đa 20.000 ký tự mỗi mục).');
+  for (const key of ['information', 'objective', 'content', 'product', 'notes']) if (project[key].length > 20000) throw new Error('Thông tin đề tài quá dài (tối đa 20.000 ký tự mỗi mục).');
   if (project.awards.some(a => !AWARDS.includes(a))) throw new Error('Chọn giải thưởng trong năm mục có sẵn.');
   if (project.projectCode.length > 100) throw new Error('Mã đề tài tối đa 100 ký tự.');
   if (existing) {
@@ -98,11 +98,11 @@ export function normalizeProject(input, state, existing = null) {
   if (actor(state).className && !canEdit(project, state)) throw new Error('Chủ đề tài phải thuộc lớp bạn phụ trách.');
   return project;
 }
-export const EXCEL_HEADERS = ['STT', 'Mã đề tài', 'Tên đề tài', 'Mã HV chủ đề tài', 'Mã HV tham gia (cách nhau bằng ;)', 'Cán bộ hướng dẫn (Họ tên | Đơn vị) (cách nhau bằng dấu ;)'];
+export const EXCEL_HEADERS = ['STT', 'Mã đề tài', 'Tên đề tài', 'Thông tin đề tài', 'Mã HV chủ đề tài', 'Mã HV tham gia (cách nhau bằng ;)', 'Cán bộ hướng dẫn (Họ tên | Đơn vị) (cách nhau bằng dấu ;)'];
 export const EXPORT_HEADERS = [...EXCEL_HEADERS, 'Mục tiêu', 'Nội dung nghiên cứu', 'Sản phẩm dự kiến', 'Năm học', 'Giải thưởng (cách nhau bằng ;)', 'Ghi chú'];
 export function parseResearchRows(rows, state, existingProjects, createId) {
   const key = value => text(value).toLocaleLowerCase('vi').replace(/\s+/g, ' ');
-  const headers = (rows[0] || []).map(key);
+  const headers = (rows[0] || []).map(value => key(value).replace(/\s*\(/g, ' (').replace(/^thông tinh đề tài$/, 'thông tin đề tài'));
   const column = name => headers.findIndex(h => h === name || h.startsWith(name + ' ('));
   if (column('tên đề tài') < 0 || column('mã hv chủ đề tài') < 0) throw new Error('File cần cột Tên đề tài và Mã HV chủ đề tài.');
   const seen = new Set(), drafts = [];
@@ -124,7 +124,7 @@ export function parseResearchRows(rows, state, existingProjects, createId) {
       const codes = text(get('mã hv tham gia')).split(/[;,\n]+/).filter(v => text(v));
       const awards = column('giải thưởng') < 0 ? normalizeAwards(existing?.awards || []) : text(get('giải thưởng')).split(';').map(text).filter(Boolean);
       const input = { id: existing?.id || (code ? 'code_' + encodeURIComponent(codeKey(code)) : createId()), projectCode: existing?.projectCode || code,
-        title: get('tên đề tài'), objective: get('mục tiêu', existing?.objective), content: get('nội dung nghiên cứu', existing?.content), product: get('sản phẩm dự kiến', existing?.product), notes: get('ghi chú', existing?.notes), leaderId,
+        title: get('tên đề tài'), information: get('thông tin đề tài', existing?.information), objective: get('mục tiêu', existing?.objective), content: get('nội dung nghiên cứu', existing?.content), product: get('sản phẩm dự kiến', existing?.product), notes: get('ghi chú', existing?.notes), leaderId,
         memberIds: [leaderId, ...codes.map(findStudent)],
         advisors: text(get('cán bộ hướng dẫn')).split(/[;\n]+/).filter(v => text(v)).map(line => { const [name, ...unit] = line.split('|'); return { name, unit: unit.join('|') }; }),
         year: get('năm học', existing?.year || 1), awards };
