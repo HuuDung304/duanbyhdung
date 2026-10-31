@@ -1,6 +1,6 @@
-# Edu460 V2 — Bản giao diện chờ duyệt
+# Edu460 V2 — Giao diện chính thức
 
-Nhánh `design/edu460-v2`, dựa trên `05d8665`. Không merge `main`, không triển khai website chính thức. Ảnh dưới đây dùng dữ liệu giả lập, không phải hồ sơ thật.
+Phát triển trên nhánh `design/edu460-v2`, dựa trên `05d8665`. Người dùng đã chấp thuận triển khai chính thức ngày 31/10/2026; bản V2 đã được đưa vào `main` để GitHub Pages phát hành. Ảnh dưới đây dùng dữ liệu giả lập, không phải hồ sơ thật.
 
 ## Xem trước
 
@@ -51,6 +51,6 @@ Chạy browser test với `NODE_PATH` trỏ tới Playwright/XLSX đã cài, `UI
 
 ## Giới hạn
 
-Kiểm tra tự động bao phủ các màn hình và dữ liệu giả lập trên Chromium, không phải chứng nhận WCAG đầy đủ hay kiểm tra mọi dữ liệu thực/tổ hợp trình duyệt. Bảng nhiều cột vẫn cần cuộn ngang trên điện thoại để giữ toàn bộ chức năng. Bản nhánh chưa triển khai, vì vậy website chính thức chưa mang giao diện này.
+Kiểm tra tự động bao phủ các màn hình và dữ liệu giả lập trên Chromium, không phải chứng nhận WCAG đầy đủ hay kiểm tra mọi dữ liệu thực/tổ hợp trình duyệt. Bảng nhiều cột vẫn cần cuộn ngang trên điện thoại để giữ toàn bộ chức năng. Bản V2 được phát hành qua GitHub Pages từ `main` sau khi người dùng chấp thuận.
 
 Không sửa JavaScript nghiệp vụ, database/schema, xác thực, phân quyền, công thức điểm/GPA/xếp loại, quy trình lưu hay mã nhập/xuất Excel. Không dùng Supabase thật để thử ghi.
