@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { canView, canEdit, canAward, normalizeProject, researchStats, scopedProjects, parseResearchRows, EXCEL_HEADERS, AWARDS, yearGPA } from '../src/js/research/model.js';
+import { canView, canEdit, canAward, normalizeProject, researchStats, scopedProjects, parseResearchRows, EXCEL_HEADERS, AWARDS, yearGPA, ResearchStudentChoiceError, researchStudentCandidates } from '../src/js/research/model.js';
 const students = [{ id: 'a', code: '001', name: 'An', class: 'OTQS1' }, { id: 'b', code: '002', name: 'Bình', class: 'TTG2' }, { id: 'c', code: '003', name: 'Chi', class: 'XMCB' }];
 const state = (role = 'admin', id = 'a') => ({ role, currentUser: { studentId: id, code: students.find(s => s.id === id)?.code }, students, grades: {} });
 const input = { id: 'r1', title: 'Nghiên cứu', year: 1, leaderId: 'a', memberIds: ['a', 'b'], awards: [], advisors: [] };
@@ -71,4 +71,23 @@ test('screenshot Excel template accepts custom topic codes, STT and semicolon-se
   assert.equal(update.project.notes, 'Ghi chú cũ');
   assert.deepEqual(update.project.awards, ['Giỏi']);
   assert.throws(() => parseResearchRows([EXCEL_HEADERS,row,row],state(),[],()=> 'new'), /bị lặp/);
+});
+
+test('Excel accepts full names or codes, but duplicate names require an explicit choice per occurrence', () => {
+  const s = state();
+  s.students = [...students, {id:'d',code:'004',name:'An',class:'TTG2'}];
+  const row = [1,'NAME-01','Đề tài nhập tên','Thông tin','an','BÌNH;003','Cô A | K13'];
+  let prompt;
+  try { parseResearchRows([EXCEL_HEADERS,row],s,[],()=> 'id'); } catch(error) { prompt=error; }
+  assert.ok(prompt instanceof ResearchStudentChoiceError);
+  assert.equal(prompt.choices.length,1);
+  assert.deepEqual(prompt.choices[0].candidates.map(s=>s.id),['a','d']);
+  const [draft]=parseResearchRows([EXCEL_HEADERS,row],s,[],()=> 'id',{'row:2:leader':'d'});
+  assert.equal(draft.project.leaderId,'d');
+  assert.deepEqual(draft.project.participants.map(p=>p.studentId),['d','b','c']);
+  assert.throws(()=>parseResearchRows([EXCEL_HEADERS,row],s,[],()=> 'id',{'row:2:leader':'c'}),ResearchStudentChoiceError);
+  assert.equal(researchStudentCandidates('001',s.students)[0].id,'a');
+  assert.equal(researchStudentCandidates('  binh ',s.students)[0].id,'b');
+  const rows=[EXCEL_HEADERS,[1,'R1','Một','','001','An',''],[2,'R2','Hai','','001','An','']];
+  assert.throws(()=>parseResearchRows(rows,s,[],()=> 'id',{'row:2:member:0':'a'}),error=>error instanceof ResearchStudentChoiceError&&error.choices[0].key==='row:3:member:0');
 });

@@ -1,5 +1,5 @@
 import { escapeHTML as esc, sanitizeHTML } from '../safe-html.js';
-import { AWARDS, actor, participants, leaderClass, canView, canEdit, canAward, canCreate, scopedProjects, researchStats, yearGPA, EXCEL_HEADERS, EXPORT_HEADERS, normalizeAwards, parseResearchRows } from './model.js';
+import { AWARDS, actor, participants, leaderClass, canView, canEdit, canAward, canCreate, scopedProjects, researchStats, yearGPA, EXCEL_HEADERS, EXPORT_HEADERS, normalizeAwards, parseResearchRows, researchStudentCandidates, studentNameKey, ResearchStudentChoiceError } from './model.js';
 import { createResearchStore } from './store.js';
 
 export function formatResearchInformation(value) {
@@ -10,11 +10,11 @@ export function formatResearchInformation(value) {
 
 export function mountResearch({ state, classes, subjectsForClass, notify }) {
   const $ = id => document.getElementById(id);
-  const root = $('tab-research'), editor = $('researchEditor'), importDialog = $('researchImportDialog'), uploadDialog = $('researchUploadDialog'), exportDialog = $('researchExportDialog');
+  const root = $('tab-research'), editor = $('researchEditor'), importDialog = $('researchImportDialog'), uploadDialog = $('researchUploadDialog'), exportDialog = $('researchExportDialog'), resolveDialog = $('researchResolveDialog');
   if (!root || root.dataset.mounted) return;
   root.dataset.mounted = 'true';
   const store = createResearchStore(() => state);
-  let projects = [], loaded = false, loading = false, error = '', filter = 'all', editing = null, draftId = '', importing = [], busy = false, identity = '', generation = 0;
+  let projects = [], loaded = false, loading = false, error = '', filter = 'all', editing = null, draftId = '', importing = [], busy = false, identity = '', generation = 0, pendingImport = null;
   const identityKey = () => JSON.stringify([state.role, state.currentUser?.studentId, state.currentUser?.code]);
   const setHTML = (element, html) => { element.innerHTML = sanitizeHTML(html); };
   const button = (label, action, id) => `<button type="button" class="research-btn" data-research-action="${action}" data-project-id="${esc(id)}">${label}</button>`;
@@ -24,13 +24,15 @@ export function mountResearch({ state, classes, subjectsForClass, notify }) {
     const key = identityKey();
     if (key !== identity) {
       identity = key; filter = 'all'; generation++; projects = []; loaded = false; error = ''; loading = false;
+      pendingImport = null;
+      if (resolveDialog.open) resolveDialog.close();
       if (editor.open) editor.close();
       if (importDialog.open) importDialog.close();
       if (uploadDialog.open) uploadDialog.close();
       if (exportDialog.open) exportDialog.close();
       importing = [];
     }
-    if (editor.open || importDialog.open || uploadDialog.open) return;
+    if (editor.open || importDialog.open || uploadDialog.open || resolveDialog.open) return;
     const global = ['admin', 'company_officer'].includes(state.role), visible = scopedProjects(projects, state, filter);
     const stats = researchStats(visible);
     $('researchTopicCount').textContent = loaded ? stats.projects : '—';
@@ -72,7 +74,7 @@ export function mountResearch({ state, classes, subjectsForClass, notify }) {
     draftId = project?.id || crypto.randomUUID();
     const infoAllowed = !project || canEdit(project, state);
     $('researchEditorTitle').textContent = project ? infoAllowed ? 'Chỉnh sửa đề tài' : 'Cập nhật giải thưởng' : 'Thêm đề tài';
-    $('researchForm').reset(); $('researchFormError').textContent = '';
+    $('researchForm').reset(); $('researchLeaderMatches').textContent = ''; $('researchFormError').textContent = '';
     $('researchInfoFields').disabled = !infoAllowed;
     const leader = project?.leaderId || (state.role === 'student' ? actor(state).studentId : '');
     setHTML($('researchLeader'), '<option value="">Chọn chủ đề tài</option>' + options(leader, true));
@@ -116,13 +118,27 @@ export function mountResearch({ state, classes, subjectsForClass, notify }) {
     } catch (e) { $('researchFormError').textContent = e.message; }
     finally { busy = false; $('researchSave').disabled = false; $('researchSave').removeAttribute('aria-busy'); }
   });
+  $('researchLeaderSearch').addEventListener('input', event => {
+    const value = event.target.value, term = studentNameKey(value), select = $('researchLeader');
+    for (const option of select.options) option.hidden = !!option.value && !studentNameKey(option.textContent).includes(term);
+    const matches = researchStudentCandidates(value, state.students);
+    if (matches.length === 1 && [...select.options].some(option => option.value === matches[0].id)) {
+      select.value = matches[0].id; select.dispatchEvent(new Event('change'));
+      $('researchLeaderMatches').textContent = `${matches[0].code} · ${matches[0].class}`;
+    } else {
+      if (term) select.value = '';
+      $('researchLeaderMatches').textContent = matches.length > 1 ? 'Trùng tên. Chọn đúng mã học viên và lớp trong danh sách.' : '';
+    }
+  });
   $('researchLeader').addEventListener('change', () => {
     const checkbox = [...document.querySelectorAll('[name="researchMember"]')].find(el => el.value === $('researchLeader').value);
     if (checkbox) checkbox.checked = true;
+    const chosen = state.students.find(s => s.id === $('researchLeader').value);
+    $('researchLeaderMatches').textContent = chosen ? `${chosen.code} · ${chosen.class}` : '';
   });
   $('researchMemberSearch').addEventListener('input', event => {
-    const term = event.target.value.toLocaleLowerCase('vi').trim();
-    $('researchMembers').querySelectorAll('label').forEach(label => { label.hidden = !label.dataset.memberSearch.includes(term); });
+    const term = studentNameKey(event.target.value);
+    $('researchMembers').querySelectorAll('label').forEach(label => { label.hidden = !studentNameKey(label.dataset.memberSearch).includes(term); });
   });
   editor.addEventListener('cancel', event => { if (busy) event.preventDefault(); });
   importDialog.addEventListener('cancel', event => { if (busy) event.preventDefault(); });
@@ -158,7 +174,7 @@ export function mountResearch({ state, classes, subjectsForClass, notify }) {
     const book = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(book, sheet, 'Nghien_Cuu_Khoa_Hoc'); XLSX.writeFile(book, filename);
   }
   $('researchTemplate').addEventListener('click', () => {
-    try { writeWorkbook([EXCEL_HEADERS, [1, 'VD-NCKH-01', 'Ví dụ: Nâng cao kỹ năng đọc hiểu tiếng Nga', 'Mục tiêu: Cải thiện kỹ năng đọc hiểu.\nNội dung nghiên cứu: Khảo sát và xây dựng phương pháp tự học.\nSản phẩm dự kiến: Báo cáo tổng kết đề tài.', 'MA_HV_01', 'MA_HV_01; MA_HV_02', 'Nguyễn Văn A | K13; Trần Thị B | K13']], 'Mau_Nghien_Cuu_Khoa_Hoc.xlsx'); notify('Đã tải mẫu có ví dụ. Thay dòng ví dụ và mã học viên bằng dữ liệu của bạn trước khi nhập.', 'info'); }
+    try { writeWorkbook([EXCEL_HEADERS, [1, 'VD-NCKH-01', 'Ví dụ: Nâng cao kỹ năng đọc hiểu tiếng Nga', 'Mục tiêu: Cải thiện kỹ năng đọc hiểu.\nNội dung nghiên cứu: Khảo sát và xây dựng phương pháp tự học.\nSản phẩm dự kiến: Báo cáo tổng kết đề tài.', 'HỌ_TÊN_HỌC_VIÊN_01', 'HỌ_TÊN_HỌC_VIÊN_01; MA_HV_02', 'Nguyễn Văn A | K13; Trần Thị B | K13']], 'Mau_Nghien_Cuu_Khoa_Hoc.xlsx'); notify('Đã tải mẫu có ví dụ. Thay dòng ví dụ bằng dữ liệu thật; có thể dùng mã hoặc họ tên học viên.', 'info'); }
     catch (e) { notify(e.message, 'error'); }
   });
   $('researchExport').addEventListener('click', async () => {
@@ -203,6 +219,38 @@ export function mountResearch({ state, classes, subjectsForClass, notify }) {
     const transfer = new DataTransfer(); transfer.items.add(files[0]); $('researchFile').files = transfer.files;
     $('researchFile').dispatchEvent(new Event('change', { bubbles: true }));
   });
+  function stageImport() {
+    if (!pendingImport || pendingImport.user !== identityKey() || !canCreate(state)) return;
+    try {
+      importing = parseResearchRows(pendingImport.rows, state, projects, () => crypto.randomUUID(), pendingImport.selections);
+      pendingImport = null;
+      $('researchImportSummary').textContent = `${importing.length} đề tài: ${importing.filter(x => !x.existing).length} thêm mới, ${importing.filter(x => x.existing).length} cập nhật. Kiểm tra trước khi xác nhận.`;
+      setHTML($('researchImportRows'), importing.map((d, i) => `<tr><td>${i + 1}</td><td>${esc(d.project.title)}</td><td>${d.project.participants.length}</td><td>${esc(leaderClass(d.project, state.students))}</td><td data-import-status="${i}">Chờ xác nhận</td></tr>`).join(''));
+      $('researchImportConfirm').disabled = false; $('researchImportResult').textContent = '';
+      uploadDialog.close(); resolveDialog.close(); importDialog.showModal();
+    } catch (error) {
+      if (!(error instanceof ResearchStudentChoiceError)) throw error;
+      importing = [];
+      setHTML($('researchResolveChoices'), error.choices.map(choice => `<label>Dòng ${choice.rowNumber} · ${esc(choice.label)}: <strong>${esc(choice.value)}</strong><select required data-research-resolution="${esc(choice.key)}"><option value="">Chọn học viên</option>${choice.candidates.map(s => `<option value="${esc(s.id)}">${esc(s.name)} · ${esc(s.code)} · ${esc(s.class)}</option>`).join('')}</select></label>`).join(''));
+      uploadDialog.close();
+      if (!resolveDialog.open) resolveDialog.showModal();
+    }
+  }
+  $('researchResolveForm').addEventListener('submit', event => {
+    event.preventDefault();
+    if (!pendingImport || busy || pendingImport.user !== identityKey() || !canCreate(state)) return;
+    for (const select of $('researchResolveChoices').querySelectorAll('select')) pendingImport.selections[select.dataset.researchResolution] = select.value;
+    try { stageImport(); }
+    catch (error) {
+      pendingImport = null; importing = []; resolveDialog.close();
+      $('researchUploadStatus').textContent = error.message; uploadDialog.showModal();
+    }
+  });
+  resolveDialog.addEventListener('close', () => {
+    if (!pendingImport) return;
+    const sameUser = pendingImport.user === identityKey(); pendingImport = null; importing = [];
+    if (sameUser && canCreate(state)) uploadDialog.showModal();
+  });
   $('researchFile').addEventListener('change', async event => {
     const file = event.target.files[0]; event.target.value = ''; if (!file || busy || !canCreate(state)) return;
     const user = identityKey(); busy = true; $('researchChooseFile').disabled = true;
@@ -212,12 +260,9 @@ export function mountResearch({ state, classes, subjectsForClass, notify }) {
       if (file.size > 10 * 1024 * 1024) throw new Error('File tối đa 10 MB.');
       const XLSX = requireXLSX(), workbook = XLSX.read(await file.arrayBuffer(), { type: 'array' });
       if (!canCreate(state) || user !== identityKey()) return;
-      importing = parseResearchRows(XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1, defval: '' }), state, projects, () => crypto.randomUUID());
-      $('researchImportSummary').textContent = `${importing.length} đề tài: ${importing.filter(x => !x.existing).length} thêm mới, ${importing.filter(x => x.existing).length} cập nhật. Kiểm tra trước khi xác nhận.`;
-      setHTML($('researchImportRows'), importing.map((d, i) => `<tr><td>${i + 1}</td><td>${esc(d.project.title)}</td><td>${d.project.participants.length}</td><td>${esc(leaderClass(d.project, state.students))}</td><td data-import-status="${i}">Chờ xác nhận</td></tr>`).join(''));
-      $('researchImportConfirm').disabled = false; $('researchImportResult').textContent = '';
-      uploadDialog.close(); importDialog.showModal();
-    } catch (e) { importing = []; $('researchUploadStatus').textContent = e.message; notify(e.message, 'error'); }
+      pendingImport = { rows: XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1, defval: '' }), selections: {}, user };
+      stageImport();
+    } catch (e) { pendingImport = null; importing = []; $('researchUploadStatus').textContent = e.message; notify(e.message, 'error'); }
     finally { busy = false; $('researchChooseFile').disabled = false; }
   });
   $('researchImportConfirm').addEventListener('click', async () => {

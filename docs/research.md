@@ -9,15 +9,16 @@ Menu **Nghiên cứu khoa học** có số đề tài, số học viên không t
 - Học viên: chỉ thấy đề tài mình tham gia. Được tạo đề tài do mình làm chủ và chỉnh sửa thông tin đề tài mình làm chủ; không được chuyển chủ đề tài hay sửa giải thưởng. Thành viên khác chỉ xem.
 - Giải thưởng: 5 ô tích độc lập: Bằng khen, Giấy khen, Xuất sắc, Giỏi, Khá; tích được ngay trong bảng; chỉ Admin/tài khoản lớp được sửa.
 
-Chủ đề tài phải là một học viên thực hiện. Chọn thành viên từ danh sách học viên hiện có, hỗ trợ nhóm nhiều lớp. Đơn vị học viên là lớp/c460/d4; đơn vị cán bộ hướng dẫn nhập riêng. Điểm TBNH được tính theo tín chỉ trong hai học kỳ của năm học chọn trên đề tài, chỉ dùng môn áp dụng cho lớp; chưa có điểm hiển thị `—`.
+Chủ đề tài phải là một học viên thực hiện. Chọn thành viên từ danh sách học viên hiện có, hỗ trợ nhóm nhiều lớp. Có thể tìm chủ đề tài và thành viên theo họ tên (có dấu hoặc không dấu) hoặc mã; tên trùng phải chọn người theo mã và lớp, không chọn ngầm người đầu tiên. Đơn vị học viên là lớp/c460/d4; đơn vị cán bộ hướng dẫn nhập riêng. Điểm TBNH được tính theo tín chỉ trong hai học kỳ của năm học chọn trên đề tài, chỉ dùng môn áp dụng cho lớp; chưa có điểm hiển thị `—`.
 
 ## Excel
 
 Tải file mẫu trong **Nghiên cứu khoa học → Nhập Excel**. Mỗi dòng là một đề tài, giữ nguyên tiêu đề:
 
-- Mẫu nhập gồm 7 cột như ảnh: STT, Mã đề tài, Tên đề tài, Thông tin đề tài, Mã HV chủ đề tài, Mã HV tham gia (cách nhau bằng ;), Cán bộ hướng dẫn (Họ tên | Đơn vị) (cách nhau bằng dấu ;). STT không dùng để đối chiếu.
+- Mẫu nhập gồm 7 cột như ảnh: STT, Mã đề tài, Tên đề tài, Thông tin đề tài, Mã HV / Họ tên chủ đề tài, Mã HV / Họ tên tham gia (cách nhau bằng ;), Cán bộ hướng dẫn (Họ tên | Đơn vị) (cách nhau bằng dấu ;). STT không dùng để đối chiếu.
 - Có thể tự điền Mã đề tài khi thêm mới hoặc để trống để tạo mã. Mã đã có dùng để cập nhật đúng đề tài; không đối chiếu/gộp theo tên. Mã tự nhập có khóa lưu xác định để không tạo trùng khi gửi lại file.
-- Thành viên được đối chiếu bằng mã học viên (cột mã nên đặt Text để giữ số 0 đầu). Nhiều mã cách nhau bằng `;`. Mã chủ đề tài luôn được thêm vào thành viên.
+- Cột chủ đề tài/thành viên nhận **mã hoặc họ tên đầy đủ**; được trộn mã và tên trong cùng file. Nhiều học viên cách nhau bằng `;`. Ưu tiên khớp mã chính xác; nếu dùng tên, so khớp không phân biệt hoa/thường, khoảng trắng và dấu tiếng Việt. Không tìm theo một phần tên. Cột mã nên đặt Text để giữ số 0 đầu. Chủ đề tài luôn được thêm vào thành viên.
+- Nếu trùng tên, hộp thoại chỉ rõ dòng, vai trò, tên, mã và lớp của từng ứng viên. Phải chọn từng vị trí trùng rồi mới vào bước xem trước; hủy không ghi dữ liệu. Các tiêu đề mẫu cũ “Mã HV…” vẫn được nhận. Đổi tài khoản đóng và hủy bước lựa chọn còn dở.
 - Nhiều cán bộ hướng dẫn phân cách bằng `;`, mỗi người dạng `Họ tên | Đơn vị`; vẫn nhận xuống dòng của mẫu cũ.
 - Thông tin đề tài nhận văn bản nhiều dòng, được lưu và hiển thị nguyên nội dung; file mẫu có ví dụ. Các file mẫu cũ không có cột này vẫn nhập được và giữ thông tin đang lưu.
 - Các cột Mục tiêu, Nội dung nghiên cứu, Sản phẩm dự kiến, Năm học, Giải thưởng, Ghi chú là tùy chọn. Thiếu cột thì giữ thông tin cũ; đề tài mới mặc định Năm 1 nếu không có Năm học. Bản xuất đầy đủ có các cột này để lưu và nhập lại.

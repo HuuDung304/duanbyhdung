@@ -98,13 +98,52 @@ export function normalizeProject(input, state, existing = null) {
   if (actor(state).className && !canEdit(project, state)) throw new Error('Chủ đề tài phải thuộc lớp bạn phụ trách.');
   return project;
 }
-export const EXCEL_HEADERS = ['STT', 'Mã đề tài', 'Tên đề tài', 'Thông tin đề tài', 'Mã HV chủ đề tài', 'Mã HV tham gia (cách nhau bằng ;)', 'Cán bộ hướng dẫn (Họ tên | Đơn vị) (cách nhau bằng dấu ;)'];
+export const EXCEL_HEADERS = ['STT', 'Mã đề tài', 'Tên đề tài', 'Thông tin đề tài', 'Mã HV / Họ tên chủ đề tài', 'Mã HV / Họ tên tham gia (cách nhau bằng ;)', 'Cán bộ hướng dẫn (Họ tên | Đơn vị) (cách nhau bằng dấu ;)'];
 export const EXPORT_HEADERS = [...EXCEL_HEADERS, 'Mục tiêu', 'Nội dung nghiên cứu', 'Sản phẩm dự kiến', 'Năm học', 'Giải thưởng (cách nhau bằng ;)', 'Ghi chú'];
-export function parseResearchRows(rows, state, existingProjects, createId) {
-  const key = value => text(value).toLocaleLowerCase('vi').replace(/\s+/g, ' ');
-  const headers = (rows[0] || []).map(value => key(value).replace(/\s*\(/g, ' (').replace(/^thông tinh đề tài$/, 'thông tin đề tài'));
-  const column = name => headers.findIndex(h => h === name || h.startsWith(name + ' ('));
-  if (column('tên đề tài') < 0 || column('mã hv chủ đề tài') < 0) throw new Error('File cần cột Tên đề tài và Mã HV chủ đề tài.');
+export const studentNameKey = value => text(value).toLocaleLowerCase('vi').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/\s+/g, ' ');
+export function researchStudentCandidates(value, students) {
+  const code = codeKey(value);
+  if (!code) return [];
+  const byCode = students.filter(s => codeKey(s.code) === code);
+  return byCode.length ? byCode : students.filter(s => studentNameKey(s.name) === studentNameKey(value));
+}
+export class ResearchStudentChoiceError extends Error {
+  constructor(choices) { super('Có học viên trùng tên. Chọn đúng mã học viên và lớp để tiếp tục.'); this.choices = choices; }
+}
+function researchColumns(rows) {
+  const aliases = {
+    'mã hv / họ tên chủ đề tài': 'mã hv chủ đề tài', 'họ tên chủ đề tài': 'mã hv chủ đề tài', 'tên chủ đề tài': 'mã hv chủ đề tài',
+    'mã hv / họ tên tham gia': 'mã hv tham gia', 'họ tên tham gia': 'mã hv tham gia', 'học viên tham gia': 'mã hv tham gia'
+  };
+  const headers = (rows[0] || []).map(value => {
+    const base = text(value).toLocaleLowerCase('vi').replace(/\s+/g, ' ').replace(/\s*\(/g, ' (').split(' (')[0].replace(/^thông tinh đề tài$/, 'thông tin đề tài');
+    return aliases[base] || base;
+  });
+  return name => headers.indexOf(name);
+}
+function researchReferences(row, column, rowNumber) {
+  const leader = row[column('mã hv chủ đề tài')] ?? '';
+  const members = text(row[column('mã hv tham gia')]).split(/[;,\n]+/).filter(v => text(v));
+  return [{ key: `row:${rowNumber}:leader`, value: leader, label: 'Chủ đề tài', rowNumber }, ...members.map((value, index) => ({ key: `row:${rowNumber}:member:${index}`, value, label: 'Thành viên', rowNumber }))];
+}
+export function parseResearchRows(rows, state, existingProjects, createId, selections = {}) {
+  const column = researchColumns(rows);
+  if (column('tên đề tài') < 0 || column('mã hv chủ đề tài') < 0) throw new Error('File cần cột Tên đề tài và Mã HV / Họ tên chủ đề tài.');
+  const choices = [];
+  const resolve = ref => {
+    const candidates = researchStudentCandidates(ref.value, state.students);
+    if (!candidates.length) throw new Error(`Dòng ${ref.rowNumber}: Mã học viên hoặc họ tên không tồn tại: ${text(ref.value)}`);
+    if (candidates.length === 1) return candidates[0].id;
+    if (candidates.some(s => s.id === selections[ref.key])) return selections[ref.key];
+    choices.push({ ...ref, candidates }); return null;
+  };
+  // Resolve every reference before constructing any project or allowing a save.
+  const resolved = new Map();
+  for (const [index, row] of rows.slice(1).entries()) {
+    if (!row.some(v => text(v))) continue;
+    for (const ref of researchReferences(row, column, index + 2)) resolved.set(ref.key, resolve(ref));
+  }
+  if (choices.length) throw new ResearchStudentChoiceError(choices);
   const seen = new Set(), drafts = [];
   for (const [index, row] of rows.slice(1).entries()) {
     if (!row.some(v => text(v))) continue;
@@ -115,17 +154,13 @@ export function parseResearchRows(rows, state, existingProjects, createId) {
       if (code) seen.add(codeKey(code));
       const existing = code ? existingProjects.find(p => p.id === code || p.projectCode && codeKey(p.projectCode) === codeKey(code)) : null;
       if (existing && !canEdit(existing, state)) throw new Error('Không có quyền sửa thông tin đề tài này.');
-      const findStudent = code => {
-        const student = state.students.find(s => codeKey(s.code) === codeKey(code));
-        if (!student) throw new Error('Mã học viên không tồn tại: ' + text(code));
-        return student.id;
-      };
-      const leaderId = findStudent(get('mã hv chủ đề tài'));
-      const codes = text(get('mã hv tham gia')).split(/[;,\n]+/).filter(v => text(v));
+      const refs = researchReferences(row, column, index + 2);
+      const leaderId = resolved.get(refs[0].key);
+      const memberIds = refs.slice(1).map(ref => resolved.get(ref.key));
       const awards = column('giải thưởng') < 0 ? normalizeAwards(existing?.awards || []) : text(get('giải thưởng')).split(';').map(text).filter(Boolean);
       const input = { id: existing?.id || (code ? 'code_' + encodeURIComponent(codeKey(code)) : createId()), projectCode: existing?.projectCode || code,
         title: get('tên đề tài'), information: get('thông tin đề tài', existing?.information), objective: get('mục tiêu', existing?.objective), content: get('nội dung nghiên cứu', existing?.content), product: get('sản phẩm dự kiến', existing?.product), notes: get('ghi chú', existing?.notes), leaderId,
-        memberIds: [leaderId, ...codes.map(findStudent)],
+        memberIds: [leaderId, ...memberIds],
         advisors: text(get('cán bộ hướng dẫn')).split(/[;\n]+/).filter(v => text(v)).map(line => { const [name, ...unit] = line.split('|'); return { name, unit: unit.join('|') }; }),
         year: get('năm học', existing?.year || 1), awards };
       drafts.push({ project: normalizeProject(input, state, existing), existing });

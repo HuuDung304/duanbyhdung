@@ -275,3 +275,5 @@ body.ui-modern .research-award-list { min-width:130px; display:grid; gap:5px; }
 body.ui-modern .research-award-check { display:flex; align-items:center; gap:8px; min-height:24px; font-size:12px; white-space:nowrap; cursor:pointer; }
 body.ui-modern .research-award-check:has(input:disabled) { cursor:default; }
 body.ui-modern .research-award-check input { width:15px; height:15px; accent-color:var(--theme-primary); }
+body.ui-modern .research-resolution-list { display:grid; gap:16px; }
+body.ui-modern #researchLeaderMatches { display:block; margin-top:6px; font-size:11px; color:var(--theme-muted); }
