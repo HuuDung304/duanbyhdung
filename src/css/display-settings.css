@@ -57,3 +57,14 @@ body.bento-app #tab-preferences #btnSaveCloudConfig{background:var(--theme-gradi
 body.bento-app #tab-preferences #cloudtab-config>div:last-child{display:flex;flex-wrap:wrap;gap:10px}
 body.bento-app #tab-preferences #cloudtab-config>div:last-child>div{display:flex;flex-wrap:wrap;gap:10px}
 @media print{body.bento-app{--theme-ink:#111;--theme-muted:#444;--theme-card:#fff;--theme-soft:#f4f4f4;--theme-surface:#fff;--theme-primary:#222;--theme-border:#ccc}.display-settings{display:none!important}}
+
+/* Personal award outlook: a quiet full-width strip, with both results on one row when space permits. */
+body.bento-app .student-award-outlook { padding:14px 20px; border-top:1px solid var(--theme-border); background:var(--theme-card); color:var(--theme-ink); }
+body.bento-app .student-award-outlook[hidden] { display:none; }
+body.bento-app .student-award-outlook h3 { margin:0 0 8px; font-size:14px; font-weight:650; }
+body.bento-app .student-award-outlook-items { display:flex; flex-wrap:wrap; gap:10px 24px; }
+body.bento-app .student-award-outlook-items p { flex:1 1 290px; min-width:0; margin:0; font-size:14px; overflow-wrap:anywhere; }
+body.bento-app .student-award-label { color:var(--theme-muted); margin-right:8px; }
+body.bento-app .student-award-outlook-items strong { font-size:14px; font-weight:650; }
+body.bento-app .student-award-outlook-items small { display:block; margin-top:3px; color:var(--theme-muted); font-size:12px; line-height:1.5; }
+body.bento-app .student-award-disclaimer { display:block; margin-top:8px; color:var(--theme-muted); font-size:12px; line-height:1.5; }

@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {buildAcademicAwards,academicAwardLabel} from '../src/js/academic/awards.js';
+import {buildAcademicAwards,academicAwardLabel,studentAwardOutlook} from '../src/js/academic/awards.js';
 import {createGradeCalculations} from '../src/js/academic/calculations.js';
 import {mapDbRowToSubject,mapSubjectToDbRow} from '../src/js/database/mappers.js';
 import {planOffering} from '../src/js/subjects/offerings.js';
@@ -48,4 +48,15 @@ test('zero-credit subjects survive mapping, normalization, saving and curriculum
  assert.equal(mapDbRowToSubject(raw).credits,0);assert.equal(mapSubjectToDbRow(raw).credits,0);
  assert.equal(normalizeSubjectsCatalog([raw])[0].credits,0);
  assert.equal(planOffering({subjects:[],students:[],grades:{},role:'admin',name:'Thể thao',credits:0,semester:3,classes:['TTG2'],createId:()=> 'zero'}).credits,0);
+});
+
+test('personal outlook separates full and provisional results, retains the 7.0 honor and lists blockers',()=>{
+ const input={student:student('s'),subjectsForClass:()=>subjects,languageStatus:()=>({isPassed:true,requiredStandard:'B1'}),scale4:score=>getGradeLetterAndScale4(score).scale4};
+ const pending=studentAwardOutlook({...input,grades:{s:{a:7,b:7,z:4}},kind:'honors'});
+ assert.equal(pending.complete,false);assert.match(pending.label,/Tạm tính: Học viên học tốt/);assert.match(pending.note,/Chờ 1\/4/);
+ const full=studentAwardOutlook({...input,grades:{s:{a:7,b:7,z:4,empty:7}},kind:'honors'});
+ assert.equal(full.complete,true);assert.match(full.label,/Có khả năng đạt: Học viên học tốt/);
+ const failed=studentAwardOutlook({...input,grades:{s:{a:10,z:0}},kind:'scholarships'});
+ assert.equal(failed.label,'Chưa đủ điều kiện');assert.match(failed.note,/chưa qua môn 0 tín chỉ/);
+ const noData=studentAwardOutlook({...input,grades:{},kind:'honors'});assert.equal(noData.period,'');assert.equal(noData.label,'Chưa có điểm để xét');
 });

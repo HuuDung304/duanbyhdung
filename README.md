@@ -12,11 +12,13 @@ Tên đơn vị ở thanh bên và đầu nội dung giữ “Đại đội 460�
 
 ## Danh hiệu học viên và danh sách học bổng
 
-Trong **Xuất báo cáo**, hai file `Danh hiệu học viên.xlsx` và `Danh sách học bổng.xlsx` có các cột theo mẫu: STT, mã học viên, họ tên, ngày sinh, danh hiệu/học bổng, điểm hệ 10, điểm hệ 4, ngoại ngữ và ghi chú. Admin/cán bộ chọn toàn đại đội hoặc một lớp; tài khoản lớp chỉ xét lớp mình.
+Trong **Xuất báo cáo**, hai file `Danh hiệu học viên.xlsx` và `Danh sách học bổng.xlsx` có các cột theo mẫu: STT, mã học viên, họ tên, ngày sinh, danh hiệu/học bổng, điểm hệ 10, điểm hệ 4, ngoại ngữ và ghi chú. Hai file tự xuất toàn phạm vi tài khoản, không chọn lớp: Admin/cán bộ xét toàn đại đội; tài khoản lớp xét cả lớp mình.
 
 Học bổng tự chọn **học kỳ gần nhất có điểm** trong phạm vi được chọn: Lê Quý Đôn từ 9,0; loại A từ 8,5; loại B từ 8,0. Danh hiệu tự chọn **năm gần nhất có điểm**: xuất sắc từ 9,0; học giỏi từ 8,0; học tốt từ 7,0. Chỉ xét môn đã có điểm; không yêu cầu nhập đủ kỳ/năm và không lấy điểm kỳ/năm cũ của người chưa có điểm trong đợt đang xét. TB tính theo tín chỉ; mỗi học viên chỉ xếp vào mức cao nhất đủ điều kiện, so ngưỡng trước khi làm tròn.
 
 Cả hai yêu cầu các môn có tín chỉ đã có điểm đều từ 7,0 và đạt chuẩn tiếng Nga hiện tại. Học phần 0 tín chỉ đã có điểm chỉ yêu cầu qua môn (từ 4,0 theo quy tắc hiện có), không tính vào TB hệ 10/hệ 4. Danh hiệu có **II. Xét vận dụng** cho người TB từ 8,0 có môn có tín chỉ dưới 7,0, ghi rõ từng tên môn và điểm trong ghi chú; vẫn yêu cầu đạt chuẩn tiếng Nga và qua môn 0 tín chỉ. Đây là danh sách đề nghị xét, không tự ghi nhận danh hiệu vào hồ sơ. Sheet `Thong_tin_xet` ghi rõ phạm vi, kỳ/năm được chọn và chuẩn tiếng Nga tại thời điểm xuất. Kiểm thử dùng dữ liệu giả lập.
+
+Tài khoản học viên có khối ngang **Khả năng đạt danh hiệu / học bổng** dưới phần thống kê cá nhân. Danh hiệu dùng năm gần nhất có điểm của bản thân; học bổng dùng học kỳ gần nhất có điểm. Khi danh mục còn môn chưa nhập, kết quả đủ điều kiện được ghi “Tạm tính” kèm số môn chờ điểm; khi đã có đủ điểm ghi “Có khả năng đạt”. Khối này vẫn kiểm tra các điều kiện môn có tín chỉ, môn 0 tín chỉ và chuẩn tiếng Nga hiện tại, phân biệt xét vận dụng và nêu rõ lý do chưa đủ điều kiện; không tự ghi danh hiệu vào hồ sơ. Hai kết quả dùng chung một hàng trên màn hình rộng và tự xuống dòng trên điện thoại.
 
 ## Giao diện tối giản
 

@@ -1,3 +1,5 @@
+import { studentAwardOutlook } from './academic/awards.js';
+import { highestLanguageLevel } from './dashboard-statistics.js';
 import { mountCadetResults } from './academic/cadet-results.js';
 import { trackImportRead } from './components/upload-state.js';
 import { reviewImport } from './components/import-review.js';
@@ -44,6 +46,7 @@ import {
   getHighestRussianCertInfo,
   getLoggedInStudent,
   getClassification,
+  getGradeLetterAndScale4,
   getClassificationBadge,
   getDebtSubjects,
   formatFailedSubjectItem,
@@ -87,6 +90,8 @@ export function validateAndFormatParentDob(val, parentLabel = '') {
 
 
 export function renderStudentView() {
+  const outlook = document.getElementById('studentAwardOutlook');
+  if (outlook) outlook.hidden = true;
   let student = null;
   if (AppState.role === 'student') {
     student = getLoggedInStudent();
@@ -134,6 +139,21 @@ export function renderStudentView() {
   if(debtNote)debtNote.style.color=debts.length?'var(--theme-danger, #be123c)':'var(--theme-positive, #047857)';
   setElText('studentMetricAchievements', achList.length > 0 ? achList.join(' • ') : 'Chưa có danh hiệu');
   setElText('studentMetricAchievementsSub', `${achList.length} danh hiệu lưu trữ`);
+
+  if (outlook && AppState.role === 'student') {
+    const settings = { student, grades: AppState.grades, subjectsForClass: getSubjectsForClass,
+      languageStatus: value => evaluateLangLevelStatus(highestLanguageLevel(value.currentLangLevel || AppState.languages[value.id]?.currentLevel), AppState.requiredLangStandard),
+      scale4: score => getGradeLetterAndScale4(score).scale4 };
+    const honor = studentAwardOutlook({ ...settings, kind: 'honors' });
+    const scholarship = studentAwardOutlook({ ...settings, kind: 'scholarships' });
+    setElText('studentHonorPeriod', `Danh hiệu${honor.period ? ` · ${honor.period}` : ''}`);
+    setElText('studentHonorOutlook', honor.label);
+    setElText('studentHonorOutlookNote', honor.note);
+    setElText('studentScholarshipPeriod', `Học bổng${scholarship.period ? ` · ${scholarship.period}` : ''}`);
+    setElText('studentScholarshipOutlook', scholarship.label);
+    setElText('studentScholarshipOutlookNote', scholarship.note);
+    outlook.hidden = false;
+  }
 
   const langSel = document.getElementById('studentSelfLangLevelSelect');
   if (langSel) {

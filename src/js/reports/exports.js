@@ -595,7 +595,7 @@ export function createReportExports(context) {
 
   function exportAcademicAwardLists(kind) {
     if (!['honors', 'scholarships'].includes(kind) || !['admin', 'company_officer'].includes(context.AppState.role) && !context.AppState.role?.startsWith('class_leader_')) return;
-    const selected = context.getCurrentUserClassScope() || document.getElementById('awardClassSelect')?.value || 'all';
+    const selected = context.getCurrentUserClassScope() || 'all';
     const students = context.getScopedStudents().filter(student => selected === 'all' || student.class === selected);
     const standard = context.evaluateLangLevelStatus('Chưa đạt', context.AppState.requiredLangStandard).requiredStandard;
     const { roster } = context.collectLanguageStatistics(students, context.AppState.languages || {}, standard, context.evaluateLangLevelStatus, context.DEFAULT_CLASSES);

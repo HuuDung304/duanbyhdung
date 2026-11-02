@@ -25,39 +25,26 @@ renderReportCenter();
 let exportDialogPending = false;
 export async function requestReportOptions(kind) {
   if (exportDialogPending || !['admin', 'company_officer'].includes(AppState.role) && !AppState.role?.startsWith('class_leader_')) return false;
+  if (['honors', 'scholarships'].includes(kind)) return true;
   if (kind === 'class' && getCurrentUserClassScope()) return true;
   const dialog = $('reportExportDialog');
   if (!dialog) return false;
   exportDialogPending = true;
-  const awards = ['honors', 'scholarships'].includes(kind);
   const year = kind === 'year';
-  $('reportAwardClassOption').hidden = !awards;
-  $('awardClassSelect').disabled = !awards;
-  if (awards) {
-    const scope = getCurrentUserClassScope();
-    const select = $('awardClassSelect');
-    select.replaceChildren(...(scope ? [scope] : ['all', ...DEFAULT_CLASSES]).map(value => new Option(value === 'all' ? 'Toàn đại đội' : `Lớp ${value}`, value)));
-    select.disabled = Boolean(scope);
-    select.value = scope || 'all';
-  }
-  $('reportClassOption').hidden = year || awards;
+  $('reportClassOption').hidden = year;
   $('reportYearOption').hidden = !year;
-  $('reportsClassSelect').required = !year && !awards;
+  $('reportsClassSelect').required = !year;
   $('rankingYearSelect').required = year;
-  $('reportsClassSelect').disabled = year || awards;
+  $('reportsClassSelect').disabled = year;
   $('rankingYearSelect').disabled = !year;
   if (year) $('rankingYearSelect').value = '';
   $('reportExportDialogTitle').textContent = year ? 'Tải xếp hạng điểm' : 'Tải bảng điểm lớp';
   $('reportExportDialogDescription').textContent = year ? 'Chọn năm học để xếp hạng và tải file.' : 'Chọn lớp cần tải bảng điểm.';
-  if (awards) {
-    $('reportExportDialogTitle').textContent = kind === 'honors' ? 'Tải danh hiệu học viên' : 'Tải danh sách học bổng';
-    $('reportExportDialogDescription').textContent = kind === 'honors' ? 'Tự xét năm gần nhất có điểm trong phạm vi chọn, kể cả chưa đủ điểm. Gồm phần II: Xét vận dụng.' : 'Tự xét học kỳ gần nhất có điểm trong phạm vi chọn, kể cả chưa đủ điểm.';
-  }
   return new Promise(resolve => {
     dialog.addEventListener('close', () => { exportDialogPending = false; resolve(dialog.returnValue === 'download'); }, { once: true });
     dialog.returnValue = '';
     dialog.showModal();
-    $(awards ? (getCurrentUserClassScope() ? 'reportExportConfirm' : 'awardClassSelect') : year ? 'rankingYearSelect' : 'reportsClassSelect').focus();
+    $(year ? 'rankingYearSelect' : 'reportsClassSelect').focus();
   });
 }
 $('reportExportCancel')?.addEventListener('click', () => $('reportExportDialog').close('cancel'));

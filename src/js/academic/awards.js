@@ -41,3 +41,38 @@ export function buildAcademicAwards({ students, grades, subjectsForClass, langua
   const compare = (a, b) => b.average - a.average || String(a.student.code).localeCompare(String(b.student.code), 'vi');
   return { latestSemester, year, qualified: qualified.sort(compare), discretionary: discretionary.sort(compare) };
 }
+
+// Personal outlook uses the same eligibility rules as Excel, but explicitly
+// distinguishes a provisional result from a result with every subject scored.
+export function studentAwardOutlook({ student, grades, subjectsForClass, languageStatus, scale4, kind }) {
+  const result = buildAcademicAwards({ students: [student], grades, subjectsForClass, languageStatus, scale4, kind });
+  const period = kind === 'honors' ? `Năm ${result.year}` : `Học kỳ ${result.latestSemester}`;
+  if (!result.latestSemester) return { period: '', label: 'Chưa có điểm để xét', note: '', complete: false };
+  const subjects = subjectsForClass(student.class).filter(subject => kind === 'honors'
+    ? Math.ceil(Number(subject.semester) / 2) === result.year : Number(subject.semester) === result.latestSemester);
+  const scores = grades[student.id] || {};
+  const scored = subjects.filter(subject => hasScore(scores[subject.id]));
+  const missing = subjects.length - scored.length;
+  const candidate = result.qualified[0] || result.discretionary[0];
+  const complete = missing === 0;
+  const pending = missing ? `Chờ ${missing}/${subjects.length} môn có điểm` : 'Đã có đủ điểm trong danh mục';
+  if (candidate) return {
+    period, complete,
+    label: `${complete ? 'Có khả năng đạt' : 'Tạm tính'}: ${candidate.award}${result.discretionary.length ? ' (xét vận dụng)' : ''}`,
+    note: [pending, `TB ${candidate.average.toFixed(2).replace('.', ',')}`,
+      ...candidate.belowSeven.map(({ subject, score }) => `${subject.name || subject.code} (${score.toFixed(2).replace('.', ',')} < 7,0)`)].join(' · ')
+  };
+  const language = languageStatus(student);
+  const credited = scored.filter(subject => Number(subject.credits) > 0);
+  const credits = credited.reduce((sum, subject) => sum + Number(subject.credits), 0);
+  const average = credits ? credited.reduce((sum, subject) => sum + Number(scores[subject.id]) * Number(subject.credits), 0) / credits : null;
+  const notes = [pending];
+  if (average === null) notes.push('Chưa có điểm môn tính tín chỉ');
+  else if (!academicAwardLabel(average, kind)) notes.push(`TB ${average.toFixed(2).replace('.', ',')} dưới ${kind === 'honors' ? '7,0' : '8,0'}`);
+  if (!language.isPassed) notes.push(`Chưa đạt chuẩn tiếng Nga ${language.requiredStandard || ''}`.trim());
+  for (const subject of scored) {
+    const failed = Number(subject.credits) === 0 ? Number(scores[subject.id]) < 4 : Number(scores[subject.id]) < 7;
+    if (failed) notes.push(`${subject.name || subject.code} (${Number(scores[subject.id]).toFixed(2).replace('.', ',')})${Number(subject.credits) === 0 ? ' chưa qua môn 0 tín chỉ' : ' dưới 7,0'}`);
+  }
+  return { period, complete, label: 'Chưa đủ điều kiện', note: notes.join(' · ') };
+}
