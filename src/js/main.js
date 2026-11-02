@@ -1,3 +1,4 @@
+import { mountTableDialogs } from './components/table-dialogs.js';
 import { mountLeaveRoster } from './leave-roster.js';
 import { mountPartyNomination } from './party-nomination.js';
 import { SUBJECT_AUDIT_FIELDS, RESEARCH_AUDIT_FIELDS } from './audit-changes.js';
@@ -1526,6 +1527,7 @@ function registerGlobalEventDelegation() {
 let _localAppInitialized = false;
 
 export function initApp() {
+  mountTableDialogs();
   mountPartyNomination();
   mountLeaveRoster();
   installOfficerReadOnlyGuard(() => AppState.role, showToast);

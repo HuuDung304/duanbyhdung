@@ -516,3 +516,18 @@ body.ui-modern .report-export-dialog { border-radius:16px; }
  body.ui-modern .report-export-dialog { width:calc(100vw - 24px); max-height:calc(100dvh - 24px); padding:18px; }
  body.ui-modern .u040-content :is(.bento-card,.workspace-settings-card,.report-export-card,.catalog-semester,.year-breakdown-card,.research-table-card) { box-shadow:none; }
 }
+
+/* Full-screen table viewer uses the existing table and retains its controls. */
+body.ui-modern .readable-data-table [data-identity-column="2"] { box-shadow:none; }
+body.ui-modern .table-dialog-launcher { display:flex; align-items:center; justify-content:space-between; gap:16px; width:100%; padding:20px!important; text-align:left; border:1px solid var(--theme-border)!important; border-radius:14px!important; background:var(--theme-card)!important; color:var(--theme-ink)!important; cursor:pointer; }
+body.ui-modern .table-dialog-launcher strong,body.ui-modern .table-dialog-launcher small { display:block; }
+body.ui-modern .table-dialog-launcher small { color:var(--theme-muted); font-weight:400; margin-top:4px; }
+body.ui-modern .table-dialog-launcher>span:last-child { font-size:24px; color:var(--theme-primary); }
+body.ui-modern .table-dialog { position:fixed; inset:0; margin:auto; width:min(1500px,calc(100vw - 32px)); max-width:none; height:fit-content; max-height:calc(100dvh - 32px); padding:20px; overflow:auto; border:1px solid var(--theme-border); border-radius:14px; background:var(--theme-surface); color:var(--theme-ink); box-sizing:border-box; }
+body.ui-modern .table-dialog::backdrop { background:#10182899; }
+body.ui-modern .table-dialog-heading { display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:14px; }
+body.ui-modern .table-dialog-heading h2 { margin:0; font-size:20px; color:var(--theme-ink); }
+body.ui-modern .table-dialog-close { min-height:44px; padding:8px 16px; border:1px solid var(--theme-border); border-radius:8px; background:var(--theme-card); color:var(--theme-ink); cursor:pointer; }
+body.ui-modern .table-dialog .readable-table-scroll { max-height:calc(100dvh - 160px); }
+@media(max-width:760px) { body.ui-modern .table-dialog { width:calc(100vw - 16px); max-height:calc(100dvh - 16px); padding:12px; } body.ui-modern .table-dialog .readable-table-scroll { max-height:calc(100dvh - 130px); } }
+body.ui-modern .table-dialog[open] { animation:none!important; }
