@@ -452,3 +452,7 @@ body.ui-modern .leave-download-option small { color:var(--theme-muted); font-siz
 body.ui-modern .leave-download-option button { display:inline-flex; align-items:center; gap:8px; flex-shrink:0; }
 body.ui-modern .leave-download-option svg { width:18px; height:18px; }
 body.ui-modern #leaveRosterNotice:empty { display:none; }
+
+body.ui-modern #leaveRosterForm .leave-time-fields { display:grid; grid-template-columns:minmax(0,1.65fr) minmax(0,1fr) minmax(0,1fr); gap:10px; }
+body.ui-modern #leaveRosterForm .leave-time-fields label { display:block; min-width:0; font-size:12px; }
+body.ui-modern #leaveRosterForm .leave-time-fields :is(input,select) { margin-top:6px; padding:10px 8px; }

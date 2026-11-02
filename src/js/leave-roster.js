@@ -17,6 +17,13 @@ export function leaveTime(value){
  if(date.getFullYear()!==Number(year)||date.getMonth()!==Number(month)-1||date.getDate()!==Number(day)||Number(hour)>23||Number(minute)>59)throw new Error('Ngày giờ không hợp lệ.');
  return `${hour} giờ ${minute} ngày ${Number(day)} tháng ${Number(month)} năm ${year}`;
 }
+export function leaveInputValue(date,hour,minute){
+ const match=String(date).trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+ if(!match||!/^\d{2}$/.test(hour)||!/^\d{2}$/.test(minute))throw new Error('Nhập ngày theo DD/MM/YYYY và chọn đầy đủ giờ, phút.');
+ const value=`${match[3]}-${match[2]}-${match[1]}T${hour}:${minute}`;
+ leaveTime(value);
+ return value;
+}
 export function leaveRows(students,regions,depart,returning){
  const names={OTQS1:'Ô tô quân sự 1',OTQS2:'Ô tô quân sự 2',TTG1:'Tăng thiết giáp 1',TTG2:'Tăng thiết giáp 2',XMCB:'Xe máy công binh'};
  const result={north:[],south:[]};
@@ -41,6 +48,10 @@ export function mountLeaveRoster(){
  button.addEventListener('click',()=>{
   if(!allowed())return;identity=currentIdentity();updateCounts();dialog.showModal();
  });
+ for(const id of ['leaveDeparture','leaveReturn'])document.getElementById(id).addEventListener('input',event=>{
+  const input=event.target;
+  if(/^\d{8}$/.test(input.value))input.value=input.value.replace(/^(\d{2})(\d{2})(\d{4})$/,'$1/$2/$3');
+ });
  document.getElementById('leaveRosterCancel').addEventListener('click',()=>dialog.close());
  window.addEventListener('report-role-change',()=>dialog.close());
  form.addEventListener('submit',event=>{
@@ -50,7 +61,8 @@ export function mountLeaveRoster(){
   try{
    const students=getScopedStudents();
    if(!students.length)throw new Error('Phạm vi tài khoản chưa có học viên.');
-   const departInput=document.getElementById('leaveDeparture').value,returnInput=document.getElementById('leaveReturn').value;
+   const readTime=id=>leaveInputValue(document.getElementById(id).value,document.getElementById(id+'Hour').value,document.getElementById(id+'Minute').value);
+   const departInput=readTime('leaveDeparture'),returnInput=readTime('leaveReturn');
    const depart=leaveTime(departInput),returning=leaveTime(returnInput);
    if(returnInput<=departInput)throw new Error('Thời gian lên phải sau thời gian về.');
    const groups=leaveRows(students.filter(s=>hometownRegion(s.hometown)===selectedRegion),{},depart,returning),book=XLSX.utils.book_new();

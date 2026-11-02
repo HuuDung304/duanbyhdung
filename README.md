@@ -26,7 +26,7 @@ Admin/cán bộ chọn **Danh sách dự kiến kết nạp Đảng** trong Xu�
 
 ## Danh sách tranh thủ
 
-Một mục **Danh sách tranh thủ** mở hộp thoại giữa màn hình, chỉ có hai ô ngày giờ về/lên và hai khối miền Nam/Bắc với nút tải riêng. Mỗi nút xuất một file Excel chỉ chứa miền tương ứng, theo phạm vi tài khoản. Tải xuống không đóng hộp thoại và không xóa thời gian, có thể tải Nam rồi Bắc liên tiếp; chỉ nút Đóng, Escape hoặc đổi tài khoản mới đóng hộp thoại.
+Một mục **Danh sách tranh thủ** mở hộp thoại giữa màn hình, chỉ có hai nhóm thời gian về/lên và hai khối miền Nam/Bắc với nút tải riêng. Ngày nhập theo DD/MM/YYYY; giờ chọn 00–23, phút 00–59, nhãn tiếng Việt và không dùng AM/PM. Mỗi nút xuất một file Excel chỉ chứa miền tương ứng, theo phạm vi tài khoản. Tải xuống không đóng hộp thoại và không xóa thời gian, có thể tải Nam rồi Bắc liên tiếp; chỉ nút Đóng, Escape hoặc đổi tài khoản mới đóng hộp thoại.
 
 Cột xuất theo mẫu: TEN, CAP_BAC, CHUC_VU, DON_VI, QUE_QUAN, NGAY_VE, NGAY_LEN. Đơn vị ghi đầy đủ tên lớp, Đại đội 460, Tiểu đoàn 4. Hà Tĩnh trở ra là Bắc, Quảng Trị trở vào là Nam; Quảng Bình cũ được nhận diện thuộc Quảng Trị hiện nay. Không hiển thị danh sách chọn miền từng người; phân miền tự động theo quê quán. Nếu quê quán chưa rõ, hộp thoại thông báo số người chưa phân được miền để bổ sung hồ sơ, không tự đoán. Thời gian lên phải sau thời gian về. Không sửa hồ sơ gốc. Kiểm thử tải Nam và Bắc liên tiếp, giữ hộp thoại và thời gian trên máy tính/điện thoại bằng dữ liệu giả lập.
 
