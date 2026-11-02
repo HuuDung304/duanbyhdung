@@ -70,6 +70,8 @@ const base=process.env.TEST_BASE_URL||'http://127.0.0.1:3000';
   await page.locator('#reportGallerySearch').fill('hoc bong');
   assert.equal(await page.locator('#btnExportScholarships').isVisible(),true);
   assert.equal(await page.locator('#btnExportRanking').isVisible(),false);
+  await page.locator('#reportGallerySearch').fill('bao cao khong ton tai');
+  assert.match(await page.locator('#reportGalleryStatus').innerText(),/Không tìm thấy/);
   await page.locator('#reportGalleryClear').click();
   assert.equal(await page.locator('#btnExportRanking').isVisible(),true);
   await page.screenshot({path:`/tmp/interface-reports-${width}-light.png`,fullPage:true,animations:'disabled'});

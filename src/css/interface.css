@@ -611,6 +611,7 @@ body.ui-modern .report-search label { flex-basis:100%; font-weight:650; color:va
 body.ui-modern .report-search input { flex:1 1 240px; min-width:0; min-height:44px; padding:9px 12px; border:1px solid var(--theme-border-strong); border-radius:8px; background:var(--theme-surface); color:var(--theme-ink); }
 body.ui-modern .report-search button { min-height:44px; padding:8px 14px; border:1px solid var(--theme-border); border-radius:8px; background:var(--theme-card); color:var(--theme-ink); }
 body.ui-modern .report-export-card.report-search-mismatch { display:none!important; }
+body.ui-modern #reportGalleryStatus { color:var(--theme-muted); font-size:13px; }
 body.ui-modern .subject-catalog-filter input { flex:1 1 220px; min-width:0; min-height:44px; padding:9px 12px; border:1px solid var(--theme-border-strong); border-radius:8px; background:var(--theme-surface); color:var(--theme-ink); }
 body.ui-modern .subject-catalog-filter button { min-height:44px; padding:8px 14px; border:1px solid var(--theme-border); border-radius:8px; background:var(--theme-card); color:var(--theme-ink); }
 body.ui-modern .catalog-search-status { color:var(--theme-muted); font-size:13px; }
