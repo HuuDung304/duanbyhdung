@@ -25,8 +25,15 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
    await page.goto(process.env.TEST_BASE_URL||'http://127.0.0.1:3018',{waitUntil:'networkidle'});if(process.env.REPORT_TEST_CSS_PATH)await page.addStyleTag({path:process.env.REPORT_TEST_CSS_PATH});
    await page.waitForFunction(()=>window.AppState?.students.length===3);
    await page.emulateMedia({reducedMotion:'reduce'});
-   await page.locator('.u040-it[data-tab="tab-settings"]').click();
+   const navigateSettings=async()=>{const link=page.locator('.u040-it[data-tab="tab-settings"]');if(!await link.isVisible())await page.locator('#interfaceMenuButton').click();await link.click();};
+   await navigateSettings();
    assert.match(await page.locator('.subject-catalog').innerText(),/TTQS/);
+   await page.locator('#subjectCatalogSearch').fill('toan cao');
+   assert.equal(await page.locator('tr[data-subject-id="math"]').isVisible(),true);
+   assert.equal(await page.locator('tr[data-subject-id="legacy-ttqs"]').isVisible(),false);
+   assert.match(await page.locator('#subjectCatalogSearchStatus').textContent(),/1 môn/);
+   await page.getByRole('button',{name:'Xóa tìm kiếm'}).last().click();
+   assert.equal(await page.locator('tr[data-subject-id="legacy-ttqs"]').isVisible(),true);
    assert.doesNotMatch(await page.locator('.subject-catalog').innerText(),/Môn Học Chuyên Ngành/);
    assert.equal(writes.filter(write=>write.table==='subjects').length,0);
    const modal=page.locator('#modalAddSubject');
@@ -81,9 +88,9 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
    const download=page.waitForEvent('download');await page.locator('#reportExportConfirm').click();
    const book=XLSX.read(fs.readFileSync(await(await download).path()),{type:'buffer'});
    const values=XLSX.utils.sheet_to_json(book.Sheets[book.SheetNames[0]],{header:1}).flat();assert.ok(values.includes(literal));assert.ok(values.includes(exact));assert.ok(!values.includes('Môn B'));
-   await page.evaluate(()=>window.AuthState.setUser({type:'company_officer',displayName:'Cán bộ'}));await page.locator('.u040-it[data-tab="tab-settings"]').click();
+   await page.evaluate(()=>window.AuthState.setUser({type:'company_officer',displayName:'Cán bộ'}));await navigateSettings();
    assert.equal(await page.locator('.subject-catalog .btn-add-to-sem').count(),0);assert.equal(await page.locator('.subject-catalog .btn-edit-subj').count(),0);
-   await page.evaluate(()=>window.AuthState.setUser({type:'class_account',class:'OTQS1'}));await page.locator('.u040-it[data-tab="tab-settings"]').click();
+   await page.evaluate(()=>window.AuthState.setUser({type:'class_account',class:'OTQS1'}));await navigateSettings();
    assert.equal(await page.locator('#subjectCatalogClass').isDisabled(),true);assert.equal(await page.locator('.btn-edit-subj[data-id="legacy-ttqs"]').count(),0);
    assert.equal(await page.locator(`.btn-edit-subj[data-id="${first.id}"]`).count(),1);
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);assert.deepEqual(errors,[]);

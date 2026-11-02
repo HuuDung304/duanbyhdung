@@ -10,7 +10,11 @@ export function renderSubjectCatalog(context){
   let filter=document.getElementById('subjectCatalogClass');
   if(!filter){
     const controls=node('div','subject-catalog-filter');const label=node('label','','Xem danh mục của lớp');
-    filter=node('select');filter.id='subjectCatalogClass';label.htmlFor=filter.id;controls.append(label,filter);section.querySelector('.settings-intro').after(controls);
+    filter=node('select');filter.id='subjectCatalogClass';label.htmlFor=filter.id;controls.append(label,filter);
+    const searchLabel=node('label','','Tìm môn học'),search=node('input');search.id='subjectCatalogSearch';search.type='search';search.placeholder='Tên hoặc mã môn học…';search.autocomplete='off';searchLabel.htmlFor=search.id;
+    const clear=node('button','','Xóa tìm kiếm');clear.type='button';clear.addEventListener('click',()=>{search.value='';applySubjectSearch();search.focus();});
+    const status=node('span','catalog-search-status');status.id='subjectCatalogSearchStatus';status.setAttribute('role','status');search.setAttribute('aria-describedby',status.id);
+    search.addEventListener('input',applySubjectSearch);controls.append(searchLabel,search,clear,status);section.querySelector('.settings-intro').after(controls);
     filter.addEventListener('change',()=>{state.settingsSelectedClass=filter.value;refresh();});
   }
   filter.replaceChildren(...(scope?[scope]:['all',...classes]).map(cls=>new Option(cls==='all'?'Tất cả lớp':cls,cls)));filter.value=selected;filter.disabled=Boolean(scope);
@@ -54,4 +58,13 @@ export function renderSubjectCatalog(context){
     if(!subjects.length){const row=node('tr'),cell=node('td','catalog-empty','Chưa có môn học trong học kỳ này');cell.colSpan=5;row.append(cell);body.append(row);}
     table.append(head,body);scroll.append(table);card.append(heading,scroll);return card;
   }));
+  applySubjectSearch();
+}
+
+function applySubjectSearch(){
+  const search=document.getElementById('subjectCatalogSearch'),container=document.getElementById('settingsSemestersContainer');if(!search||!container)return;
+  const normalize=value=>value.toLocaleLowerCase('vi').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').trim();
+  const query=normalize(search.value),rows=[...container.querySelectorAll('tr[data-subject-id]')];let count=0;
+  for(const row of rows){const match=normalize(row.querySelector('.catalog-subject-name')?.textContent||'').includes(query);row.hidden=!match;if(match)count++;}
+  const status=document.getElementById('subjectCatalogSearchStatus');if(status)status.textContent=query?`${count} môn phù hợp trong năm đang chọn`:'';
 }
