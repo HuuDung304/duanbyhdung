@@ -644,3 +644,19 @@ body.ui-modern .table-dialog-launcher { min-height:104px; border-left:5px solid 
 body.ui-modern .table-dialog-launcher strong { font-size:18px; }
 html[data-theme="dark"] body.ui-modern .bento-shell .u040-rail { background:#08162f; }
 @media(max-width:760px) { body.ui-modern .ui-toolbar { height:72px; } body.ui-modern #interfacePageTitle { font-size:23px; } }
+
+/* Dashboard: metrics and quick actions share the first row; reports remain full width. */
+@media(min-width:1100px) {
+ body.ui-modern #tab-dashboard.active { display:grid; grid-template-columns:minmax(0,1fr) 260px; gap:20px; align-items:start; }
+ body.ui-modern #tab-dashboard> * { grid-column:1 / -1; }
+ body.ui-modern #tab-dashboard>#dashboardKpis { grid-column:1; grid-row:1; }
+ body.ui-modern #tab-dashboard>.workspace-quick-actions { grid-column:2; grid-row:1; align-self:stretch; align-content:start; flex-direction:column; align-items:stretch; padding:22px; }
+ body.ui-modern #tab-dashboard .workspace-quick-actions-list { display:grid; grid-template-columns:1fr; }
+ body.ui-modern #tab-dashboard .workspace-quick-action { text-align:left; min-height:44px; }
+}
+body.ui-modern #tab-reports .report-gallery { grid-template-columns:repeat(2,minmax(0,1fr)); }
+body.ui-modern #tab-reports .report-gallery .report-export-card { display:grid; grid-template-columns:minmax(0,1fr) auto; grid-template-rows:auto 1fr; column-gap:18px; min-height:0; }
+body.ui-modern #tab-reports .report-gallery .report-export-card h3 { grid-column:1; }
+body.ui-modern #tab-reports .report-gallery .report-export-card p { grid-column:1; margin:6px 0 0; }
+body.ui-modern #tab-reports .report-gallery .report-card-actions { grid-column:2; grid-row:1 / 3; align-self:center; }
+@media(max-width:760px) { body.ui-modern #tab-reports .report-gallery { grid-template-columns:1fr; } }
