@@ -106,7 +106,8 @@ if (shell && main && nav && !document.getElementById('interfaceToolbar')) {
     help(quickCard, 'Định dạng file');
   }
   help(document.querySelector('#modalImportExcel .p-5 > p'), 'Cách chuẩn bị file');
-  for (const selector of ['#adminProfilesToolbar > div:first-child > div:first-child > p', '#tab-audit > div:first-child p', '.settings-intro > p', '.research-upload-description']) help(document.querySelector(selector));
+  for (const selector of ['#adminProfilesToolbar > div:first-child > div:first-child > p', '#tab-audit > div:first-child p', '.settings-intro > p']) document.querySelector(selector)?.remove();
+  help(document.querySelector('.research-upload-description'));
   // Small copy, full meaning available on each report card's accessible download action.
   const descriptions = { researchReportCard: 'Đề tài, thành viên và giải thưởng.' };
   for (const card of document.querySelectorAll('.report-export-card')) {

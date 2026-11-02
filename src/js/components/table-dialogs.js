@@ -1,3 +1,13 @@
+function installYearButtons(select) {
+ if (!select || select.dataset.yearButtonsMounted) return;
+ select.dataset.yearButtonsMounted='true';select.classList.add('table-year-native');select.tabIndex=-1;select.setAttribute('aria-hidden','true');
+ const group=document.createElement('div');group.className='table-year-buttons';group.setAttribute('role','group');group.setAttribute('aria-label','Chọn năm học');
+ const buttons=Array.from({length:5},(_,i)=>{const button=document.createElement('button');button.type='button';button.textContent=`Năm ${i+1}`;button.dataset.year=String(i+1);button.addEventListener('click',()=>{select.value=button.dataset.year;select.dispatchEvent(new Event('change',{bubbles:true}));sync();});group.append(button);return button;});
+ const sync=()=>buttons.forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.year===select.value)));
+ select.addEventListener('change',sync);select.after(group);sync();
+ group.syncYearButtons=sync;
+}
+
 // Move the existing table card into a modal, retaining its nodes and event handlers.
 export function mountTableDialogs() {
  const configs=[['tab-sheet','spreadsheetTable','Bảng điểm'],['tab-profiles','profilesTableBody','Hồ sơ quân nhân'],['tab-cumulative','cumulativeTableBody','Tiếng Nga · Tích lũy'],['tab-master','masterTableBody','Toàn đại đội']];
@@ -15,7 +25,28 @@ export function mountTableDialogs() {
   const label=document.createElement('h2');label.textContent=title;
   const close=document.createElement('button');close.type='button';close.className='table-dialog-close';close.textContent='Đóng';close.setAttribute('aria-label',`Đóng ${title}`);
   heading.append(label,close);card.before(launcher,dialog);dialog.append(heading,card);
-  launcher.addEventListener('click',()=>dialog.showModal());close.addEventListener('click',()=>dialog.close());
+  let toolbar=null, placeholder=null;
+  if(sectionId==='tab-sheet'||sectionId==='tab-master') {
+   const selector=sectionId==='tab-sheet'?'#sheetClassSelect':'#masterFilterClass';
+   const input=section.querySelector(selector);
+   toolbar=sectionId==='tab-sheet'?input?.closest('.sheet-filter-controls')?.parentElement:input?.closest('.space-y-3');
+   if(toolbar){placeholder=document.createComment('Vị trí bộ lọc');toolbar.before(placeholder);toolbar.classList.add('table-dialog-controls');dialog.insertBefore(toolbar,card);}
+   const search=document.getElementById(sectionId==='tab-sheet'?'sheetSearchInput':'masterSearch');
+   const classBox=input?.closest(sectionId==='tab-sheet'?'#sheetClassSelectBox':'div');
+   const searchBox=search?.closest(sectionId==='tab-sheet'?'#sheetSearchBox':'div');
+   if(classBox&&searchBox)classBox.after(searchBox);
+   installYearButtons(document.getElementById(sectionId==='tab-sheet'?'sheetSemesterSelect':'masterFilterSemester'));
+  }
+  if(sectionId==='tab-cumulative') {
+   const classInput=document.getElementById('cumulFilterClass'),search=document.getElementById('cumulSearchInput');
+   const oldToolbar=classInput?.closest('.space-y-3');
+   if(classInput&&search){const controls=document.createElement('div');controls.className='table-dialog-controls table-dialog-simple';controls.append(classInput.parentElement,search.parentElement);dialog.insertBefore(controls,card);}
+   if(oldToolbar)oldToolbar.hidden=true;
+   for(const id of ['cumulFilterYear','cumulFilterRank','cumulFilterDebt']) {const input=document.getElementById(id);if(input?.parentElement)input.parentElement.hidden=true;}
+  }
+  const syncToolbar=()=>{if(!toolbar||sectionId!=='tab-sheet')return;if(window.AppState?.role==='student')placeholder.after(toolbar);else dialog.insertBefore(toolbar,card);};
+  window.addEventListener('report-role-change',syncToolbar);syncToolbar();
+  launcher.addEventListener('click',()=>{dialog.showModal();dialog.querySelector('.table-year-buttons')?.syncYearButtons?.();});close.addEventListener('click',()=>dialog.close());
   dialog.addEventListener('click',event=>{if(event.target===dialog)dialog.close();else if(event.target.closest('.btn-view-cadet-detail,.btn-open-transcript,.btn-open-profile'))dialog.close();});
   dialog.addEventListener('close',()=>{if(launcher.isConnected&&!launcher.hidden)launcher.focus({preventScroll:true});});
   const sync=()=>{const unavailable=card.classList.contains('hidden')||card.style.display==='none';launcher.hidden=unavailable;if(dialog.open&&(unavailable||!section.classList.contains('active')))dialog.close();};

@@ -531,3 +531,12 @@ body.ui-modern .table-dialog-close { min-height:44px; padding:8px 16px; border:1
 body.ui-modern .table-dialog .readable-table-scroll { max-height:calc(100dvh - 160px); }
 @media(max-width:760px) { body.ui-modern .table-dialog { width:calc(100vw - 16px); max-height:calc(100dvh - 16px); padding:12px; } body.ui-modern .table-dialog .readable-table-scroll { max-height:calc(100dvh - 130px); } }
 body.ui-modern .table-dialog[open] { animation:none!important; }
+
+body.ui-modern .table-dialog-controls { margin-bottom:16px; }
+body.ui-modern .table-dialog-simple { display:grid; grid-template-columns:minmax(180px,1fr) minmax(220px,2fr); gap:12px; padding:14px; border:1px solid var(--theme-border); border-radius:10px; background:var(--theme-card); }
+body.ui-modern .table-dialog-simple :is(input,select) { width:100%; }
+body.ui-modern .table-year-native { position:absolute!important; width:1px!important; height:1px!important; padding:0!important; border:0!important; opacity:0!important; overflow:hidden; pointer-events:none; }
+body.ui-modern .table-year-buttons { display:flex; gap:6px; overflow-x:auto; max-width:100%; }
+body.ui-modern .table-year-buttons button { flex:none; min-height:40px; padding:8px 12px; }
+body.ui-modern .table-year-buttons button[aria-pressed="true"] { background:var(--theme-selected)!important; color:var(--theme-primary)!important; border-color:var(--theme-primary)!important; }
+@media(max-width:640px) { body.ui-modern .table-dialog-simple { grid-template-columns:1fr; } }

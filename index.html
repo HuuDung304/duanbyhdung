@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="app-release" content="0cae6506320f">
+  <meta name="app-release" content="a5b282cc0fc3">
   <script id="theme-preference-bootstrap">
     try { document.documentElement.dataset.theme = localStorage.getItem('dd460_display_theme') === 'dark' ? 'dark' : 'light'; }
     catch { document.documentElement.dataset.theme = 'light'; }
@@ -132,7 +132,7 @@ body {
   <link rel="stylesheet" href="./src/css/rose-theme.css?v=16d10467d42b">
   <link rel="stylesheet" href="./src/css/display-settings.css?v=80ac2f7100da">
   <link rel="stylesheet" href="./src/css/research.css?v=8de29711d174">
-  <link rel="stylesheet" href="./src/css/interface.css?v=89835a91c8b1">
+  <link rel="stylesheet" href="./src/css/interface.css?v=3730c6944327">
 </head>
 <body class="bento-app ui-modern bg-slate-100 text-slate-800 min-h-screen flex flex-col">
 
@@ -458,12 +458,6 @@ body {
         </div>
       </div>
 
-      <!-- Instruction banner for keyboard navigation -->
-      <details id="sheetInstructionBanner" class="sheet-help">
-        <summary>Hướng dẫn nhập điểm</summary>
-        <p>Chọn ô điểm để sửa. Dùng phím <strong>Mũi tên</strong>, <strong>Enter</strong> hoặc <strong>Tab</strong> để chuyển ô. Nhập điểm từ 0 đến 10; ĐTB và xếp loại được tính tự động.</p>
-      </details>
-
       <!-- SPREADSHEET GRID TABLE (DÀNH CHO CÁN BỘ, ADMIN & TÀI KHOẢN LỚP) -->
       <div id="classSpreadsheetWrapper" class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <div class="overflow-x-auto custom-scrollbar max-h-[620px]">
@@ -670,7 +664,6 @@ body {
         <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
             <h3 class="text-base font-bold text-slate-900 uppercase">Tiếng Nga và Tích lũy</h3>
-            <p class="text-xs text-slate-500">Cấu trúc điểm kỳ DTB HK1 (10) &amp; DTB HKII (10) • Chọn trực tiếp Trình độ ngoại ngữ hiện tại </p>
           </div>
           <div class="flex flex-wrap items-center gap-2">
             <button id="btnAddCadetCumulBtn" class="leader-allowed inline-flex items-center gap-1.5 text-xs font-bold bg-army-700 hover:bg-army-800 text-white px-3.5 py-2 rounded-lg shadow-sm transition">
@@ -687,7 +680,6 @@ body {
             <span class="w-7 h-7 rounded-lg bg-army-800 text-gold-400 flex items-center justify-center font-bold text-xs">🌐</span>
             <div>
               <div class="text-xs font-bold text-army-950 uppercase">Chuẩn Ngoại Ngữ Hiện Tại Phải Đạt Được: <span class="required-lang-standard-badge px-2 py-0.5 rounded bg-army-800 text-gold-300 font-extrabold">A2</span></div>
-              <div class="text-[11px] text-slate-600">Hệ thống tự động đối chiếu trình độ thực tế của học viên với chuẩn hiện tại và cảnh báo <strong>"Chưa đạt"</strong> nếu thấp hơn chuẩn.</div>
             </div>
           </div>
           <div class="flex items-center gap-2">
@@ -1097,7 +1089,6 @@ body {
         <div>
           <h3 class="text-base font-bold text-slate-900 uppercase">Nhật ký hệ thống</h3>
           <p id="auditSyncStatus" class="text-xs text-slate-500" role="status" aria-live="polite">Tự cập nhật khi có thay đổi từ các tài khoản.</p>
-          <p class="text-xs text-slate-500">Ghi nhận tài khoản, thời gian, nội dung thay đổi và giá trị trước → sau của dữ liệu hệ thống.</p>
         </div>
 
       </div>
@@ -2266,11 +2257,11 @@ body {
     "./src/js/components/drop-upload.js": "./src/js/components/drop-upload.js?v=71abf0bb0378",
     "./src/js/components/expanding-rail.js": "./src/js/components/expanding-rail.js?v=d9f1c3462963",
     "./src/js/components/import-review.js": "./src/js/components/import-review.js?v=57e0aa5e92d0",
-    "./src/js/components/interface.js": "./src/js/components/interface.js?v=1965d30fb449",
+    "./src/js/components/interface.js": "./src/js/components/interface.js?v=34e2ef90c5be",
     "./src/js/components/notched-field.js": "./src/js/components/notched-field.js?v=553608c192ae",
     "./src/js/components/readability.js": "./src/js/components/readability.js?v=c57aaebc1109",
     "./src/js/components/report-center.js": "./src/js/components/report-center.js?v=3dfa5e5cdf8f",
-    "./src/js/components/table-dialogs.js": "./src/js/components/table-dialogs.js?v=f708c8f2cafd",
+    "./src/js/components/table-dialogs.js": "./src/js/components/table-dialogs.js?v=cef42a9385cf",
     "./src/js/components/theme-settings.js": "./src/js/components/theme-settings.js?v=451e0056392a",
     "./src/js/components/upload-state.js": "./src/js/components/upload-state.js?v=20000299c632",
     "./src/js/components/workspace-reports.js": "./src/js/components/workspace-reports.js?v=03ae1d213e37",
@@ -2284,7 +2275,7 @@ body {
     "./src/js/database/repository.js": "./src/js/database/repository.js?v=fb5a353f7938",
     "./src/js/grades.js": "./src/js/grades.js?v=49a9a1942aaa",
     "./src/js/leave-roster.js": "./src/js/leave-roster.js?v=08dd6ae8d93f",
-    "./src/js/main.js": "./src/js/main.js?v=0cae6506320f",
+    "./src/js/main.js": "./src/js/main.js?v=a5b282cc0fc3",
     "./src/js/party-nomination.js": "./src/js/party-nomination.js?v=d1c23bdac2e7",
     "./src/js/profile-rules.js": "./src/js/profile-rules.js?v=3a3bbf350b00",
     "./src/js/report-workbook.js": "./src/js/report-workbook.js?v=1cd3836da746",
@@ -2306,13 +2297,13 @@ body {
   }
 }
   </script>
-  <script type="module" src="./src/js/main.js?v=0cae6506320f"></script>
+  <script type="module" src="./src/js/main.js?v=a5b282cc0fc3"></script>
   <script type="module" src="./src/js/components/expanding-rail.js?v=d9f1c3462963"></script>
   <script type="module" src="./src/js/components/notched-field.js?v=553608c192ae"></script>
   <script type="module" src="./src/js/components/bento-dashboard.js?v=c76ec853266e"></script>
   <script type="module" src="./src/js/components/readability.js?v=c57aaebc1109"></script>
   <script type="module" src="./src/js/components/drop-upload.js?v=71abf0bb0378"></script>
   <script type="module" src="./src/js/components/workspace-reports.js?v=03ae1d213e37"></script>
-  <script type="module" src="./src/js/components/interface.js?v=1965d30fb449"></script>
+  <script type="module" src="./src/js/components/interface.js?v=34e2ef90c5be"></script>
 </body>
 </html>

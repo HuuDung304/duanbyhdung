@@ -7,6 +7,20 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict');
  for(const [tab,id] of [['tab-sheet','spreadsheetTable'],['tab-profiles','profilesTableBody'],['tab-cumulative','cumulativeTableBody'],['tab-master','masterTableBody']]){
   await page.evaluate(tab=>window.switchTab(tab),tab);const section=page.locator(`#${tab}`),button=section.locator('.table-dialog-launcher');assert.equal(await button.count(),1,tab);await button.click();const dialog=section.locator('dialog.table-dialog');assert.equal(await dialog.isVisible(),true);assert.equal(await dialog.locator(`#${id}`).count(),1);
   const box=await dialog.boundingBox();assert.ok(Math.abs(box.x+box.width/2-width/2)<3,tab);assert.ok(Math.abs(box.y+box.height/2-450)<3,tab);
+  if(tab==='tab-sheet'||tab==='tab-master'){
+   const yearId=tab==='tab-sheet'?'sheetSemesterSelect':'masterFilterSemester';
+   const classId=tab==='tab-sheet'?'sheetClassSelect':'masterFilterClass';
+   const searchId=tab==='tab-sheet'?'sheetSearchInput':'masterSearch';
+   assert.equal(await dialog.locator(`#${classId}`).isVisible(),true);assert.equal(await dialog.locator(`#${searchId}`).isVisible(),true);
+   assert.equal(await dialog.locator('.table-year-buttons button').count(),5);
+   await dialog.getByRole('button',{name:'Năm 2',exact:true}).click();assert.equal(await page.locator(`#${yearId}`).inputValue(),'2');
+   assert.equal(await dialog.getByRole('button',{name:'Năm 2',exact:true}).getAttribute('aria-pressed'),'true');
+   await dialog.getByRole('button',{name:'Năm 1',exact:true}).click();
+  }
+  if(tab==='tab-cumulative'){
+   const controls=dialog.locator('.table-dialog-simple');assert.equal(await controls.locator('select,input').count(),2);
+   assert.equal(await controls.locator('#cumulFilterClass').isVisible(),true);assert.equal(await controls.locator('#cumulSearchInput').isVisible(),true);
+  }
   if(tab==='tab-sheet'){const input=dialog.locator('.grid-cell-input').first();assert.equal(await input.count(),1);await input.fill('8.50');await input.press('Tab');await page.waitForFunction(()=>window.AppState.grades.s.m===8.5);assert.equal(await dialog.isVisible(),true);}
   await page.keyboard.press('Escape');assert.equal(await dialog.isVisible(),false);assert.equal(await button.evaluate(el=>document.activeElement===el),true);
  }
