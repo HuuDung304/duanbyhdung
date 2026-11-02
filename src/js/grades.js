@@ -1059,31 +1059,19 @@ export function canUserEditCurrentSheet() {
   return false;
 }
 
-// --- 3. TỐI ƯU HÓA THÔNG BÁO KHI LƯU DỮ LIỆU (CHỈ HIỂN THỊ KHI LỖI) ---
+// Feedback reflects an actual operation result and never changes the underlying write.
 export function showToast(message, type = 'error') {
-  if (type !== 'error') {
-    return;
-  }
-
   const container = document.getElementById('toastContainer');
   if (!container) return;
+  const variant = ['success','warning','info'].includes(type) ? type : 'error';
+  const labels = { success:'Thành công', warning:'Lưu ý', info:'Thông báo', error:'Lỗi' };
   const toast = document.createElement('div');
-  toast.className = 'pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-xl text-xs font-bold text-white bg-rose-800 border border-rose-500 transition-all transform duration-300 translate-y-2 opacity-0';
-  toast.innerHTML = sanitizeHTML(`
-    <svg class="w-4 h-4 flex-shrink-0 text-rose-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-    </svg>
-    <span></span>
-  `);
-  toast.querySelector('span').textContent = String(message);
-  container.appendChild(toast);
-  setTimeout(() => {
-    toast.classList.remove('translate-y-2', 'opacity-0');
-  }, 10);
-  setTimeout(() => {
-    toast.classList.add('opacity-0', 'translate-y-2');
-    setTimeout(() => toast.remove(), 300);
-  }, 3800);
+  toast.className = `ui-toast ui-toast-${variant}`;
+  toast.setAttribute('role', variant === 'error' ? 'alert' : 'status');
+  const label=document.createElement('strong');label.className='ui-toast-label';label.textContent=labels[variant];
+  const content=document.createElement('span');content.textContent=String(message);
+  toast.append(label,content);container.appendChild(toast);
+  setTimeout(()=>toast.remove(),5000);
 }
 
 // --- 4. GIAO DIỆN BẢNG ĐIỂM: LỚP (THEO NĂM HỌC 1-5) & HỌC VIÊN (CUỘN DỌC NĂM 1-5) ---

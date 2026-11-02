@@ -268,17 +268,17 @@ for (const variant of ['src/js/grades.js']) {
     const source = readFileSync(variant, 'utf8');
     const start = source.indexOf('function showToast(');
     const end = source.indexOf('// --- 4.', start);
-    const span = {};
-    const toast = { querySelector: () => span };
+    const created = [];
+    const makeElement = tag => { const el={tag,textContent:'',innerHTML:'',setAttribute(){},append(...children){this.children=children;}};created.push(el);return el; };
     const context = vm.createContext({ trackImportRead() {}, sanitizeHTML: value => String(value), escapeHTML: value => String(value),
-      document: { getElementById: () => ({ appendChild() {} }), createElement: () => toast },
+      document: { getElementById: () => ({ appendChild() {} }), createElement: makeElement },
       setTimeout() {},
     });
     vm.runInContext(source.slice(start, end).replace(/export\s*$/, ''), context);
     const maliciousCell = '<img src=x onerror=alert(1)>';
     context.showToast(maliciousCell, 'error');
-    assert.equal(span.textContent, maliciousCell);
-    assert.ok(!toast.innerHTML.includes(maliciousCell));
+    assert.equal(created.find(el=>el.tag==='span').textContent, maliciousCell);
+    assert.ok(created.every(el=>!el.innerHTML.includes(maliciousCell)));
   });
 }
 

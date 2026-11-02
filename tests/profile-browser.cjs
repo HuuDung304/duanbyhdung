@@ -45,9 +45,11 @@ const assert = require('node:assert/strict');
   await standard.selectOption('B11');
   await page.waitForFunction(() => window.AppState.requiredLangStandard === 'B11');
   await page.waitForFunction(() => document.getElementById('cumulativeTableBody').textContent.includes('Chưa đạt (B11)'));
+  await page.locator('#tab-cumulative .table-dialog-launcher').click();
   const actualLevel = page.locator('#cumulativeTableBody .select-cumul-lang');
   await actualLevel.selectOption('B11');
   await page.waitForFunction(() => document.getElementById('cumulativeTableBody').textContent.includes('Đạt (B11)'));
+  await page.locator('#tab-cumulative .table-dialog-close').click();
 
 
   await page.evaluate(() => window.openStudentProfileModal('hv_test'));
@@ -119,7 +121,7 @@ const assert = require('node:assert/strict');
   });
   assert.equal(await page.locator('#studentMetricLang').textContent(), 'Trình độ hiện tại: A21');
   assert.equal(await page.locator('#studentMetricLangSub').textContent(), 'Chưa đạt yêu cầu hiện tại A2');
-  assert.equal(await page.locator('#studentMetricLang').evaluate(element => getComputedStyle(element).color), 'rgb(190, 18, 60)');
+  assert.equal(await page.locator('#studentMetricLang').evaluate(element => { const probe=document.createElement('span'); probe.style.color='var(--theme-danger)'; document.body.append(probe); const matches=getComputedStyle(element).color===getComputedStyle(probe).color; probe.remove(); return matches; }),true);
   assert.equal(await page.locator('#inlineFatherDob').inputValue(), '1975');
   assert.equal(await page.locator('#inlineProfPartyJoined').isDisabled(), true);
   assert.equal(await page.locator('#inlineProfItStandard,#inlineFatherDobMode,#inlineMotherDobMode').count(), 0);

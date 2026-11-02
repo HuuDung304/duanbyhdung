@@ -540,3 +540,68 @@ body.ui-modern .table-year-buttons { display:flex; gap:6px; overflow-x:auto; max
 body.ui-modern .table-year-buttons button { flex:none; min-height:40px; padding:8px 12px; }
 body.ui-modern .table-year-buttons button[aria-pressed="true"] { background:var(--theme-selected)!important; color:var(--theme-primary)!important; border-color:var(--theme-primary)!important; }
 @media(max-width:640px) { body.ui-modern .table-dialog-simple { grid-template-columns:1fr; } }
+
+/* SaaS/ERP design system: shared tokens and resilient data surfaces. */
+body.bento-app.ui-modern {
+ --theme-canvas:#f8fafc; --theme-surface:#fff; --theme-card:#fff; --theme-soft:#f1f5f9;
+ --theme-selected:#eaf1ff; --theme-primary:#2563eb; --theme-primary-hover:#1d4ed8;
+ --theme-focus:#2563eb; --ui-action:#2563eb; --ui-action-hover:#1d4ed8;
+ --theme-ink:#0f172a; --theme-muted:#475569; --theme-border:#cbd5e1; --theme-border-strong:#94a3b8;
+ --theme-positive:#047857; --theme-danger:#b91c1c; --ui-radius:12px; --ui-shadow:0 4px 20px #0f172a0b;
+}
+html[data-theme="dark"] body.bento-app.ui-modern {
+ --theme-canvas:#0f172a; --theme-surface:#172338; --theme-card:#1b2a40; --theme-soft:#25354d;
+ --theme-selected:#263f68; --theme-primary:#b7d0ff; --theme-primary-hover:#d7e6ff;
+ --theme-focus:#b7d0ff; --ui-action:#b7d0ff; --ui-action-hover:#d7e6ff;
+ --theme-ink:#f8fafc; --theme-muted:#d5deeb; --theme-border:#52647a; --theme-border-strong:#94a3b8;
+ --theme-positive:#80dfb7; --theme-danger:#ffafb3;
+}
+body.ui-modern .u040-group-label { padding:16px 12px 6px!important; font-size:10px; line-height:1.3; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--theme-muted); white-space:nowrap; overflow:hidden; }
+body.ui-modern .bento-shell:not(.is-wide) .u040-group-label { height:8px; padding:4px 0!important; font-size:0; }
+body.ui-modern .u040-content :is(.bento-card,.workspace-settings-card,.report-export-card,.catalog-semester,.year-breakdown-card,.research-table-card) { border:1px solid var(--theme-border); border-radius:var(--ui-radius); background:var(--theme-card); box-shadow:var(--ui-shadow); }
+body.ui-modern .u040-content :is(input,select,textarea) { accent-color:var(--ui-action); }
+body.ui-modern :is(button,input,select,textarea,summary,a):focus-visible { outline:2px solid var(--theme-focus); outline-offset:3px; }
+body.ui-modern button:disabled { opacity:.6; cursor:not-allowed; }
+body.ui-modern .u040-content table { font-variant-numeric:tabular-nums; }
+body.ui-modern .u040-content table th { background:var(--theme-soft); color:var(--theme-ink); }
+body.ui-modern .u040-content table tr:focus-within>td { background:var(--theme-selected); }
+body.ui-modern .u040-content :is(.readable-table-scroll,.workspace-table-scroll,.research-scroll,.catalog-table-scroll) { max-width:100%; overscroll-behavior-x:contain; }
+body.ui-modern .table-dialog-launcher:hover { border-color:var(--theme-primary)!important; background:var(--theme-soft)!important; }
+body.ui-modern .report-export-dialog,body.ui-modern .table-dialog { background:var(--theme-surface); color:var(--theme-ink); border-color:var(--theme-border); }
+@media(max-width:760px) {
+ body.ui-modern .bento-shell .u040-group-label { height:auto!important; padding:14px 12px 6px!important; font-size:10px!important; }
+ body.ui-modern .u040-content :is(button,input,select,textarea) { font-size:16px; }
+ body.ui-modern .u040-content :is(.bento-card,.workspace-settings-card,.report-export-card,.catalog-semester,.year-breakdown-card,.research-table-card) { box-shadow:none; }
+}
+@media(prefers-reduced-motion:reduce) { body.ui-modern *,body.ui-modern *::before,body.ui-modern *::after { animation:none!important; transition:none!important; scroll-behavior:auto!important; } }
+
+body.ui-modern .table-dialog-actions { display:flex; align-items:center; flex-wrap:wrap; gap:8px; }
+body.ui-modern .table-dialog-reset { min-height:44px; padding:8px 12px; border:1px solid var(--theme-border); border-radius:8px; background:var(--theme-card); color:var(--theme-ink); cursor:pointer; }
+body.ui-modern .table-sort-button { appearance:none; border:0!important; background:transparent!important; color:inherit!important; font:inherit!important; padding:4px!important; min-height:32px!important; text-align:inherit; box-shadow:none!important; }
+body.ui-modern .table-sort-button:focus-visible { outline:2px solid var(--theme-focus); outline-offset:2px; }
+
+@media(max-width:760px) { body.ui-modern .table-sort-button { min-height:44px!important; } }
+
+body.ui-modern .form-field-feedback { display:block; margin-top:4px; color:var(--theme-danger); font-size:12px; line-height:1.4; }
+body.ui-modern :is(input,select,textarea)[aria-invalid="true"] { border-color:var(--theme-danger)!important; }
+
+body.ui-modern .workspace-quick-actions { display:flex; align-items:center; flex-wrap:wrap; gap:12px 24px; padding:16px 20px; border:1px solid var(--theme-border); border-radius:var(--ui-radius); background:var(--theme-card); }
+body.ui-modern .workspace-quick-actions[hidden] { display:none; }
+body.ui-modern .workspace-quick-actions h2 { margin:0; font-size:15px; font-weight:650; }
+body.ui-modern .workspace-quick-actions-list { display:flex; flex-wrap:wrap; gap:8px; }
+body.ui-modern .workspace-quick-action { min-height:40px; }
+@media(max-width:760px) { body.ui-modern .workspace-quick-actions { align-items:flex-start; flex-direction:column; gap:10px; padding:16px; } body.ui-modern .workspace-quick-actions-list { width:100%; } }
+
+body.ui-modern .ui-title-group { min-width:0; }
+body.ui-modern .ui-context-label { margin:0 0 2px; font-size:11px; line-height:1.25; font-weight:600; color:var(--theme-muted); }
+body.ui-modern .ui-context-label[hidden] { display:none; }
+body.ui-modern #toastContainer { display:flex; flex-direction:column; gap:8px; max-width:min(420px,calc(100vw - 32px)); }
+body.ui-modern .ui-toast { display:flex; flex-direction:column; gap:3px; padding:12px 16px; border:1px solid var(--theme-border-strong); border-radius:10px; background:var(--theme-card); color:var(--theme-ink); box-shadow:0 8px 24px #0f172a24; font-size:13px; line-height:1.5; overflow-wrap:anywhere; pointer-events:auto; }
+body.ui-modern .ui-toast-label { font-weight:700; }
+body.ui-modern .ui-toast-success .ui-toast-label { color:var(--theme-positive); }
+body.ui-modern .ui-toast-error .ui-toast-label { color:var(--theme-danger); }
+body.ui-modern .ui-toast-warning .ui-toast-label { color:var(--theme-amber); }
+
+body.ui-modern .profile-select-row,body.ui-modern #adminProfilesTableCard thead input[type="checkbox"] { width:18px; height:18px; margin:0; vertical-align:middle; accent-color:var(--ui-action); }
+body.ui-modern .profile-bulk-export { min-height:44px; padding:8px 12px; border:1px solid var(--theme-border); border-radius:8px; color:var(--theme-ink); background:var(--theme-card); }
+body.ui-modern .profile-bulk-export:disabled { opacity:.6; cursor:not-allowed; }

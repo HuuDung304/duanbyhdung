@@ -15,7 +15,9 @@ if (shell && main && nav && !document.getElementById('interfaceToolbar')) {
   toggle.id = 'interfaceMenuButton'; toggle.classList.add('ui-icon-button');
   toggle.innerHTML = sanitizeHTML('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 7h16M4 12h11M4 17h16" stroke-linecap="round"/></svg>');
   const title = document.createElement('h1'); title.id = 'interfacePageTitle';
-  start.append(toggle, title);
+  const titleGroup=document.createElement('div');titleGroup.className='ui-title-group';
+  const contextLabel=document.createElement('p');contextLabel.className='ui-context-label';contextLabel.setAttribute('aria-hidden','true');
+  titleGroup.append(contextLabel,title);start.append(toggle, titleGroup);
   const actions = document.createElement('div'); actions.className = 'ui-toolbar-actions';
   const searchWrap = document.querySelector('.bento-search-wrap');
   const searchButton = document.createElement('button'); searchButton.type = 'button'; searchButton.className = 'ui-icon-button ui-search-toggle'; searchButton.setAttribute('aria-label', 'Tìm kiếm'); searchButton.setAttribute('aria-controls', 'interfaceSearch'); searchButton.setAttribute('aria-expanded', 'false');
@@ -82,6 +84,8 @@ if (shell && main && nav && !document.getElementById('interfaceToolbar')) {
       if (span && label && span.textContent !== label) span.textContent = label;
     }
     title.textContent = labels[AppState.activeTab] || 'Đại đội 460';
+    const groups={ 'tab-dashboard':'Tổng quan', 'tab-sheet':'Quản lý học tập', 'tab-profiles':'Quản lý học tập', 'tab-cumulative':'Quản lý học tập', 'tab-master':'Quản lý học tập', 'tab-research':'Nghiên cứu & báo cáo', 'tab-reports':'Nghiên cứu & báo cáo', 'tab-audit':'Quản trị', 'tab-settings':'Quản trị', 'tab-preferences':'Tài khoản' };
+    contextLabel.textContent=groups[AppState.activeTab] || '';contextLabel.hidden=!contextLabel.textContent || contextLabel.textContent===title.textContent;
     const dark = document.documentElement.dataset.theme === 'dark';
     theme.setAttribute('aria-label', dark ? 'Chuyển sang giao diện sáng' : 'Chuyển sang giao diện tối'); theme.title = dark ? 'Giao diện sáng' : 'Giao diện tối';
     if (AppState.role === 'guest') { setDrawer(false, false); setSearch(false); }

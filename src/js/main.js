@@ -1,3 +1,5 @@
+import { mountProfileBulk } from './components/profile-bulk.js';
+import { mountFormFeedback } from './components/form-feedback.js';
 import { mountTableDialogs } from './components/table-dialogs.js';
 import { mountLeaveRoster } from './leave-roster.js';
 import { mountPartyNomination } from './party-nomination.js';
@@ -1527,7 +1529,9 @@ function registerGlobalEventDelegation() {
 let _localAppInitialized = false;
 
 export function initApp() {
+  mountFormFeedback();
   mountTableDialogs();
+  mountProfileBulk();
   mountPartyNomination();
   mountLeaveRoster();
   installOfficerReadOnlyGuard(() => AppState.role, showToast);

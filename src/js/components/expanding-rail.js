@@ -39,7 +39,21 @@ export function mountExpandingRail(nav, main) {
   highlight.setAttribute('role', 'presentation');
   highlight.setAttribute('aria-hidden', 'true');
   list.append(highlight);
-  buttons.forEach((button, index) => {
+  const navigationGroups = [
+    ['Tổng quan', ['tab-dashboard']],
+    ['Quản lý học tập', ['tab-sheet','tab-profiles','tab-cumulative','tab-master']],
+    ['Nghiên cứu & báo cáo', ['tab-research','tab-reports']],
+    ['Quản trị', ['tab-audit','tab-settings']]
+  ];
+  const grouped = navigationGroups.flatMap(([, ids]) => ids.map(id => buttons.find(button => button.dataset.tab === id)).filter(Boolean));
+  const orderedButtons = [...grouped, ...buttons.filter(button => !grouped.includes(button))];
+  const groupLabels = new Map();
+  orderedButtons.forEach((button, index) => {
+    const group = navigationGroups.find(([, ids]) => ids.includes(button.dataset.tab));
+    if (group && !groupLabels.has(group[0])) {
+      const item = document.createElement('li'); item.className = 'u040-group-label'; item.setAttribute('aria-hidden', 'true'); item.textContent = group[0];
+      list.append(item); groupLabels.set(group[0], item);
+    }
     button.classList.add('u040-it');
     button.type = 'button';
     button.style.setProperty('--i', index);
@@ -70,7 +84,7 @@ export function mountExpandingRail(nav, main) {
   let titleTimer;
   let selectedLabel = '';
 
-  const visibleButtons = () => buttons.filter(button => !button.hidden
+  const visibleButtons = () => orderedButtons.filter(button => !button.hidden
     && !button.classList.contains('hidden') && button.style.display !== 'none');
   function syncNavigation() {
     root.hidden = nav.classList.contains('hidden') || nav.style.display === 'none';
@@ -84,6 +98,11 @@ export function mountExpandingRail(nav, main) {
       if (button === active) button.setAttribute('aria-current', 'page');
       else button.removeAttribute('aria-current');
     });
+    for (const [groupName, ids] of navigationGroups) {
+      const label = groupLabels.get(groupName);
+      const hidden = !visible.some(button => ids.includes(button.dataset.tab));
+      if (label && label.hidden !== hidden) label.hidden = hidden;
+    }
     highlight.hidden = !active;
     if (!active) return;
     highlight.style.setProperty('--y', `${active.parentElement.offsetTop}px`);

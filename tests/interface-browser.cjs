@@ -4,7 +4,7 @@ const base=process.env.TEST_BASE_URL||'http://127.0.0.1:3000';
 (async()=>{
  const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||'/usr/bin/chromium',args:['--no-sandbox']});
  try {
- for(const width of [1440,390]){
+ for(const width of [1920,1366,768,375]){
   const context=await browser.newContext({viewport:{width,height:1000}}),writes=[],errors=[];
   const tables={students:[{id:'a',code:'001',name:'Nguyễn An',class:'OTQS1',rank:'Thượng sĩ',dob:'2003-01-01'},{id:'b',code:'002',name:'Trần Bình',class:'TTG2',rank:'Thượng sĩ',dob:'2003-01-01'}],subjects:[{id:'math',code:'MATH',name:'Toán cao cấp',credits:3,semester:1,category:'common'}],grades:[{student_id:'a',subject_id:'math',score:8}],languages:[]};
   await context.route('**/*',route=>{
@@ -44,17 +44,21 @@ const base=process.env.TEST_BASE_URL||'http://127.0.0.1:3000';
    await page.keyboard.press('Escape');
    assert.equal(await page.locator('.u040-main').evaluate(e=>e.inert),false);
    assert.equal(await page.evaluate(()=>document.activeElement.id),'interfaceMenuButton');
-   await page.locator('#interfaceMenuButton').click();await page.locator('.ui-drawer-backdrop').click({position:{x:385,y:500}});
+   await page.locator('#interfaceMenuButton').click();await page.locator('.ui-drawer-backdrop').click({position:{x:width-5,y:500}});
    assert.equal(await page.locator('#interfaceMenuButton').getAttribute('aria-expanded'),'false');
   }else{
-   await page.locator('#interfaceMenuButton').click();assert.equal(await page.locator('.bento-shell').evaluate(e=>e.classList.contains('is-wide')),false);
-   await page.locator('#interfaceMenuButton').click();assert.equal(await page.locator('.bento-shell').evaluate(e=>e.classList.contains('is-wide')),true);
+   const initialWide=await page.locator('.bento-shell').evaluate(e=>e.classList.contains('is-wide'));
+   await page.locator('#interfaceMenuButton').click();assert.equal(await page.locator('.bento-shell').evaluate(e=>e.classList.contains('is-wide')),!initialWide);
+   await page.locator('#interfaceMenuButton').click();assert.equal(await page.locator('.bento-shell').evaluate(e=>e.classList.contains('is-wide')),initialWide);
    await page.keyboard.press('Control+k');assert.equal(await page.evaluate(()=>document.activeElement.id),'bentoSearch');
    await page.locator('#bentoSearch').fill('Nguyễn An');await page.waitForFunction(()=>!document.getElementById('bentoSearchResults').hidden);
    assert.match(await page.locator('#bentoSearchResults').innerText(),/Nguyễn An/);
    await page.locator('#bentoSearch').fill('');await page.keyboard.press('Escape');
   }
   await page.screenshot({path:`/tmp/interface-dashboard-${width}.png`,fullPage:true,animations:'disabled'});
+  assert.deepEqual(await page.locator('.u040-group-label').allTextContents(),['Tổng quan','Quản lý học tập','Nghiên cứu & báo cáo','Quản trị']);
+  await page.locator('[data-quick-tab="tab-sheet"]').click();await page.waitForFunction(()=>window.AppState.activeTab==='tab-sheet');
+  await navigate('tab-dashboard');
   await navigate('tab-research');await page.waitForFunction(()=>document.getElementById('researchTopicCount').textContent==='0');
   assert.equal(await page.locator('#researchAdd,#researchReload').count(),0);
   assert.equal(await page.locator('#tab-research .research-table-toolbar button').count(),1);
@@ -73,8 +77,15 @@ const base=process.env.TEST_BASE_URL||'http://127.0.0.1:3000';
   });assert.ok(contrast>=4.5);
   await page.screenshot({path:`/tmp/interface-reports-${width}-dark.png`,fullPage:true,animations:'disabled'});
   await navigate('tab-profiles');await page.evaluate(()=>window.openStudentProfileModal('a'));
+  const profileName=page.locator('#profFormName');const originalName=await profileName.inputValue();await profileName.fill('');await profileName.blur();
+  assert.equal(await profileName.getAttribute('aria-invalid'),'true');assert.match(await page.locator('#profFormName-validation-feedback').textContent(),/Vui lòng nhập/);await profileName.fill(originalName);assert.equal(await profileName.getAttribute('aria-invalid'),null);
   await page.locator('#profFormPhone').fill('draft-keep');await page.evaluate(()=>{window.__originalPhone=document.getElementById('profFormPhone');document.getElementById('themeToggle').click();});
   assert.equal(await page.locator('#profFormPhone').inputValue(),'draft-keep');assert.equal(await page.evaluate(()=>window.__originalPhone===document.getElementById('profFormPhone')),true);
+  page.once('dialog', dialog=>dialog.dismiss());
+  await page.locator('#modalStudentProfile .modal-close').first().click();
+  assert.equal(await page.locator('#modalStudentProfile').isVisible(),true);
+  assert.equal(await page.locator('#profFormPhone').inputValue(),'draft-keep');
+  page.once('dialog', dialog=>dialog.accept());
   await page.locator('#modalStudentProfile .modal-close').first().click();
   await navigate('tab-sheet');await page.emulateMedia({reducedMotion:'reduce'});
   assert.equal(await page.locator('#tab-sheet').evaluate(e=>getComputedStyle(e).animationName),'none');

@@ -41,6 +41,25 @@ if (main && dashboard) {
   settings.addEventListener('click',()=>{setTimeout(()=>account.closest('.u037')?.dispatchEvent(new Event('account-menu-close')));});
   // Header remains in the DOM for role/status synchronization, but is no longer displayed.
   document.querySelector('.u040-page-heading')?.setAttribute('hidden','');
+  const quickActions=make('section','workspace-quick-actions');
+  quickActions.setAttribute('aria-label','Thao tác nhanh');
+  const quickHeading=make('h2','','Thao tác nhanh');
+  const quickList=make('div','workspace-quick-actions-list');
+  const quickLinks=[['tab-sheet','Bảng điểm'],['tab-profiles','Hồ sơ quân nhân'],['tab-reports','Xuất báo cáo']];
+  for(const [tab,label] of quickLinks){
+    const button=make('button','workspace-quick-action',label);button.type='button';button.dataset.quickTab=tab;
+    button.addEventListener('click',()=>{const target=document.querySelector(`.u040-it[data-tab="${tab}"]`);if(target&&!target.hidden&&!target.classList.contains('hidden')&&target.style.display!=='none')target.click();});
+    quickList.append(button);
+  }
+  function syncQuickActions(){
+    for(const button of quickList.querySelectorAll('button')){
+      const target=document.querySelector(`.u040-it[data-tab="${button.dataset.quickTab}"]`);
+      button.hidden=!target||target.hidden||target.classList.contains('hidden')||target.style.display==='none';
+    }
+    quickActions.hidden=[...quickList.children].every(button=>button.hidden);
+  }
+  quickActions.append(quickHeading,quickList);dashboard.prepend(quickActions);
+  window.addEventListener('report-role-change',syncQuickActions);syncQuickActions();
   const kpis=dashboard.querySelector(':scope > .grid');
   if(kpis){kpis.id='dashboardKpis';kpis.firstElementChild?.remove();['Học lực tích lũy','Chuẩn Tiếng Nga','Học viên rớt môn'].forEach((label,index)=>{kpis.children[index].firstElementChild.textContent=label;});}
   const directCard=node=>{let e=node;while(e?.parentElement&&e.parentElement!==dashboard)e=e.parentElement;return e?.parentElement===dashboard?e:null;};
