@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="app-release" content="2f53b527d6d5">
+  <meta name="app-release" content="e84536841ad9">
   <script id="theme-preference-bootstrap">
     try { document.documentElement.dataset.theme = localStorage.getItem('dd460_display_theme') === 'dark' ? 'dark' : 'light'; }
     catch { document.documentElement.dataset.theme = 'light'; }
@@ -132,7 +132,7 @@ body {
   <link rel="stylesheet" href="./src/css/rose-theme.css?v=16d10467d42b">
   <link rel="stylesheet" href="./src/css/display-settings.css?v=80ac2f7100da">
   <link rel="stylesheet" href="./src/css/research.css?v=8de29711d174">
-  <link rel="stylesheet" href="./src/css/interface.css?v=d76892aca314">
+  <link rel="stylesheet" href="./src/css/interface.css?v=16964b098e45">
 </head>
 <body class="bento-app ui-modern bg-slate-100 text-slate-800 min-h-screen flex flex-col">
 
@@ -1172,9 +1172,10 @@ body {
         <article class="report-export-card export-unit-only"><h3>Xếp hạng điểm</h3><p>Xếp hạng theo năm học, đối chiếu Tiếng Nga; tô xanh tối đa 10% và vàng tiếp theo tối đa 25%.</p><div class="report-card-actions"><button type="button" id="btnExportRanking" class="report-download" aria-label="Tải xếp hạng điểm" title="Tải xếp hạng điểm"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m-5-5 5 5 5-5M5 16v4h14v-4"/></svg></button><span class="report-file-type" aria-hidden="true">.xlsx</span></div></article>
         <article class="report-export-card export-unit-only"><h3>Danh hiệu học viên</h3><p>Xét TB năm gần nhất từ 7,0; các môn có tín chỉ từ 7,0, môn 0 tín chỉ qua môn và đạt chuẩn tiếng Nga hiện tại.</p><div class="report-card-actions"><button type="button" id="btnExportHonors" class="report-download" aria-label="Tải danh hiệu học viên" title="Tải danh hiệu học viên"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m-5-5 5 5 5-5M5 16v4h14v-4"/></svg></button><span class="report-file-type" aria-hidden="true">.xlsx</span></div></article>
         <article class="report-export-card export-unit-only"><h3>Danh sách học bổng</h3><p>Xét học kỳ gần nhất có điểm: Lê Quý Đôn, loại A, loại B.</p><div class="report-card-actions"><button type="button" id="btnExportScholarships" class="report-download" aria-label="Tải danh sách học bổng" title="Tải danh sách học bổng"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m-5-5 5 5 5-5M5 16v4h14v-4"/></svg></button><span class="report-file-type" aria-hidden="true">.xlsx</span></div></article>
+<article class="report-export-card export-unit-only"><h3>Danh sách dự kiến kết nạp Đảng</h3><p>Chọn năm học và ngưỡng hệ 4; xuất Word theo mẫu kết nạp Đảng.</p><div class="report-card-actions"><button type="button" id="btnExportPartyNomination"  class="report-download" aria-label="Tải Danh sách dự kiến kết nạp Đảng" title="Tải Danh sách dự kiến kết nạp Đảng"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m-5-5 5 5 5-5M5 16v4h14v-4"/></svg></button><span class="report-file-type">.docx</span></div></article>
+<article class="report-export-card export-unit-only"><h3>Danh sách tranh thủ miền Nam</h3><p>Quảng Trị trở vào; nhập thời gian về và lên trước khi tải.</p><div class="report-card-actions"><button type="button" id="btnExportLeaveSouth" data-leave-region="south" class="report-download" aria-label="Tải Danh sách tranh thủ miền Nam" title="Tải Danh sách tranh thủ miền Nam"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m-5-5 5 5 5-5M5 16v4h14v-4"/></svg></button><span class="report-file-type">.xlsx</span></div></article>
+<article class="report-export-card export-unit-only"><h3>Danh sách tranh thủ miền Bắc</h3><p>Hà Tĩnh trở ra; nhập thời gian về và lên trước khi tải.</p><div class="report-card-actions"><button type="button" id="btnExportLeaveNorth" data-leave-region="north" class="report-download" aria-label="Tải Danh sách tranh thủ miền Bắc" title="Tải Danh sách tranh thủ miền Bắc"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m-5-5 5 5 5-5M5 16v4h14v-4"/></svg></button><span class="report-file-type">.xlsx</span></div></article>
       </div>
-      <article class="report-export-card export-unit-only"><h3>Danh sách dự kiến kết nạp Đảng</h3><p>Đã học cảm tình Đảng, đạt chuẩn tiếng Nga; chọn năm và ngưỡng điểm hệ 4. Kỳ chưa đủ điểm để trống.</p><button type="button" id="btnExportPartyNomination">Tải file Word</button></article>
-      <article class="report-export-card export-unit-only"><h3>Danh sách tranh thủ</h3><p>Chia miền Bắc/Nam theo quê quán; nhập thời gian về và lên trước khi xuất.</p><button type="button" id="btnExportLeaveRoster">Tải Excel tranh thủ</button></article>
       <dialog id="leaveRosterDialog" class="report-export-dialog" aria-labelledby="leaveRosterTitle"><form id="leaveRosterForm"><h3 id="leaveRosterTitle">Danh sách tranh thủ</h3><label for="leaveDeparture">Thời gian về</label><input id="leaveDeparture" type="datetime-local" required><label for="leaveReturn">Thời gian lên</label><input id="leaveReturn" type="datetime-local" required><p>Hà Tĩnh trở ra: Bắc. Quảng Trị trở vào: Nam. Quảng Bình cũ thuộc Quảng Trị hiện nay: Nam. Kiểm tra lại miền từng học viên trước khi xuất. Thời gian áp dụng chung cho danh sách.</p><div id="leaveRegionList"></div><div class="report-dialog-actions"><button type="button" id="leaveRosterCancel">Hủy</button><button type="submit">Tải Excel</button></div></form></dialog>
       <dialog id="partyNominationDialog" class="report-export-dialog" aria-labelledby="partyNominationTitle"><form id="partyNominationForm"><h3 id="partyNominationTitle">Danh sách dự kiến kết nạp Đảng</h3><fieldset><legend>Năm học đưa vào kết quả học tập</legend><label><input type="checkbox" name="partyYear" value="1"> Năm 1</label><label><input type="checkbox" name="partyYear" value="2"> Năm 2</label><label><input type="checkbox" name="partyYear" value="3"> Năm 3</label><label><input type="checkbox" name="partyYear" value="4"> Năm 4</label><label><input type="checkbox" name="partyYear" value="5"> Năm 5</label></fieldset><label for="partyThreshold">Điểm tối thiểu mỗi học kỳ đã đủ điểm (hệ 4)</label><input id="partyThreshold" type="number" min="0" max="4" step="0.01" placeholder="Nhập ngưỡng hệ 4" required><p>Chỉ xét học kỳ đã đủ điểm. Mỗi học kỳ đó phải đạt ngưỡng; cần ít nhất một học kỳ đủ điểm. Điểm và xếp loại của kỳ chưa đủ để trống.</p><div class="report-dialog-actions"><button type="button" id="partyNominationCancel">Hủy</button><button type="submit">Tải Word</button></div></form></dialog>
       <dialog id="reportExportDialog" class="report-export-dialog" aria-labelledby="reportExportDialogTitle">
@@ -2278,8 +2279,8 @@ body {
     "./src/js/database/realtime.js": "./src/js/database/realtime.js?v=08238ad1e200",
     "./src/js/database/repository.js": "./src/js/database/repository.js?v=fb5a353f7938",
     "./src/js/grades.js": "./src/js/grades.js?v=49a9a1942aaa",
-    "./src/js/leave-roster.js": "./src/js/leave-roster.js?v=aa1a458424b3",
-    "./src/js/main.js": "./src/js/main.js?v=2f53b527d6d5",
+    "./src/js/leave-roster.js": "./src/js/leave-roster.js?v=ac12b1835e90",
+    "./src/js/main.js": "./src/js/main.js?v=e84536841ad9",
     "./src/js/party-nomination.js": "./src/js/party-nomination.js?v=d1c23bdac2e7",
     "./src/js/profile-rules.js": "./src/js/profile-rules.js?v=3a3bbf350b00",
     "./src/js/report-workbook.js": "./src/js/report-workbook.js?v=1cd3836da746",
@@ -2301,7 +2302,7 @@ body {
   }
 }
   </script>
-  <script type="module" src="./src/js/main.js?v=2f53b527d6d5"></script>
+  <script type="module" src="./src/js/main.js?v=e84536841ad9"></script>
   <script type="module" src="./src/js/components/expanding-rail.js?v=d9f1c3462963"></script>
   <script type="module" src="./src/js/components/notched-field.js?v=553608c192ae"></script>
   <script type="module" src="./src/js/components/bento-dashboard.js?v=c76ec853266e"></script>

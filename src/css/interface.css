@@ -434,3 +434,15 @@ body.ui-modern .u040-content .grid-cell-input:focus { transform:none; }
 
 body.ui-modern #leaveRegionList { max-height:40dvh; overflow:auto; margin-top:12px; }
 body.ui-modern #leaveRegionList label { display:block; padding:8px 0; border-bottom:1px solid var(--theme-border); font-size:13px; overflow-wrap:anywhere; }
+
+/* Center export forms independently of page scroll and reset styles. */
+body.ui-modern :is(.report-export-dialog,#researchExportDialog) {
+ position:fixed; inset:0; margin:auto; height:fit-content; width:min(520px,calc(100vw - 32px));
+ max-height:min(760px,calc(100dvh - 32px)); overflow:auto; padding:24px; box-sizing:border-box; animation:none!important;
+}
+body.ui-modern .report-export-dialog :is(input:not([type="checkbox"]):not([type="radio"]),select) { width:100%; min-width:0; box-sizing:border-box; min-height:42px; padding:10px 12px; border:1px solid var(--theme-border); border-radius:8px; background:var(--theme-card); color:var(--theme-ink); font:inherit; }
+body.ui-modern .report-export-dialog fieldset { border:0; padding:0; margin:16px 0; display:flex; flex-wrap:wrap; gap:12px; }
+body.ui-modern .report-export-dialog fieldset legend { margin-bottom:10px; font-weight:600; }
+body.ui-modern .report-export-dialog fieldset label { display:inline-flex; align-items:center; gap:6px; margin:0; }
+body.ui-modern .report-dialog-actions { position:sticky; bottom:-24px; background:var(--theme-surface); padding:16px 0 0; }
+body.ui-modern .report-dialog-actions [type="submit"] { background:var(--theme-selected); color:var(--theme-primary); font-weight:650; }
