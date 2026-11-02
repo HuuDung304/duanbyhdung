@@ -660,3 +660,21 @@ body.ui-modern #tab-reports .report-gallery .report-export-card h3 { grid-column
 body.ui-modern #tab-reports .report-gallery .report-export-card p { grid-column:1; margin:6px 0 0; }
 body.ui-modern #tab-reports .report-gallery .report-card-actions { grid-column:2; grid-row:1 / 3; align-self:center; }
 @media(max-width:760px) { body.ui-modern #tab-reports .report-gallery { grid-template-columns:1fr; } }
+
+/* The profile workspace groups its metrics, controls and roster as separate tasks. */
+body.ui-modern #tab-profiles.active { display:grid; grid-template-columns:minmax(0,1fr); gap:20px; }
+body.ui-modern #profileStatsCardsGrid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; }
+body.ui-modern #profileStatsCardsGrid>div { min-width:0; min-height:140px; padding:20px; border:1px solid var(--theme-border); border-radius:16px; background:var(--theme-card); box-shadow:0 8px 25px #0f172a0c; }
+body.ui-modern #profileStatsCardsGrid>div>div:first-child>div:nth-child(2) { font-size:32px; line-height:1.2; margin-top:10px; color:var(--theme-ink); }
+body.ui-modern #profileStatsCardsGrid>div>div:first-child>div:last-child { color:var(--theme-muted); margin-top:8px; }
+body.ui-modern #adminProfilesToolbar { padding:22px; border-radius:16px; }
+body.ui-modern #adminProfilesToolbar h3 { font-size:20px; }
+body.ui-modern #adminProfilesToolbar :is(select,input) { min-height:44px; }
+body.ui-modern #tab-profiles .table-dialog-launcher { min-height:120px; }
+body.ui-modern #researchListView { display:grid; grid-template-columns:minmax(0,1fr); gap:16px; }
+body.ui-modern #researchListView> * { margin:0; min-width:0; }
+body.ui-modern .research-search { margin:0; }
+body.ui-modern .research-table-toolbar { padding:18px 20px; border:1px solid var(--theme-border); border-radius:16px; background:var(--theme-card); }
+body.ui-modern .research-table-toolbar>strong { font-size:18px; }
+@media(max-width:1000px) { body.ui-modern #profileStatsCardsGrid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:520px) { body.ui-modern #profileStatsCardsGrid>div { min-height:115px; padding:14px; } body.ui-modern #profileStatsCardsGrid>div>div:first-child>div:nth-child(2) { font-size:25px; } body.ui-modern #adminProfilesToolbar { padding:16px; } }
