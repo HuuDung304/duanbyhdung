@@ -45,11 +45,9 @@ const assert = require('node:assert/strict');
   await standard.selectOption('B11');
   await page.waitForFunction(() => window.AppState.requiredLangStandard === 'B11');
   await page.waitForFunction(() => document.getElementById('cumulativeTableBody').textContent.includes('Chưa đạt (B11)'));
-  await page.locator('#tab-cumulative .table-dialog-launcher').click();
   const actualLevel = page.locator('#cumulativeTableBody .select-cumul-lang');
   await actualLevel.selectOption('B11');
   await page.waitForFunction(() => document.getElementById('cumulativeTableBody').textContent.includes('Đạt (B11)'));
-  await page.locator('#tab-cumulative .table-dialog-close').click();
 
 
   await page.evaluate(() => window.openStudentProfileModal('hv_test'));

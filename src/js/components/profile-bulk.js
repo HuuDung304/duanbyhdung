@@ -3,14 +3,14 @@ import { writeReportWorkbook } from '../report-workbook.js';
 
 // Selection is presentation-only and is confined to the currently rendered, authorized rows.
 export function mountProfileBulk() {
- const body=document.getElementById('profilesTableBody'),table=body?.closest('table'),dialog=table?.closest('dialog.table-dialog');
- if(!body||!dialog||body.dataset.bulkMounted)return;
+ const body=document.getElementById('profilesTableBody'),table=body?.closest('table'),toolbar=document.getElementById('adminProfilesToolbar');
+ if(!body||!table||!toolbar||body.dataset.bulkMounted)return;
  body.dataset.bulkMounted='true';
  const selected=new Set(),header=table.tHead?.rows[0]?.cells[0];
  const selectAll=document.createElement('input');selectAll.type='checkbox';selectAll.setAttribute('aria-label','Chọn tất cả học viên đang hiển thị');
  header.prepend(selectAll,document.createTextNode(' '));
  const exportButton=document.createElement('button');exportButton.type='button';exportButton.className='profile-bulk-export';exportButton.disabled=true;
- dialog.querySelector('.table-dialog-actions')?.prepend(exportButton);
+ toolbar.append(exportButton);
  const displayed=()=>[...body.querySelectorAll('tr[data-student-id]')];
  const update=()=>{
   const rows=displayed(),ids=new Set(rows.map(row=>row.dataset.studentId));

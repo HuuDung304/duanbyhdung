@@ -36,7 +36,9 @@ export function mountTableDialogs() {
  installYearButtons(document.getElementById('sheetSemesterSelect'));
  installYearButtons(document.getElementById('masterFilterSemester'));
  for(const id of ['cumulFilterYear','cumulFilterRank','cumulFilterDebt']) {const input=document.getElementById(id);if(input?.parentElement)input.parentElement.hidden=true;}
- const configs=[['tab-profiles','profilesTableBody','Hồ sơ quân nhân']];
+ const profileTable=document.getElementById('profilesTableBody')?.closest('table');
+ if(profileTable)installProfileSorting(profileTable);
+ const configs=[];
  for(const [sectionId,targetId,title] of configs){
   const section=document.getElementById(sectionId),target=document.getElementById(targetId);
   const table=target?.matches('table')?target:target?.closest('table');
