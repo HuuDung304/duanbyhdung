@@ -20,6 +20,10 @@ Cả hai yêu cầu các môn có tín chỉ đã có điểm đều từ 7,0 v�
 
 Tài khoản học viên có khối ngang **Khả năng đạt danh hiệu / học bổng** dưới phần thống kê cá nhân. Danh hiệu dùng năm gần nhất có điểm của bản thân; học bổng dùng học kỳ gần nhất có điểm. Khi danh mục còn môn chưa nhập, kết quả đủ điều kiện được ghi “Tạm tính” kèm số môn chờ điểm; khi đã có đủ điểm ghi “Có khả năng đạt”. Khối này vẫn kiểm tra các điều kiện môn có tín chỉ, môn 0 tín chỉ và chuẩn tiếng Nga hiện tại, nêu rõ lý do chưa đủ điều kiện; không tự ghi danh hiệu vào hồ sơ. Hai kết quả dùng chung một hàng trên màn hình rộng và tự xuống dòng trên điện thoại.
 
+## Danh sách dự kiến kết nạp Đảng (Word)
+
+Admin/cán bộ chọn **Danh sách dự kiến kết nạp Đảng** trong Xuất báo cáo, tích các năm cần hiển thị và nhập ngưỡng hệ 4 (0–4). Chỉ đưa vào danh sách người có trạng thái đã học cảm tình Đảng và đạt chuẩn tiếng Nga hiện tại. Cần ít nhất một học kỳ đủ điểm trong các năm được chọn; mọi học kỳ đủ điểm đó phải đạt ngưỡng. Kỳ chưa đủ điểm để trống cả điểm và dòng xếp loại; cả năm chỉ ghi khi cả hai kỳ đã đủ. Dòng xếp loại dưới điểm luôn ghi `T` khi có điểm được hiển thị. Tính TB theo tín chỉ, sắp theo thứ tự OTQS1, OTQS2, TTG1, TTG2, XMCB rồi mã học viên. Các mốc ngày/tháng/năm và đợt kết nạp giữ dấu chấm để điền sau. Không tự xác nhận lý lịch hoặc rèn luyện thể lực. File DOCX dùng bố cục bảng nhiều tầng theo mẫu đã cung cấp; mẫu nền lưu trong assets đã loại bỏ toàn bộ dữ liệu cá nhân. Kiểm thử tải Word bằng dữ liệu giả lập, không ghi database thật.
+
 ## Giao diện tối giản
 
 Giao diện hiện tại dùng nền trung tính và một màu nhấn, thống nhất button/form/bảng/hộp thoại, có tìm kiếm trên thanh tiêu đề và đổi sáng/tối. Menu điện thoại là ngăn kéo có hỗ trợ bàn phím; hướng dẫn dài chỉ mở khi cần. Animation ngắn và tôn trọng `prefers-reduced-motion`. Thiết kế này thay cho các kiểu màu/gradient được mô tả trong các phần giao diện cũ bên dưới. Xem [quy tắc giao diện và kiểm tra](docs/interface.md).

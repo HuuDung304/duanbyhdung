@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="app-release" content="039fa8c3bf5b">
+  <meta name="app-release" content="69f1e1639a34">
   <script id="theme-preference-bootstrap">
     try { document.documentElement.dataset.theme = localStorage.getItem('dd460_display_theme') === 'dark' ? 'dark' : 'light'; }
     catch { document.documentElement.dataset.theme = 'light'; }
@@ -1173,6 +1173,8 @@ body {
         <article class="report-export-card export-unit-only"><h3>Danh hiệu học viên</h3><p>Xét TB năm gần nhất từ 7,0; các môn có tín chỉ từ 7,0, môn 0 tín chỉ qua môn và đạt chuẩn tiếng Nga hiện tại.</p><div class="report-card-actions"><button type="button" id="btnExportHonors" class="report-download" aria-label="Tải danh hiệu học viên" title="Tải danh hiệu học viên"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m-5-5 5 5 5-5M5 16v4h14v-4"/></svg></button><span class="report-file-type" aria-hidden="true">.xlsx</span></div></article>
         <article class="report-export-card export-unit-only"><h3>Danh sách học bổng</h3><p>Xét học kỳ gần nhất có điểm: Lê Quý Đôn, loại A, loại B.</p><div class="report-card-actions"><button type="button" id="btnExportScholarships" class="report-download" aria-label="Tải danh sách học bổng" title="Tải danh sách học bổng"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m-5-5 5 5 5-5M5 16v4h14v-4"/></svg></button><span class="report-file-type" aria-hidden="true">.xlsx</span></div></article>
       </div>
+      <article class="report-export-card export-unit-only"><h3>Danh sách dự kiến kết nạp Đảng</h3><p>Đã học cảm tình Đảng, đạt chuẩn tiếng Nga; chọn năm và ngưỡng điểm hệ 4. Kỳ chưa đủ điểm để trống.</p><button type="button" id="btnExportPartyNomination">Tải file Word</button></article>
+      <dialog id="partyNominationDialog" class="report-export-dialog" aria-labelledby="partyNominationTitle"><form id="partyNominationForm"><h3 id="partyNominationTitle">Danh sách dự kiến kết nạp Đảng</h3><fieldset><legend>Năm học đưa vào kết quả học tập</legend><label><input type="checkbox" name="partyYear" value="1"> Năm 1</label><label><input type="checkbox" name="partyYear" value="2"> Năm 2</label><label><input type="checkbox" name="partyYear" value="3"> Năm 3</label><label><input type="checkbox" name="partyYear" value="4"> Năm 4</label><label><input type="checkbox" name="partyYear" value="5"> Năm 5</label></fieldset><label for="partyThreshold">Điểm tối thiểu mỗi học kỳ đã đủ điểm (hệ 4)</label><input id="partyThreshold" type="number" min="0" max="4" step="0.01" placeholder="Nhập ngưỡng hệ 4" required><p>Chỉ xét học kỳ đã đủ điểm. Mỗi học kỳ đó phải đạt ngưỡng; cần ít nhất một học kỳ đủ điểm. Điểm và xếp loại của kỳ chưa đủ để trống.</p><div class="report-dialog-actions"><button type="button" id="partyNominationCancel">Hủy</button><button type="submit">Tải Word</button></div></form></dialog>
       <dialog id="reportExportDialog" class="report-export-dialog" aria-labelledby="reportExportDialogTitle">
         <form method="dialog" id="reportExportForm">
           <h3 id="reportExportDialogTitle">Tải báo cáo</h3><p id="reportExportDialogDescription"></p>
@@ -2274,7 +2276,8 @@ body {
     "./src/js/database/realtime.js": "./src/js/database/realtime.js?v=08238ad1e200",
     "./src/js/database/repository.js": "./src/js/database/repository.js?v=fb5a353f7938",
     "./src/js/grades.js": "./src/js/grades.js?v=49a9a1942aaa",
-    "./src/js/main.js": "./src/js/main.js?v=039fa8c3bf5b",
+    "./src/js/main.js": "./src/js/main.js?v=69f1e1639a34",
+    "./src/js/party-nomination.js": "./src/js/party-nomination.js?v=b51f60ab90b5",
     "./src/js/profile-rules.js": "./src/js/profile-rules.js?v=3a3bbf350b00",
     "./src/js/report-workbook.js": "./src/js/report-workbook.js?v=1cd3836da746",
     "./src/js/reports/dashboard.js": "./src/js/reports/dashboard.js?v=ecacb5e5a926",
@@ -2295,7 +2298,7 @@ body {
   }
 }
   </script>
-  <script type="module" src="./src/js/main.js?v=039fa8c3bf5b"></script>
+  <script type="module" src="./src/js/main.js?v=69f1e1639a34"></script>
   <script type="module" src="./src/js/components/expanding-rail.js?v=d9f1c3462963"></script>
   <script type="module" src="./src/js/components/notched-field.js?v=553608c192ae"></script>
   <script type="module" src="./src/js/components/bento-dashboard.js?v=c76ec853266e"></script>

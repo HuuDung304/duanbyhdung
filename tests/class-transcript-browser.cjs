@@ -15,7 +15,7 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
     await page.evaluate(type=>window.AuthState.setUser({type,class:'OTQS1',displayName:'Kiểm thử'}),type);
     assert.equal(await page.locator('.u040-name').textContent(),type==='class_account'?'Ô tô quân sự 1':'Đại đội 460');
     await page.evaluate(()=>window.switchTab('tab-reports'));
-    assert.equal(await page.locator('button[id^="btnExport"]').count(),6);
+    assert.equal(await page.locator('button[id^="btnExport"]').count(),7);
     await page.evaluate(()=>window.switchTab('tab-sheet'));
     assert.equal(await page.locator('#spreadsheetTable tfoot').count(),0);
     assert.ok(await page.locator('#spreadsheetTbody .cell-hk1-gpa').count()>0);
