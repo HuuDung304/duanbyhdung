@@ -129,7 +129,7 @@ export function createReportStatistics(context) {
               courseName: fullCourseName,
               semester: Number(sub.semester) || 1,
               academicYear: Math.ceil((Number(sub.semester) || 1) / 2),
-              credits: Number(sub.credits) || 3,
+              credits: (sub.credits === 0 || sub.credits === '0' ? 0 : Number(sub.credits) || 3),
               score: numScore,
               gpa,
               classification: effectiveRank

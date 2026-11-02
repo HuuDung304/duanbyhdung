@@ -12,6 +12,7 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
    await page.goto(process.env.TEST_BASE_URL||'http://127.0.0.1:3018',{waitUntil:'networkidle'});if(process.env.REPORT_TEST_CSS_PATH)await page.addStyleTag({path:process.env.REPORT_TEST_CSS_PATH});
    await page.waitForFunction(()=>window.AppState?.students.length===3);
    await page.emulateMedia({reducedMotion:'reduce'});
+   if(width<640) await page.locator('#interfaceMenuButton').click();
    await page.locator('.u040-it[data-tab="tab-sheet"]').click();
    await page.waitForFunction(()=>document.querySelector('.readable-data-table'));
    assert.equal(await page.locator('.u040-page-heading').isVisible(),false);
@@ -31,6 +32,7 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
    assert.equal(await page.locator('#sheetInstructionBanner').evaluate(e=>e.open),false);
    await page.locator('#sheetInstructionBanner>summary').click();
    assert.match(await page.locator('#sheetInstructionBanner').innerText(),/Enter/);
+   if(width<640) await page.locator('#interfaceMenuButton').click();
    await page.locator('.u040-it[data-tab="tab-dashboard"]').click();
    assert.equal(await page.locator('#dashboardKpis>div').count(),3);
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);

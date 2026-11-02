@@ -141,7 +141,7 @@ body.ui-modern .u040-content table { color:var(--theme-ink); }
 body.ui-modern .u040-content table :is(th,td) { border-color:var(--theme-border); font-size:14px; line-height:1.5; font-variant-numeric:tabular-nums; }
 body.ui-modern .u040-content table th { padding:12px; font-weight:600; background:var(--theme-soft); color:var(--theme-ink); text-transform:none; vertical-align:middle; }
 body.ui-modern .u040-content table td { padding:12px; vertical-align:middle; border-bottom:1px solid var(--theme-border); }
-body.ui-modern .u040-content table tr:hover>td { background:var(--theme-soft); }
+@media (hover:hover) and (pointer:fine) { body.ui-modern .u040-content table tr:hover>td { background:var(--theme-soft); } }
 body.ui-modern .u040-content table .grid-cell-input { min-height:34px; border-radius:6px; background:transparent; color:var(--theme-ink); font-size:13px; }
 body.ui-modern .u040-content table td:has(>.grid-cell-input) { padding:3px 5px; }
 body.ui-modern .u040-content table .grid-cell-input:focus { background:var(--theme-selected); outline:2px solid var(--theme-focus); box-shadow:none; }
@@ -229,7 +229,7 @@ body.ui-modern .u040-content :is(.bg-gradient-to-r,.bg-gradient-to-br) :is(.text
 body.ui-modern .u040-content table :is(th,td) { border-right-color:transparent; }
 body.ui-modern .u040-content table thead { background:var(--theme-soft); }
 body.ui-modern .u040-content table tbody tr:last-child>td { border-bottom:0; }
-body.ui-modern .u040-content table tbody tr:hover>[data-identity-column] { background:var(--theme-soft); }
+@media (hover:hover) and (pointer:fine) { body.ui-modern .u040-content table tbody tr:hover>[data-identity-column] { background:var(--theme-soft); } }
 body.ui-modern .u040-content :is(.readable-table-scroll,.research-scroll,.workspace-table-scroll) { scrollbar-width:thin; scrollbar-color:var(--theme-border-strong) var(--theme-soft); }
 body.ui-modern #spreadsheetTable :is(th,td) { border-right:1px solid var(--theme-border); }
 body.ui-modern #spreadsheetTable .grid-cell-input { font-size:14px; min-height:38px; font-variant-numeric:tabular-nums; }
@@ -422,3 +422,12 @@ body.ui-modern .cadet-grade-error:empty { display:none; }
   body.ui-modern :is(.research-dialog-header,.research-form-body,.research-dialog-footer) { padding:16px; }
   body.ui-modern .cadet-results-heading { padding:16px; }
 }
+
+/* Keep large data surfaces still and use native, immediate scrolling. */
+body.ui-modern .tab-content.active { animation:none; }
+body.ui-modern .u040-content table,
+body.ui-modern .u040-content table *,
+body.ui-modern .u040-content table *::before,
+body.ui-modern .u040-content table *::after { animation:none!important; transition:none!important; }
+body.ui-modern .u040-content :is(.custom-scrollbar,.readable-table-scroll,.workspace-table-scroll,.research-scroll,.catalog-table-scroll,.year-breakdown-detail-scroll) { scroll-behavior:auto; }
+body.ui-modern .u040-content .grid-cell-input:focus { transform:none; }

@@ -21,7 +21,7 @@
 .bento-app .readable-data-table [data-identity-column="2"] { box-shadow:2px 0 0 #e2e8f0; }
 .bento-app .readable-data-table td[data-numeric-cell],.bento-app .readable-data-table td[data-numeric-cell] input { text-align:right; }
 .bento-app .readable-data-table td[data-numeric-cell] input { padding-right:8px; }
-.bento-app .readable-data-table tbody tr:hover [data-identity-column] { background:#eff6ff; }
+@media (hover:hover) and (pointer:fine) { .bento-app .readable-data-table tbody tr:hover [data-identity-column] { background:#eff6ff; } }
 .bento-app .language-kpi-values { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:4px; align-items:baseline; }
 .bento-app .kpi-value-label { display:block; font-size:13px; font-weight:650; }
 .bento-app .report-intro { font-size:14px; margin-top:6px; color:#e2e8f0; }

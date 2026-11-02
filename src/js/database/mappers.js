@@ -112,7 +112,7 @@ export function mapSubjectToDbRow(sub) {
     code: String(sub.code || '').trim().toUpperCase(),
     name: String(sub.name || '').trim(),
     semester: Number(sub.semester) || 1,
-    credits: Number(sub.credits) || 3,
+    credits: (sub.credits === 0 || sub.credits === '0' ? 0 : Number(sub.credits) || 3),
     category: isSpec ? 'specialized' : 'common',
     target_classes: isSpec ? targetClasses : [],
     target_class: isSpec ? (targetClasses.join(', ') || sub.targetClass || 'OTQS1') : 'all',
@@ -131,7 +131,7 @@ export function mapDbRowToSubject(row) {
     code: String(row.code || '').trim().toUpperCase(),
     name: String(row.name || '').trim(),
     semester: Number(row.semester) || 1,
-    credits: Number(row.credits) || 3,
+    credits: (row.credits === 0 || row.credits === '0' ? 0 : Number(row.credits) || 3),
     category: isSpec ? 'specialized' : 'common',
     targetClasses: isSpec ? targetClasses : [],
     targetClass: isSpec ? (row.target_class || targetClasses.join(', ') || 'OTQS1') : 'all'

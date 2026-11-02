@@ -114,7 +114,7 @@ function importContext(file = 'src/js/grades.js', overrides = {}) {
     parseExcelSubjectHeader: () => ({ normTitle: 'toan' }),
     resolveSubjectByCompositeKey: () => ({ id: 'toan' }),
     buildDeterministicStudentId: code => `hv_${code.toLowerCase()}`,
-    normalizeDateVN: () => '', logAuditTrail() {}, persistData: async () => {}, updateAllViews() {}, hideModal() {},
+    normalizeDateVN: () => '', logAuditTrail() {}, logRecordChanges() {}, persistData: async () => {}, updateAllViews() {}, hideModal() {},
     reviewImport: async options => { if (!options.confirm) messages.push({ message: [options.details, ...(options.rows || [])].join('\n'), type: options.title.includes('Kết quả') ? 'success' : 'error' }); return true; },
     importExcelTransaction: async () => ({ unavailable: true }),
     showToast: (message, type) => messages.push({ message, type }),
@@ -411,7 +411,7 @@ function profileContext(rows, setupState) {
     importExcelTransaction: async () => ({ unavailable: true }),
     showToast: (message, type) => messages.push({ message, type }),
     upsertStudentsBulkToSupabase: async students => { writes.push(students); return { error: null }; },
-    logAuditTrail() {}, persistData: async () => {}, populateStudentPicker() {}, updateAllViews() {}, hideModal() {},
+    logAuditTrail() {}, logRecordChanges() {}, persistData: async () => {}, populateStudentPicker() {}, updateAllViews() {}, hideModal() {},
     buildDeterministicStudentId: code => `hv_${code.toLowerCase()}`,
   });
   const from = source.indexOf('export function detectExcelColumnMapping');

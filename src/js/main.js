@@ -1,3 +1,4 @@
+import { SUBJECT_AUDIT_FIELDS, RESEARCH_AUDIT_FIELDS } from './audit-changes.js';
 import { clearAuditLogs } from './database/audit.js';
 import { mountResearch } from './research/ui.js';
 import { planOffering, subjectHasGrades, offeringClasses } from './subjects/offerings.js';
@@ -32,6 +33,7 @@ import {
   showModal,
   hideModal,
   logAuditTrail,
+  logRecordChanges,
   updateAllViews,
   renderSpreadsheet,
   filterSheetStudents,
@@ -54,6 +56,7 @@ import {
   exportLanguageExcel,
   exportDashboardLanguageExcel,
   exportAcademicAchievementsExcel,
+  exportAcademicAwardLists,
   exportFailedStudentsExcel,
   downloadExcelTemplate,
   handleExcelFileUpload,
@@ -463,7 +466,7 @@ async function submitAddCadetForm(formEl) {
     if (!AppState.grades[newStudent.id]) AppState.grades[newStudent.id] = {};
     AppState.languages[newStudent.id] = defaultLang;
 
-    logAuditTrail(newStudent.id, '', '', '', `Thêm mới học viên ${name} (${code})`);
+    await logRecordChanges(newStudent.id, '', null, newStudent, 'Thêm học viên');
     hideModal('modalAddCadet');
     if (formEl && typeof formEl.reset === 'function') formEl.reset();
     populateStudentPicker();
@@ -501,7 +504,7 @@ async function submitUpdateLangForm(formEl) {
     AppState.languages[sid] = { ...prev, lang, currentLevel: level, A1, A21, A22, B11, B12, extraCert };
     const saved = await upsertStudentToSupabase(selectedStudent, AppState.languages[sid]);
     if (saved?.error) { selectedStudent.currentLangLevel = previousLevel; AppState.languages[sid] = prev; showToast(saved.error.message || 'Không lưu được chứng chỉ.', 'error'); return; }
-    logAuditTrail(sid, '', 'Ngoại ngữ', `${lang}: B1.1 ${B11}, B1.2 ${B12}`, 'Cập nhật chứng chỉ ngoại ngữ');
+    await logRecordChanges(sid, '', prev, AppState.languages[sid], 'Cập nhật chứng chỉ ngoại ngữ');
     hideModal('modalUpdateLang');
     updateAllViews({ force: true });
     showToast('Đã lưu chứng chỉ ngoại ngữ lên Supabase!', 'success');
@@ -524,11 +527,12 @@ async function submitAddSubjectForm(formEl) {
         name:document.getElementById('newSubjName').value,code:document.getElementById('newSubjCode').value,
         semester:document.getElementById('newSubjSemester').value,credits:document.getElementById('newSubjCredits').value,
         classes:common?DEFAULT_CLASSES:getSelectedTargetClassesFromModal(),createId:()=>formEl.dataset.newOfferingId});
+      const previousSubject = structuredClone(AppState.subjects.find(subject => subject.id === planned.id) || null);
       const saved=await upsertSubjectToSupabase(planned);
       if(saved?.error)throw new Error(saved.error.message || 'Không lưu được môn học. Dữ liệu đang có được giữ nguyên.');
       const index=AppState.subjects.findIndex(subject=>subject.id===planned.id);
       if(index>=0)AppState.subjects[index]=planned;else AppState.subjects.push(planned);
-      logAuditTrail('',planned.id,editId?'Sửa môn':'Thêm môn',planned.name,`HK${planned.semester} · ${offeringClasses(planned).join(', ')}`);
+      await logRecordChanges('', planned.id, previousSubject, planned, editId ? 'Sửa môn học' : 'Thêm môn học', SUBJECT_AUDIT_FIELDS);
       AppState.settingsSelectedYear=Math.ceil(planned.semester/2);
       const targetClasses=offeringClasses(planned);
       if(AppState.settingsSelectedClass&&AppState.settingsSelectedClass!=='all'&&!targetClasses.includes(AppState.settingsSelectedClass))AppState.settingsSelectedClass=targetClasses[0];
@@ -605,6 +609,7 @@ async function submitStudentProfileForm(formEl) {
         }
       }
 
+      const previousProfile = structuredClone(s);
       s.name = name;
       s.rank = rank;
       if (AppState.role !== 'student') {
@@ -637,7 +642,7 @@ async function submitStudentProfileForm(formEl) {
         showToast('Có lỗi khi cập nhật hồ sơ: ' + (res.error.message || 'Vui lòng thử lại'), 'error');
         return;
       }
-      logAuditTrail(s.id, '', '', '', 'Cập nhật hồ sơ quân nhân ' + name);
+      await logRecordChanges(s.id, '', previousProfile, s, 'Cập nhật hồ sơ quân nhân');
     } else {
       if (AppState.role === 'student') {
         showToast('Học viên không có quyền thêm mới quân nhân!', 'error');
@@ -693,7 +698,7 @@ async function submitStudentProfileForm(formEl) {
       }
       if (!AppState.grades[newStudent.id]) AppState.grades[newStudent.id] = {};
       AppState.languages[newStudent.id] = defaultLang;
-      logAuditTrail(newStudent.id, '', '', '', 'Thêm mới quân nhân ' + name + ' (' + code + ')');
+      await logRecordChanges(newStudent.id, '', null, newStudent, 'Thêm quân nhân');
     }
 
     // Chỉ mở khóa trạng thái Cô lập Form Chỉnh Sửa (Isolate Edit State) và làm mới bảng SAU KHI đã Lưu lên Supabase thành công
@@ -1043,6 +1048,9 @@ function registerGlobalEventDelegation() {
     }
 
     // --- H. XUẤT / NHẬP EXCEL ---
+    for (const [selector, kind] of [['#btnExportHonors', 'honors'], ['#btnExportScholarships', 'scholarships']]) {
+      if (target.closest(selector)) { e.preventDefault(); if (await requestReportOptions(kind)) exportAcademicAwardLists(kind); return; }
+    }
     if (target.closest('#btnExportRanking')) { e.preventDefault(); if (await requestReportOptions('year')) exportAcademicRanking(); return; }
     if (target.closest('#btnExportCadetRoster')) { e.preventDefault(); exportCadetRoster(); return; }
     if (target.closest('#btnExportAchievements')) { e.preventDefault(); exportAcademicAchievementsExcel(); return; }
@@ -1413,10 +1421,12 @@ function registerGlobalEventDelegation() {
         target.value = AppState.requiredLangStandard || 'A2';
         return;
       }
+      const previousStandard = AppState.requiredLangStandard;
       AppState.requiredLangStandard = target.value;
       document.querySelectorAll('.required-lang-standard-select').forEach(s => { s.value = AppState.requiredLangStandard; });
       document.querySelectorAll('.required-lang-standard-badge').forEach(b => { b.textContent = AppState.requiredLangStandard; });
-      persistData(true);
+      await persistData(true);
+      await logAuditTrail('', '', previousStandard, AppState.requiredLangStandard, 'Cập nhật cấu hình', 'Chuẩn ngoại ngữ');
       updateAllViews();
       return;
     }
@@ -1424,8 +1434,8 @@ function registerGlobalEventDelegation() {
     if (target.classList.contains('input-subj-credits')) {
       const sId = target.dataset.id;
       const newCreds = parseInt(target.value, 10);
-      if (isNaN(newCreds) || newCreds < 1 || newCreds > 15) {
-        showToast('Số tín chỉ không hợp lệ (nhập từ 1 đến 15 tín chỉ)!', 'error');
+      if (isNaN(newCreds) || newCreds < 0 || newCreds > 15) {
+        showToast('Số tín chỉ không hợp lệ (nhập từ 0 đến 15 tín chỉ)!', 'error');
         return;
       }
       const s = AppState.subjects.find(x => x.id === sId);
@@ -1434,8 +1444,9 @@ function registerGlobalEventDelegation() {
         try {
           const oldCreds = s.credits;
           s.credits = newCreds;
-          await upsertSubjectToSupabase(s);
-          logAuditTrail('', sId, `${oldCreds} TC`, `${newCreds} TC`, `Cập nhật số tín chỉ môn ${s.name}`);
+          const saved = await upsertSubjectToSupabase(s);
+          if (saved?.error) { s.credits = oldCreds; throw new Error(saved.error.message || 'Không lưu được tín chỉ.'); }
+          await logAuditTrail('', sId, `${oldCreds} TC`, `${newCreds} TC`, `Cập nhật số tín chỉ môn ${s.name}`);
           renderSubjectsSettings();
           updateAllViews();
         } finally {
@@ -1528,7 +1539,7 @@ export function initApp() {
 
   // 2. Đăng ký các hook liên kết giữa các module và biến toàn cục trên window
   const research = mountResearch({ state: AppState, classes: DEFAULT_CLASSES, subjectsForClass: getSubjectsForClass, notify: showToast,
-    onSaved: (project, previous) => logAuditTrail(project.leaderId, '', previous?.title || 'Chưa có', project.title, previous ? 'Cập nhật đề tài nghiên cứu khoa học' : 'Thêm đề tài nghiên cứu khoa học')
+    onSaved: (project, previous) => logRecordChanges(project.leaderId, '', previous, project, `${previous ? 'Cập nhật' : 'Thêm'} đề tài nghiên cứu khoa học: ${project.title}`, RESEARCH_AUDIT_FIELDS)
   });
   registerExternalHooks({
     renderResearch: () => research?.render(),

@@ -25,6 +25,7 @@ import {
   persistData,
   showToast,
   logAuditTrail,
+  logRecordChanges,
   formatVN,
   normalizeDateVN,
   normalizeAchievements,
@@ -613,6 +614,7 @@ export function renderStudentInlineProfile(options = {}) {
       try { calendarDate(document.getElementById('inlineProfDob')?.value || student.dob); politicalDates(document.getElementById('inlineProfPolitical')?.value, document.getElementById('inlineProfPartyJoined')?.value, document.getElementById('inlineProfPartyOfficial')?.value); }
       catch (error) { showToast(error.message, 'error'); return; }
 
+      const previousProfile = structuredClone(student);
       const newName = (document.getElementById('inlineProfName')?.value || '').trim();
       if (!newName) {
         showToast('Họ và tên học viên không được để trống!', 'error');
@@ -658,7 +660,7 @@ export function renderStudentInlineProfile(options = {}) {
         return;
       }
 
-      logAuditTrail(student.id, '', '', '', `Học viên ${student.name} (${student.code}) cập nhật trực tiếp Hồ sơ Quân nhân.`);
+      await logRecordChanges(student.id, '', previousProfile, student, 'Học viên cập nhật hồ sơ quân nhân');
       // Chỉ mở khóa trạng thái chỉnh sửa và tải/vẽ lại giao diện SAU KHI đã lưu lên Supabase thành công
       AppState.studentProfileEditMode = false;
       AppState.isEditingForm = false;
@@ -740,7 +742,7 @@ export async function executeCascadeDeleteCadet(studentId, triggerBtn = null) {
     // Thực thi lệnh DELETE vĩnh viễn trực tiếp trên Supabase (bảng students, grades, languages)
     await deleteStudentFromSupabase(studentId);
 
-    logAuditTrail(studentId, '', '', '', `[SUPABASE DELETE] Xóa vĩnh viễn quân nhân ${sName} (${sCode} - Lớp ${sClass})`);
+    await logAuditTrail(studentId, '', `${sName} (${sCode} - ${sClass})`, 'Đã xóa', 'Xóa quân nhân', 'Hồ sơ quân nhân');
     hideModal('modalConfirmDeleteCadet');
 
     populateStudentPicker();
@@ -1136,7 +1138,7 @@ export async function executeQuickImport() {
       if (bulkRes?.error) throw new Error(bulkRes.error.message || 'Không thể lưu đầy đủ dữ liệu học viên');
     }
     databaseCommitted = true;
-    logAuditTrail('', '', 'Excel Nhập Nhanh', `${importedCount} học viên`, 'Nhập nhanh danh sách hồ sơ học viên từ Excel lên Supabase');
+    await Promise.all(importedStudents.map(student => logRecordChanges(student.id, '', previousState.students.find(old => old.id === student.id || old.code === student.code), student, 'Nhập hồ sơ từ Excel')));
     await persistData(true);
 
     hideModal('modalQuickImportExcel');

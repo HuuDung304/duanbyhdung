@@ -23,7 +23,7 @@ export function planOffering({subjects,students,grades,role,classScope=null,edit
   const sem=Number(semester),tc=Number(credits);
   if(!exactName)throw new Error('Nhập đúng tên môn trên thời khóa biểu.');
   if(!Number.isInteger(sem)||sem<1||sem>10)throw new Error('Học kỳ phải từ 1 đến 10.');
-  if(!Number.isInteger(tc)||tc<1||tc>15)throw new Error('Tín chỉ phải từ 1 đến 15.');
+  if(!Number.isInteger(tc)||tc<0||tc>15)throw new Error('Tín chỉ phải từ 0 đến 15.');
   const targets=[...new Set((classScope?[classScope]:classes || []).map(value=>String(value).trim().toUpperCase()))].sort();
   if(!targets.length||targets.some(value=>!SUBJECT_CLASSES.includes(value)))throw new Error('Chọn lớp học môn này.');
   const old=editId?subjects.find(subject=>subject.id===editId):null;

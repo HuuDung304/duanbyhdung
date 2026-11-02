@@ -47,7 +47,7 @@ body.bento-app .u040-content table :is(th,td){border-color:var(--theme-border)}
 body.bento-app .u040-content table th,body.bento-app .u040-content table thead.bg-army-800{background:var(--theme-soft);color:var(--theme-ink)}
 body.bento-app .u040-content table [data-identity-column]{background:var(--theme-card);color:var(--theme-ink)}
 body.bento-app .u040-content table th[data-identity-column]{background:var(--theme-soft)}
-body.bento-app .u040-content table tbody tr:hover,body.bento-app .u040-content table tbody tr:hover [data-identity-column]{background:var(--theme-soft)}
+@media (hover:hover) and (pointer:fine) { body.bento-app .u040-content table tbody tr:hover,body.bento-app .u040-content table tbody tr:hover [data-identity-column]{background:var(--theme-soft)} }
 body.bento-app .u040-content .grid-cell-input{color:var(--theme-ink)}
 body.bento-app .u040-content .grid-cell-input:focus{background:var(--theme-selected);color:var(--theme-primary);outline-color:var(--theme-focus);box-shadow:0 4px 12px var(--theme-shadow)}
 body.bento-app :is(.workspace-report-tabs,.year-breakdown-picker){background:var(--theme-soft);border-color:var(--theme-border)}

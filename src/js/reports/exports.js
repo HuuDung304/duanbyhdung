@@ -1,3 +1,4 @@
+import { buildAcademicAwards } from '../academic/awards.js';
 // Dependencies are injected by grades.js; this module does not import the application shell.
 export function createReportExports(context) {
   function exportReportExcel() {
@@ -592,6 +593,56 @@ export function createReportExports(context) {
   }
 
 
+  function exportAcademicAwardLists(kind) {
+    if (!['honors', 'scholarships'].includes(kind) || !['admin', 'company_officer'].includes(context.AppState.role) && !context.AppState.role?.startsWith('class_leader_')) return;
+    const selected = context.getCurrentUserClassScope() || document.getElementById('awardClassSelect')?.value || 'all';
+    const students = context.getScopedStudents().filter(student => selected === 'all' || student.class === selected);
+    const standard = context.evaluateLangLevelStatus('Chưa đạt', context.AppState.requiredLangStandard).requiredStandard;
+    const { roster } = context.collectLanguageStatistics(students, context.AppState.languages || {}, standard, context.evaluateLangLevelStatus, context.DEFAULT_CLASSES);
+    const languageByStudent = new Map(roster.map(item => [item.student.id, { actualLevel: item.level, isPassed: item.passed }]));
+    const result = buildAcademicAwards({ students, grades: context.AppState.grades, subjectsForClass: context.getSubjectsForClass,
+      languageStatus: student => languageByStudent.get(student.id), scale4: score => context.getGradeLetterAndScale4(score).scale4, kind });
+    if (!result.latestSemester) { context.showToast('Phạm vi đã chọn chưa có điểm để xét.', 'error'); return; }
+    const scholarship = kind === 'scholarships';
+    const title = scholarship ? 'DANH SÁCH HỌC BỔNG' : 'DANH HIỆU HỌC VIÊN';
+    const headers = ['STT', 'MÃ HỌC VIÊN', 'HỌ VÀ TÊN', 'NGÀY THÁNG NĂM SINH', scholarship ? 'HỌC BỔNG' : 'DANH HIỆU HỌC VIÊN', 'ĐIỂM HỆ 10', 'ĐIỂM HỆ 4', 'NGOẠI NGỮ', 'GHI CHÚ'];
+    const rows = [[title], headers];
+    const headerRows = [1, 2];
+    const scoreRows = [];
+    const addRecords = records => {
+      if (!records.length) { rows.push(['Không có học viên đủ điều kiện.']); return; }
+      records.forEach((record, index) => {
+        scoreRows.push(rows.length);
+        rows.push([index + 1, String(record.student.code || ''), record.student.name, context.normalizeDateVN(record.student.dob, ''), record.award,
+          Number(record.average.toFixed(2)), Number(record.average4.toFixed(2)), record.language,
+          record.belowSeven.map(({ subject, score }) => `${context.getFullSubjectName(subject)} (${score.toFixed(2).replace('.', ',')} < 7,0)`).join('; ')]);
+      });
+    };
+    if (!scholarship) { headerRows.push(rows.length + 1); rows.push(['I. ĐỦ ĐIỀU KIỆN']); }
+    addRecords(result.qualified);
+    if (!scholarship) { headerRows.push(rows.length + 1); rows.push(['II. XÉT VẬN DỤNG']); addRecords(result.discretionary); }
+    const sheet = XLSX.utils.aoa_to_sheet(rows);
+    sheet['!cols'] = [7, 20, 30, 25, 28, 16, 16, 18, 60].map(wch => ({ wch }));
+    sheet['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 8 } }];
+    sheet['!reportHeaderRows'] = headerRows;
+    sheet['!reportRepeatRows'] = 2;
+    for (const row of scoreRows) for (const column of [5, 6]) sheet[XLSX.utils.encode_cell({ r: row, c: column })].z = '0.00';
+    const info = XLSX.utils.aoa_to_sheet([
+      ['THÔNG TIN XÉT'], ['Phạm vi', selected === 'all' ? 'Toàn đại đội' : selected],
+      ['Kỳ xét', scholarship ? `Học kỳ ${result.latestSemester} (Năm ${result.year})` : `Năm ${result.year}`],
+      ['Chuẩn tiếng Nga hiện tại', standard], ['Dữ liệu xét', 'Chỉ xét các môn đã có điểm trong kỳ/năm; môn chưa nhập điểm được bỏ qua.'],
+      ['Trung bình', 'Tính theo tín chỉ các môn đã có điểm; môn 0 tín chỉ không tính vào TB hệ 10/hệ 4.'],
+      ['Điều kiện chung', 'Các môn có tín chỉ đã có điểm đều từ 7,0; môn 0 tín chỉ đã có điểm phải đạt từ 4,0; đạt chuẩn tiếng Nga hiện tại.'],
+      ['Mức xét', scholarship ? 'Lê Quý Đôn: TB ≥ 9,0; loại A: TB ≥ 8,5; loại B: TB ≥ 8,0. Mỗi học viên chỉ nhận mức cao nhất.' : 'Xuất sắc: TB ≥ 9,0; học giỏi: TB ≥ 8,0; học tốt: TB ≥ 7,0. Mỗi học viên chỉ ở mức cao nhất.'],
+      ...(!scholarship ? [['II. Xét vận dụng', 'TB ≥ 8,0 và có môn có tín chỉ dưới 7,0; vẫn yêu cầu môn 0 tín chỉ qua môn và đạt chuẩn tiếng Nga. Đây là danh sách đề nghị xét, chưa phải danh hiệu đã được duyệt.']] : [])
+    ]);
+    info['!cols'] = [{ wch: 30 }, { wch: 115 }];
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, sheet, scholarship ? 'Danh_sach_hoc_bong' : 'Danh_hieu_hoc_vien');
+    XLSX.utils.book_append_sheet(workbook, info, 'Thong_tin_xet');
+    context.writeReportWorkbook(workbook, scholarship ? 'Danh sách học bổng.xlsx' : 'Danh hiệu học viên.xlsx');
+  }
+
   function exportCumulativeExcel() {
     if (context.AppState.role === 'student') return exportStudentPersonalExcel();
     const classScope = context.getCurrentUserClassScope();
@@ -658,5 +709,5 @@ export function createReportExports(context) {
   }
 
 
-  return { exportReportExcel, exportStudentPersonalExcel, exportClassExcel, exportMasterExcel, exportAcademicRanking, exportLanguageExcel, getDashboardLanguageData, renderDashboardLanguageSummary, exportDashboardLanguageExcel, exportFailedStudentsExcel, exportAcademicAchievementsExcel, exportCumulativeExcel };
+  return { exportReportExcel, exportStudentPersonalExcel, exportClassExcel, exportMasterExcel, exportAcademicRanking, exportLanguageExcel, getDashboardLanguageData, renderDashboardLanguageSummary, exportDashboardLanguageExcel, exportFailedStudentsExcel, exportAcademicAchievementsExcel, exportAcademicAwardLists, exportCumulativeExcel };
 }

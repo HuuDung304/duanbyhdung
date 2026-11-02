@@ -1,4 +1,5 @@
-import { appendAuditLog, loadAuditLogs } from './database/audit.js';
+import { queueAuditLog, flushPendingAuditLogs, loadAuditLogs } from './database/audit.js';
+import { auditChanges, auditValue } from './audit-changes.js';
 import { renderSubjectCatalog } from './subjects/catalog-view.js';
 import { subjectHasGrades, stableOfferingId } from './subjects/offerings.js';
 import { trackImportRead } from './components/upload-state.js';
@@ -135,6 +136,7 @@ export const {
   exportDashboardLanguageExcel,
   exportFailedStudentsExcel,
   exportAcademicAchievementsExcel,
+  exportAcademicAwardLists,
   exportCumulativeExcel
 } = createReportExports(moduleContext);
 
@@ -561,7 +563,7 @@ export function normalizeSubjectsCatalog(subjects) {
       name: fullCourseName,
       course_name: fullCourseName,
       semester: Number(sub.semester) || 1,
-      credits: Number(sub.credits) || 3,
+      credits: (sub.credits === 0 || sub.credits === '0' ? 0 : Number(sub.credits) || 3),
       category: isSpec ? 'specialized' : 'common',
       targetClasses: isSpec ? targetClasses : [],
       targetClass: isSpec ? targetClasses.join(', ') : 'all'
@@ -652,7 +654,7 @@ export function parseExcelSubjectHeader(rawHeader, defaultSemester = null) {
   const credMatch = original.match(/\(\s*(?:[^)]*?\b)?(\d{1,2})\s*TC\b[^)]*\)/i);
   if (credMatch && credMatch[1]) {
     const parsedCred = parseInt(credMatch[1], 10);
-    if (parsedCred >= 1 && parsedCred <= 15) creditsHint = parsedCred;
+    if (parsedCred >= 0 && parsedCred <= 15) creditsHint = parsedCred;
   }
 
   for (const cls of DEFAULT_CLASSES) {
@@ -738,7 +740,7 @@ export function resolveSubjectByCompositeKey({
   if (!matches.length) matches = applicable.filter(sub => normalizeCourseText(expandCourseAbbreviation(sub.name,sub.code)) === headerInfo.normCourseName);
   if (matches.length > 1) throw new Error(`Môn "${headerInfo.cleanTitle}" trùng tên tại lớp ${targetCls}, HK${effectiveSem}. Dùng mã môn trong tiêu đề Excel để phân biệt.`);
   if (matches.length === 1) {
-    if (headerInfo.creditsHint && Number(matches[0].credits) !== Number(headerInfo.creditsHint)) throw new Error('Tín chỉ trong Excel khác danh mục. Hãy kiểm tra môn trước khi nhập điểm.');
+    if (headerInfo.creditsHint !== null && headerInfo.creditsHint !== undefined && Number(matches[0].credits) !== Number(headerInfo.creditsHint)) throw new Error('Tín chỉ trong Excel khác danh mục. Hãy kiểm tra môn trước khi nhập điểm.');
     return matches[0];
   }
   if (!autoCreate) return null;
@@ -760,7 +762,7 @@ export function resolveSubjectByCompositeKey({
   const category = 'specialized';
   const targetClasses = [targetCls];
   const targetClass = targetCls;
-  const credits = headerInfo.creditsHint || 3;
+  const credits = headerInfo.creditsHint ?? 3;
   const code = `${generatedCode}_${targetCls}`;
 
   const newSubId = buildDeterministicSubjectId({
@@ -779,7 +781,7 @@ export function resolveSubjectByCompositeKey({
     code,
     name: courseName,
     semester: effectiveSem,
-    credits: Number(credits) || 3,
+    credits: Number(credits),
     category,
     targetClasses,
     targetClass
@@ -1533,15 +1535,15 @@ export function attachSpreadsheetGridEvents() {
         e.preventDefault();
         const next = document.querySelector(`.grid-cell-input[data-row="${row + 1}"][data-col="${col}"]`);
         if (next) next.focus();
+        else if (e.key === 'Enter') this.blur();
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();
         const prev = document.querySelector(`.grid-cell-input[data-row="${row - 1}"][data-col="${col}"]`);
         if (prev) prev.focus();
       } else if (e.key === 'ArrowRight' || e.key === 'Tab') {
         if (e.key === 'ArrowRight' && this.selectionEnd < this.value.length) return;
-        e.preventDefault();
-        const nextCol = document.querySelector(`.grid-cell-input[data-row="${row}"][data-col="${col + 1}"]`);
-        if (nextCol) nextCol.focus();
+        const nextCol = document.querySelector(`.grid-cell-input[data-row="${row}"][data-col="${col + (e.key === 'Tab' && e.shiftKey ? -1 : 1)}"]`);
+        if (nextCol) { e.preventDefault(); nextCol.focus(); }
       } else if (e.key === 'ArrowLeft') {
         if (this.selectionStart > 0) return;
         e.preventDefault();
@@ -1569,17 +1571,20 @@ export async function handleGradeChange(inputEl) {
   const studentId = inputEl.dataset.student;
   const subjectId = inputEl.dataset.subject;
 
+  if (rawVal === '' && origVal === '') return;
   if (rawVal === '') {
     inputEl.dataset.saving = 'true';
     inputEl.disabled = true;
     try {
-      if (AppState.grades[studentId]) {
-        delete AppState.grades[studentId][subjectId];
-      }
-      await deleteGradeFromSupabase(studentId, subjectId);
-      logAuditTrail(studentId, subjectId, origVal, 'Trống', 'Xóa điểm trên Supabase');
+      const result = await deleteGradeFromSupabase(studentId, subjectId);
+      if (result?.error) throw new Error(result.error.message || 'Không xóa được điểm.');
+      if (AppState.grades[studentId]) delete AppState.grades[studentId][subjectId];
+      await logAuditTrail(studentId, subjectId, origVal, 'Trống', 'Xóa điểm trên Supabase');
       renderSpreadsheet();
       updateAllViews();
+    } catch (error) {
+      inputEl.value = origVal;
+      showToast(error.message || 'Không xóa được điểm.', 'error');
     } finally {
       inputEl.dataset.saving = 'false';
       inputEl.disabled = false;
@@ -1600,25 +1605,27 @@ export async function handleGradeChange(inputEl) {
   inputEl.dataset.saving = 'true';
   inputEl.disabled = true;
   try {
-    if (!AppState.grades[studentId]) {
-      AppState.grades[studentId] = {};
-    }
+    const result = await upsertGradeToSupabase(studentId, subjectId, rounded);
+    if (result?.error) throw new Error(result.error.message || 'Không lưu được điểm.');
+    if (!AppState.grades[studentId]) AppState.grades[studentId] = {};
     AppState.grades[studentId][subjectId] = rounded;
-    await upsertGradeToSupabase(studentId, subjectId, rounded);
 
-    if (origVal !== rounded.toFixed(2)) {
-      logAuditTrail(studentId, subjectId, origVal, rounded.toFixed(2), 'Cập nhật điểm trực tiếp lên Supabase');
+    if (origVal === '' || Number(origVal) !== rounded) {
+      await logAuditTrail(studentId, subjectId, origVal, rounded.toFixed(2), 'Cập nhật điểm trực tiếp lên Supabase');
     }
 
     renderSpreadsheet();
     updateAllViews();
+  } catch (error) {
+    inputEl.value = origVal;
+    showToast(error.message || 'Không lưu được điểm.', 'error');
   } finally {
     inputEl.dataset.saving = 'false';
     inputEl.disabled = false;
   }
 }
 
-export function logAuditTrail(studentId, subjectId, oldVal, newVal, reason) {
+export function logAuditTrail(studentId, subjectId, oldVal, newVal, reason, field = null) {
   const student = AppState.students.find(s => s.id === studentId);
   const subject = AppState.subjects.find(s => s.id === subjectId);
   const now = new Date();
@@ -1629,7 +1636,7 @@ export function logAuditTrail(studentId, subjectId, oldVal, newVal, reason) {
     String(now.getMinutes()).padStart(2, '0') + ':' +
     String(now.getSeconds()).padStart(2, '0');
 
-  let actor = AppState.currentUser?.displayName || 'Chỉ huy Đại đội (Admin)';
+  let actor = AppState.currentUser?.displayName || AppState.currentUser?.name || (AppState.role === 'admin' ? 'Admin' : `Tài khoản ${AppState.currentUser?.code || AppState.role}`);
   if (AppState.role && AppState.role.startsWith('class_leader_')) {
     const cls = AppState.role.replace('class_leader_', '');
     actor = `Tài khoản Lớp ${cls}`;
@@ -1642,20 +1649,28 @@ export function logAuditTrail(studentId, subjectId, oldVal, newVal, reason) {
     actor,
     student: student ? `${student.name} (${student.code})` : studentId,
     class: student ? student.class : (getCurrentUserClassScope() || 'Toàn ĐĐ'),
-    subject: subject ? getFullSubjectName(subject) : subjectId,
-    oldVal: oldVal ?? 'Chưa có',
-    newVal: newVal,
+    subject: subject ? `${getFullSubjectName(subject)} · Học kỳ ${subject.semester}${field ? ` · ${field}` : ''}` : field || subjectId || 'Dữ liệu hệ thống',
+    oldVal: auditValue(oldVal),
+    newVal: auditValue(newVal),
     reason: reason || 'Chỉnh sửa dữ liệu'
   });
 
-  void appendAuditLog(AppState.auditLogs[0], CloudSync.unitRoomId || 'daidoi460').catch(error => {
+  const delivery = queueAuditLog(AppState.auditLogs[0], CloudSync.unitRoomId || 'daidoi460').then(() => true).catch(error => {
     console.error('Không thể lưu nhật ký:', error);
-    showToast('Thay đổi đã lưu nhưng chưa gửi được nhật ký. Hãy kiểm tra kết nối.', 'error');
+    showToast('Dữ liệu đã lưu; nhật ký đang chờ gửi và sẽ tự thử lại khi có kết nối.', 'error');
+    return false;
   });
 
   if (AppState.auditLogs.length > 200) {
     AppState.auditLogs.pop();
   }
+  if (AppState.activeTab === 'tab-audit') renderAuditLog();
+  return delivery;
+}
+
+export function logRecordChanges(studentId, subjectId, before, after, reason, fields) {
+  return Promise.all(auditChanges(before, after, fields).map(change =>
+    logAuditTrail(studentId, subjectId, change.oldVal, change.newVal, reason, change.field)));
 }
 
 // --- 5. TỔNG HỢP TOÀN ĐẠI ĐỘI (CÓ BỘ LỌC THEO KỲ & BỎ CỘT ĐIỂM RÈN LUYỆN) ---
@@ -2078,8 +2093,14 @@ export function toggleCurrentSheetLock() {
     return;
   }
   const key = `${AppState.currentSheetClass}_year_${AppState.currentSheetSemester}`;
-  AppState.locks[key] = !AppState.locks[key];
-  persistData();
+  const previous = Boolean(AppState.locks[key]);
+  AppState.locks[key] = !previous;
+  const label = `${AppState.currentSheetClass} · Năm ${AppState.currentSheetSemester}`;
+  void persistData(true).then(() => logAuditTrail('', '', previous ? 'Đã khóa' : 'Đang mở', !previous ? 'Đã khóa' : 'Đang mở', 'Cập nhật khóa sổ', label)).catch(error => {
+    AppState.locks[key] = previous;
+    showToast(error.message, 'error');
+    renderSpreadsheet();
+  });
   renderSpreadsheet();
 }
 
@@ -2544,13 +2565,10 @@ export async function executeExcelImport() {
 
     }
     databaseCommitted = true;
-    logAuditTrail(
-      '',
-      '',
-      'Excel File',
-      `${updatedCount} điểm (${createdStudentsCount} HV mới${newSubjectsMap.size > 0 ? `, ${newSubjectsMap.size} môn mới` : ''})`,
-      'Nhập dữ liệu điểm từ file Excel theo khóa kết hợp (Tên môn + Lớp + Học kỳ) lên Supabase'
-    );
+    await Promise.all(bulkGradeEntries.filter(entry => previousState.grades[entry.studentId]?.[entry.subjectId] !== entry.score).map(entry =>
+      logAuditTrail(entry.studentId, entry.subjectId, previousState.grades[entry.studentId]?.[entry.subjectId], entry.score, 'Nhập điểm từ Excel')));
+    await Promise.all(createdStudents.map(student => logRecordChanges(student.id, '', null, student, 'Thêm hồ sơ từ Excel')));
+    await Promise.all([...newSubjectsMap.values()].map(subject => logRecordChanges('', subject.id, null, subject, 'Thêm môn từ Excel', { name: 'Tên môn', code: 'Mã môn', semester: 'Học kỳ', credits: 'Tín chỉ', targetClass: 'Lớp áp dụng' })));
     await persistData(true);
     hideModal('modalImportExcel');
     updateAllViews();
@@ -2595,13 +2613,20 @@ export async function handleInlineCumulativeMetaChange(studentId, field, value, 
       AppState.languages[studentId] = { lang: 'Tiếng Nga', A1: 'Đ', A21: 'Đ', A22: 'Đ', B11: 'CT', B12: 'CT' };
     }
 
+    const previousLevel = s.currentLangLevel;
     if (field === 'currentLangLevel') {
       s.currentLangLevel = value;
       AppState.languages[studentId].currentLevel = value;
     }
 
-    await upsertStudentToSupabase(s, AppState.languages[studentId]);
-    logAuditTrail(studentId, '', 'Ngoại ngữ', value, 'Cập nhật trực tiếp trên bảng');
+    const saved = await upsertStudentToSupabase(s, AppState.languages[studentId]);
+    if (saved?.error) {
+      s.currentLangLevel = previousLevel;
+      AppState.languages[studentId].currentLevel = previousLevel;
+      showToast(saved.error.message || 'Không lưu được trình độ ngoại ngữ.', 'error');
+      return;
+    }
+    await logAuditTrail(studentId, '', previousLevel, value, 'Cập nhật trực tiếp trên bảng', 'Trình độ ngoại ngữ');
     updateAllViews();
   } finally {
     if (triggerSelectEl) triggerSelectEl.disabled = false;
@@ -2852,12 +2877,20 @@ export function connectFirebaseRealtime() {
   clearInterval(CloudSync.auditPollTimer);
   let auditRefreshing = false;
   CloudSync.auditPollTimer = setInterval(async () => {
-    if (AppState.role !== 'admin' || auditRefreshing || document.hidden) return;
+    if (auditRefreshing || document.hidden || ['guest', 'company_officer'].includes(AppState.role)) return;
     auditRefreshing = true;
     try {
+      try { await flushPendingAuditLogs(); } catch (error) { console.warn('Nhật ký đang chờ gửi:', error); }
+      if (AppState.role !== 'admin') return;
       AppState.auditLogs = await loadAuditLogs(CloudSync.unitRoomId || 'daidoi460');
       renderAuditLog();
-    } catch (error) { console.warn('Không thể cập nhật nhật ký:', error); }
+      const status = document.getElementById('auditSyncStatus');
+      if (status) status.textContent = 'Đã cập nhật nhật ký hệ thống.';
+    } catch (error) {
+      console.warn('Không thể cập nhật nhật ký:', error);
+      const status = document.getElementById('auditSyncStatus');
+      if (status) status.textContent = 'Chưa tải được nhật ký mới. Hệ thống sẽ tự thử lại; dữ liệu đang hiển thị có thể chưa đầy đủ.';
+    }
     finally { auditRefreshing = false; }
   }, 10000);
 }
@@ -2867,16 +2900,16 @@ export function pushDataToCloud(immediate = false) {
   if (CloudSync.isIncomingSync) return Promise.resolve();
   clearTimeout(CloudSync.debounceTimer);
 
-  const executeWrite = () => {
-    return saveUnitSettingsToSupabase(AppState, CloudSync.unitRoomId || 'daidoi460').catch(err => {
-      console.warn('Supabase settings sync error:', err);
-    });
+  const executeWrite = async () => {
+    const result = await saveUnitSettingsToSupabase(AppState, CloudSync.unitRoomId || 'daidoi460');
+    if (result?.error) throw new Error(result.error.message || 'Không lưu được cấu hình đơn vị.');
+    return result;
   };
 
   if (immediate) {
     return executeWrite();
   } else {
-    CloudSync.debounceTimer = setTimeout(executeWrite, 180);
+    CloudSync.debounceTimer = setTimeout(() => { void executeWrite().catch(error => showToast(error.message, 'error')); }, 180);
     return Promise.resolve();
   }
 }

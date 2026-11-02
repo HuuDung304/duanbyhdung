@@ -29,21 +29,35 @@ export async function requestReportOptions(kind) {
   const dialog = $('reportExportDialog');
   if (!dialog) return false;
   exportDialogPending = true;
+  const awards = ['honors', 'scholarships'].includes(kind);
   const year = kind === 'year';
-  $('reportClassOption').hidden = year;
+  $('reportAwardClassOption').hidden = !awards;
+  $('awardClassSelect').disabled = !awards;
+  if (awards) {
+    const scope = getCurrentUserClassScope();
+    const select = $('awardClassSelect');
+    select.replaceChildren(...(scope ? [scope] : ['all', ...DEFAULT_CLASSES]).map(value => new Option(value === 'all' ? 'Toàn đại đội' : `Lớp ${value}`, value)));
+    select.disabled = Boolean(scope);
+    select.value = scope || 'all';
+  }
+  $('reportClassOption').hidden = year || awards;
   $('reportYearOption').hidden = !year;
-  $('reportsClassSelect').required = !year;
+  $('reportsClassSelect').required = !year && !awards;
   $('rankingYearSelect').required = year;
-  $('reportsClassSelect').disabled = year;
+  $('reportsClassSelect').disabled = year || awards;
   $('rankingYearSelect').disabled = !year;
   if (year) $('rankingYearSelect').value = '';
   $('reportExportDialogTitle').textContent = year ? 'Tải xếp hạng điểm' : 'Tải bảng điểm lớp';
   $('reportExportDialogDescription').textContent = year ? 'Chọn năm học để xếp hạng và tải file.' : 'Chọn lớp cần tải bảng điểm.';
+  if (awards) {
+    $('reportExportDialogTitle').textContent = kind === 'honors' ? 'Tải danh hiệu học viên' : 'Tải danh sách học bổng';
+    $('reportExportDialogDescription').textContent = kind === 'honors' ? 'Tự xét năm gần nhất có điểm trong phạm vi chọn, kể cả chưa đủ điểm. Gồm phần II: Xét vận dụng.' : 'Tự xét học kỳ gần nhất có điểm trong phạm vi chọn, kể cả chưa đủ điểm.';
+  }
   return new Promise(resolve => {
     dialog.addEventListener('close', () => { exportDialogPending = false; resolve(dialog.returnValue === 'download'); }, { once: true });
     dialog.returnValue = '';
     dialog.showModal();
-    $(year ? 'rankingYearSelect' : 'reportsClassSelect').focus();
+    $(awards ? (getCurrentUserClassScope() ? 'reportExportConfirm' : 'awardClassSelect') : year ? 'rankingYearSelect' : 'reportsClassSelect').focus();
   });
 }
 $('reportExportCancel')?.addEventListener('click', () => $('reportExportDialog').close('cancel'));

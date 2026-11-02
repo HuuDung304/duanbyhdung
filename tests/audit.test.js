@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { appendAuditLog, loadAuditLogs, clearAuditLogs } from '../src/js/database/audit.js';
+import { appendAuditLog, loadAuditLogs, clearAuditLogs, queueAuditLog, flushPendingAuditLogs } from '../src/js/database/audit.js';
+import { auditChanges, auditValue } from '../src/js/audit-changes.js';
 import { saveUnitSettingsToSupabase } from '../src/js/database/repository.js';
 
 test('concurrent account logs survive settings writes, reload on Admin and clear without deleting settings', async () => {
@@ -44,4 +45,31 @@ test('concurrent account logs survive settings writes, reload on Admin and clear
     globalThis.fetch = originalFetch;
     globalThis.AppState = originalState;
   }
+});
+
+test('database errors reject delivery; queued before/after entries survive and retry with the same identity', async () => {
+  const originalFetch = globalThis.fetch, originalStorage = globalThis.localStorage;
+  const entries = new Map();
+  globalThis.localStorage = { get length() { return entries.size; }, key: i => [...entries.keys()][i],
+    getItem: key => entries.get(key), setItem: (key,value) => entries.set(key,value), removeItem: key => entries.delete(key) };
+  let delivered;
+  try {
+    globalThis.fetch = async () => new Response(JSON.stringify({message:'Database rejected audit',code:'42501'}),{status:403});
+    const event = { id:'retry-test', oldVal:'0',newVal:'8',actor:'Tài khoản Lớp TTG2',createdAt:new Date().toISOString() };
+    await assert.rejects(appendAuditLog(event), /Database rejected audit/);
+    await assert.rejects(queueAuditLog(event), /Database rejected audit/);
+    assert.equal(entries.size,1);
+    assert.equal(JSON.parse([...entries.values()][0]).log.oldVal,'0');
+    globalThis.fetch = async (_url,options) => {delivered=JSON.parse(options.body);return new Response('');};
+    await flushPendingAuditLogs();
+    assert.equal(entries.size,0);
+    assert.equal(delivered[0].audit_logs[0].id,'retry-test');
+    assert.equal(delivered[0].audit_logs[0].newVal,'8');
+  } finally {globalThis.fetch=originalFetch;globalThis.localStorage=originalStorage;}
+});
+
+test('field changes preserve zero, distinguish deletion, and omit unchanged values and unrelated metadata', () => {
+  assert.equal(auditValue(0),'0');
+  const changes = auditChanges({name:'Tên cũ',phone:'0123',rank:'Hạ sĩ',updated_at:'old'}, {name:'Tên mới',phone:'',rank:'Hạ sĩ',updated_at:'new'});
+  assert.deepEqual(changes,[{field:'Họ và tên',oldVal:'Tên cũ',newVal:'Tên mới'},{field:'Số điện thoại',oldVal:'0123',newVal:'Chưa có'}]);
 });

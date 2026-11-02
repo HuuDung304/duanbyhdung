@@ -19,7 +19,7 @@ export function mountResearch({ state, classes, subjectsForClass, notify, onSave
   const saveProject = store.save.bind(store);
   store.save = async (input, existing) => {
     const saved = await saveProject(input, existing);
-    onSaved(saved, existing);
+    await onSaved(saved, existing);
     return saved;
   };
   let projects = [], loaded = false, loading = false, error = '', filter = 'all', editing = null, draftId = '', importing = [], busy = false, identity = '', generation = 0, pendingImport = null, memberPicker = null;

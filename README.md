@@ -6,9 +6,17 @@ Dự án Web Application phục vụ công tác quản lý điểm số (theo N�
 
 Bảng điểm lớp xuất mọi học kỳ có ít nhất một điểm hợp lệ của một học viên, kể cả điểm 0. Ô chưa nhập để trống; học viên chưa có điểm trong kỳ/năm không bị gán ĐTB 0. ĐTB năm nằm sau học kỳ cuối có điểm của năm đó và dùng các điểm đã nhập. Năm không có điểm không được xuất.
 
-Nhật ký mới được lưu theo từng sự kiện trong `unit_settings` với khóa `daidoi460:audit:<id>`, giữ nhật ký cũ và tránh ghi đè mảng nhật ký giữa các tài khoản. Admin nhận cập nhật qua Realtime và kiểm tra bổ sung mỗi 10 giây khi trang đang hiển thị. Các thao tác hồ sơ, điểm, môn học, nhập Excel và nghiên cứu khoa học gửi nhật ký sau khi lưu thành công. Xóa nhật ký chỉ xóa các bản ghi nhật ký cùng mảng nhật ký cũ, giữ cấu hình và đề tài. Không cần migration; kiểm thử dùng dữ liệu giả lập, không ghi lên Supabase thật.
+Nhật ký mới được lưu theo từng sự kiện trong `unit_settings` với khóa `daidoi460:audit:<id>`, giữ nhật ký cũ và tránh ghi đè mảng nhật ký giữa các tài khoản. Admin nhận cập nhật qua Realtime và kiểm tra bổ sung mỗi 10 giây khi trang đang hiển thị. Các thao tác hồ sơ, điểm, môn học, nhập Excel, cấu hình và nghiên cứu khoa học ghi rõ từng trường/ô điểm thay đổi, tài khoản, thời gian và giá trị trước → sau sau khi database xác nhận lưu thành công. Điểm 0 được giữ nguyên trong nhật ký. Nhật ký gửi lỗi được giữ trong hàng đợi riêng từng sự kiện tại trình duyệt, tự gửi lại mỗi 10 giây cả ở tài khoản lớp/học viên và giữ qua lần tải lại trang; lỗi database không bị coi là gửi thành công. Tab/Enter ở ô cuối bảng vẫn kích hoạt lưu điểm. Xóa nhật ký chỉ xóa các bản ghi nhật ký cùng mảng nhật ký cũ, giữ cấu hình và đề tài. Không cần migration; kiểm thử dùng dữ liệu giả lập, không ghi lên Supabase thật.
 
 Tên đơn vị ở thanh bên và đầu nội dung giữ “Đại đội 460” cho Admin/cán bộ; tài khoản lớp hiển thị tên đầy đủ của lớp tương ứng.
+
+## Danh hiệu học viên và danh sách học bổng
+
+Trong **Xuất báo cáo**, hai file `Danh hiệu học viên.xlsx` và `Danh sách học bổng.xlsx` có các cột theo mẫu: STT, mã học viên, họ tên, ngày sinh, danh hiệu/học bổng, điểm hệ 10, điểm hệ 4, ngoại ngữ và ghi chú. Admin/cán bộ chọn toàn đại đội hoặc một lớp; tài khoản lớp chỉ xét lớp mình.
+
+Học bổng tự chọn **học kỳ gần nhất có điểm** trong phạm vi được chọn: Lê Quý Đôn từ 9,0; loại A từ 8,5; loại B từ 8,0. Danh hiệu tự chọn **năm gần nhất có điểm**: xuất sắc từ 9,0; học giỏi từ 8,0; học tốt từ 7,0. Chỉ xét môn đã có điểm; không yêu cầu nhập đủ kỳ/năm và không lấy điểm kỳ/năm cũ của người chưa có điểm trong đợt đang xét. TB tính theo tín chỉ; mỗi học viên chỉ xếp vào mức cao nhất đủ điều kiện, so ngưỡng trước khi làm tròn.
+
+Cả hai yêu cầu các môn có tín chỉ đã có điểm đều từ 7,0 và đạt chuẩn tiếng Nga hiện tại. Học phần 0 tín chỉ đã có điểm chỉ yêu cầu qua môn (từ 4,0 theo quy tắc hiện có), không tính vào TB hệ 10/hệ 4. Danh hiệu có **II. Xét vận dụng** cho người TB từ 8,0 có môn có tín chỉ dưới 7,0, ghi rõ từng tên môn và điểm trong ghi chú; vẫn yêu cầu đạt chuẩn tiếng Nga và qua môn 0 tín chỉ. Đây là danh sách đề nghị xét, không tự ghi nhận danh hiệu vào hồ sơ. Sheet `Thong_tin_xet` ghi rõ phạm vi, kỳ/năm được chọn và chuẩn tiếng Nga tại thời điểm xuất. Kiểm thử dùng dữ liệu giả lập.
 
 ## Giao diện tối giản
 
