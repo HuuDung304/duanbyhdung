@@ -37,6 +37,8 @@ export function mountFormFeedback() {
  },true);
  document.addEventListener('keydown',event=>{
   if(event.key!=='Escape'||!changed())return;
+  const modal=active.closest('[id^="modal"]');
+  if(document.querySelector('dialog[open]')||!modal.contains(document.activeElement))return;
   if(!window.confirm('Bạn có thay đổi chưa lưu. Bạn có muốn đóng và bỏ các thay đổi này?')){event.preventDefault();event.stopImmediatePropagation();}else clear();
  },true);
  window.addEventListener('beforeunload',event=>{if(changed()){event.preventDefault();event.returnValue='';}});

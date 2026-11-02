@@ -1,5 +1,8 @@
 function installProfileSorting(table) {
  const headers=[...(table.tHead?.rows[0]?.cells || [])], collator=new Intl.Collator('vi',{numeric:true,sensitivity:'base'});
+ let sorting=false;
+ const body=table.tBodies[0];
+ if(body)new MutationObserver(()=>{if(!sorting)headers.forEach(item=>item.removeAttribute('aria-sort'));}).observe(body,{childList:true});
  for(const index of [1,2,3,4]) {
   const header=headers[index];if(!header || header.dataset.sortReady)return;
   header.dataset.sortReady='true';const title=header.textContent.trim(),button=document.createElement('button');
@@ -8,9 +11,11 @@ function installProfileSorting(table) {
   button.addEventListener('click',()=>{
    const ascending=header.getAttribute('aria-sort')!=='ascending';
    headers.forEach(item=>item.removeAttribute('aria-sort'));header.setAttribute('aria-sort',ascending?'ascending':'descending');
-   const body=table.tBodies[0],rows=[...body.rows].filter(row=>row.cells.length>index && row.cells[0].colSpan===1);
+   const rows=[...body.rows].filter(row=>row.cells.length>index && row.cells[0].colSpan===1);
    rows.sort((a,b)=>(ascending?1:-1)*collator.compare(a.cells[index].textContent.trim(),b.cells[index].textContent.trim()));
+   sorting=true;
    rows.forEach((row,i)=>{const number=row.cells[0].querySelector('.profile-row-number');if(number)number.textContent=String(i+1);else row.cells[0].textContent=String(i+1);body.append(row);});
+   queueMicrotask(()=>{sorting=false;});
   });
  }
 }
