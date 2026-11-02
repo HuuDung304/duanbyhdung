@@ -519,27 +519,11 @@ body.ui-modern .report-export-dialog { border-radius:16px; }
 
 /* Full-screen table viewer uses the existing table and retains its controls. */
 body.ui-modern .readable-data-table [data-identity-column="2"] { box-shadow:none; }
-body.ui-modern .table-dialog-launcher { display:flex; align-items:center; justify-content:space-between; gap:16px; width:100%; padding:20px!important; text-align:left; border:1px solid var(--theme-border)!important; border-radius:14px!important; background:var(--theme-card)!important; color:var(--theme-ink)!important; cursor:pointer; }
-body.ui-modern .table-dialog-launcher strong,body.ui-modern .table-dialog-launcher small { display:block; }
-body.ui-modern .table-dialog-launcher small { color:var(--theme-muted); font-weight:400; margin-top:4px; }
-body.ui-modern .table-dialog-launcher>span:last-child { font-size:24px; color:var(--theme-primary); }
-body.ui-modern .table-dialog { position:fixed; inset:0; margin:auto; width:min(1500px,calc(100vw - 32px)); max-width:none; height:fit-content; max-height:calc(100dvh - 32px); padding:20px; overflow:auto; border:1px solid var(--theme-border); border-radius:14px; background:var(--theme-surface); color:var(--theme-ink); box-sizing:border-box; }
-body.ui-modern .table-dialog::backdrop { background:#10182899; }
-body.ui-modern .table-dialog-heading { display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:14px; }
-body.ui-modern .table-dialog-heading h2 { margin:0; font-size:20px; color:var(--theme-ink); }
-body.ui-modern .table-dialog-close { min-height:44px; padding:8px 16px; border:1px solid var(--theme-border); border-radius:8px; background:var(--theme-card); color:var(--theme-ink); cursor:pointer; }
-body.ui-modern .table-dialog .readable-table-scroll { max-height:calc(100dvh - 160px); }
-@media(max-width:760px) { body.ui-modern .table-dialog { width:calc(100vw - 16px); max-height:calc(100dvh - 16px); padding:12px; } body.ui-modern .table-dialog .readable-table-scroll { max-height:calc(100dvh - 130px); } }
-body.ui-modern .table-dialog[open] { animation:none!important; }
 
-body.ui-modern .table-dialog-controls { margin-bottom:16px; }
-body.ui-modern .table-dialog-simple { display:grid; grid-template-columns:minmax(180px,1fr) minmax(220px,2fr); gap:12px; padding:14px; border:1px solid var(--theme-border); border-radius:10px; background:var(--theme-card); }
-body.ui-modern .table-dialog-simple :is(input,select) { width:100%; }
 body.ui-modern .table-year-native { position:absolute!important; width:1px!important; height:1px!important; padding:0!important; border:0!important; opacity:0!important; overflow:hidden; pointer-events:none; }
 body.ui-modern .table-year-buttons { display:flex; gap:6px; overflow-x:auto; max-width:100%; }
 body.ui-modern .table-year-buttons button { flex:none; min-height:40px; padding:8px 12px; }
 body.ui-modern .table-year-buttons button[aria-pressed="true"] { background:var(--theme-selected)!important; color:var(--theme-primary)!important; border-color:var(--theme-primary)!important; }
-@media(max-width:640px) { body.ui-modern .table-dialog-simple { grid-template-columns:1fr; } }
 
 /* SaaS/ERP design system: shared tokens and resilient data surfaces. */
 body.bento-app.ui-modern {
@@ -566,8 +550,7 @@ body.ui-modern .u040-content table { font-variant-numeric:tabular-nums; }
 body.ui-modern .u040-content table th { background:var(--theme-soft); color:var(--theme-ink); }
 body.ui-modern .u040-content table tr:focus-within>td { background:var(--theme-selected); }
 body.ui-modern .u040-content :is(.readable-table-scroll,.workspace-table-scroll,.research-scroll,.catalog-table-scroll) { max-width:100%; overscroll-behavior-x:contain; }
-body.ui-modern .table-dialog-launcher:hover { border-color:var(--theme-primary)!important; background:var(--theme-soft)!important; }
-body.ui-modern .report-export-dialog,body.ui-modern .table-dialog { background:var(--theme-surface); color:var(--theme-ink); border-color:var(--theme-border); }
+body.ui-modern .report-export-dialog { background:var(--theme-surface); color:var(--theme-ink); border-color:var(--theme-border); }
 @media(max-width:760px) {
  body.ui-modern .bento-shell .u040-group-label { height:auto!important; padding:14px 12px 6px!important; font-size:10px!important; }
  body.ui-modern .u040-content :is(button,input,select,textarea) { font-size:16px; }
@@ -575,8 +558,6 @@ body.ui-modern .report-export-dialog,body.ui-modern .table-dialog { background:v
 }
 @media(prefers-reduced-motion:reduce) { body.ui-modern *,body.ui-modern *::before,body.ui-modern *::after { animation:none!important; transition:none!important; scroll-behavior:auto!important; } }
 
-body.ui-modern .table-dialog-actions { display:flex; align-items:center; flex-wrap:wrap; gap:8px; }
-body.ui-modern .table-dialog-reset { min-height:44px; padding:8px 12px; border:1px solid var(--theme-border); border-radius:8px; background:var(--theme-card); color:var(--theme-ink); cursor:pointer; }
 body.ui-modern .table-sort-button { appearance:none; border:0!important; background:transparent!important; color:inherit!important; font:inherit!important; padding:4px!important; min-height:32px!important; text-align:inherit; box-shadow:none!important; }
 body.ui-modern .table-sort-button:focus-visible { outline:2px solid var(--theme-focus); outline-offset:2px; }
 
@@ -637,8 +618,6 @@ body.ui-modern .u037 .u037-chip :is(b,small) { color:#fff; }
 body.ui-modern .ui-toolbar { height:96px; border-bottom:1px solid var(--theme-border); }
 body.ui-modern #interfacePageTitle { font-size:30px; font-weight:750; }
 body.ui-modern .u040-content :is(.bento-card,.workspace-settings-card,.report-export-card,.catalog-semester,.research-table-card) { border-radius:16px; box-shadow:0 8px 25px #0f172a12; }
-body.ui-modern .table-dialog-launcher { min-height:104px; border-left:5px solid #2563eb!important; }
-body.ui-modern .table-dialog-launcher strong { font-size:18px; }
 html[data-theme="dark"] body.ui-modern .bento-shell .u040-rail { background:#08162f; }
 @media(max-width:760px) { body.ui-modern .ui-toolbar { height:72px; } body.ui-modern #interfacePageTitle { font-size:23px; } }
 
@@ -667,7 +646,6 @@ body.ui-modern #profileStatsCardsGrid>div>div:first-child>div:last-child { color
 body.ui-modern #adminProfilesToolbar { padding:22px; border-radius:16px; }
 body.ui-modern #adminProfilesToolbar h3 { font-size:20px; }
 body.ui-modern #adminProfilesToolbar :is(select,input) { min-height:44px; }
-body.ui-modern #tab-profiles .table-dialog-launcher { min-height:120px; }
 body.ui-modern #researchListView { display:grid; grid-template-columns:minmax(0,1fr); gap:16px; }
 body.ui-modern #researchListView> * { margin:0; min-width:0; }
 body.ui-modern .research-search { margin:0; }

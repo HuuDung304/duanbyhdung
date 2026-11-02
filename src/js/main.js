@@ -1,5 +1,5 @@
 import { mountFormFeedback } from './components/form-feedback.js';
-import { mountTableDialogs } from './components/table-dialogs.js';
+import { mountTableControls } from './components/table-dialogs.js';
 import { mountLeaveRoster } from './leave-roster.js';
 import { mountPartyNomination } from './party-nomination.js';
 import { SUBJECT_AUDIT_FIELDS, RESEARCH_AUDIT_FIELDS } from './audit-changes.js';
@@ -1529,7 +1529,7 @@ let _localAppInitialized = false;
 
 export function initApp() {
   mountFormFeedback();
-  mountTableDialogs();
+  mountTableControls();
   const auditSearch = document.getElementById('auditSearch');
   auditSearch?.addEventListener('input', renderAuditLog);
   document.getElementById('auditSearchClear')?.addEventListener('click', () => { auditSearch.value = ''; renderAuditLog(); auditSearch.focus(); });
