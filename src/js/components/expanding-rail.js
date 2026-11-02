@@ -130,6 +130,10 @@ export function mountExpandingRail(nav, main) {
   const userTitle = document.getElementById('authUserTitle');
   const userRole = document.getElementById('authRoleDesc');
   function syncProfile() {
+    const unitName = nav.dataset.unitName || 'Đại đội 460';
+    top.querySelector('.u040-name').textContent = unitName;
+    heading.querySelector('small').textContent = unitName;
+    nav.setAttribute('aria-label', `Điều hướng ${unitName}`);
     profile.querySelector('b').textContent = userTitle?.textContent.trim() || '';
     profile.querySelector('small').textContent = userRole?.textContent.trim() || '';
   }

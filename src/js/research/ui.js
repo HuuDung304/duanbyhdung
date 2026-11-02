@@ -10,12 +10,18 @@ export function formatResearchInformation(value) {
     (_, prefix, label) => prefix + '<strong>' + labels[label.toLocaleLowerCase('vi')] + '</strong>');
 }
 
-export function mountResearch({ state, classes, subjectsForClass, notify }) {
+export function mountResearch({ state, classes, subjectsForClass, notify, onSaved = () => {} }) {
   const $ = id => document.getElementById(id);
   const root = $('tab-research'), editor = $('researchEditor'), importDialog = $('researchImportDialog'), uploadDialog = $('researchUploadDialog'), exportDialog = $('researchExportDialog'), resolveDialog = $('researchResolveDialog');
   if (!root || root.dataset.mounted) return;
   root.dataset.mounted = 'true';
   const store = createResearchStore(() => state);
+  const saveProject = store.save.bind(store);
+  store.save = async (input, existing) => {
+    const saved = await saveProject(input, existing);
+    onSaved(saved, existing);
+    return saved;
+  };
   let projects = [], loaded = false, loading = false, error = '', filter = 'all', editing = null, draftId = '', importing = [], busy = false, identity = '', generation = 0, pendingImport = null, memberPicker = null;
   const identityKey = () => JSON.stringify([state.role, state.currentUser?.studentId, state.currentUser?.code]);
   const setHTML = (element, html) => { element.innerHTML = sanitizeHTML(html); };

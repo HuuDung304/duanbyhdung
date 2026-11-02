@@ -1,3 +1,4 @@
+import { loadAuditLogs } from './audit.js';
 import { TABLES, beginSupabaseWrite, endSupabaseWrite, executeWithRetry, getSupabaseClient } from './client.js';
 import { assertDatabaseWriteAllowed } from '../profile-rules.js';
 import { buildDeterministicStudentId, mapDbRowToLanguage, mapDbRowToStudent, mapDbRowToSubject, mapLanguageToDbRow, mapStudentToDbRow, mapSubjectToDbRow } from './mappers.js';
@@ -89,7 +90,7 @@ export async function loadAllDataFromSupabase(unitId = 'daidoi460') {
       languages,
       locks: rawLocks,
       requiredLangStandard: (settingsData && settingsData.required_lang_standard) ? settingsData.required_lang_standard : 'A2',
-      auditLogs: (settingsData && Array.isArray(settingsData.audit_logs)) ? settingsData.audit_logs : []
+      auditLogs: await loadAuditLogs(unitId, (settingsData && Array.isArray(settingsData.audit_logs)) ? settingsData.audit_logs : [])
     };
   })();
 
@@ -496,7 +497,6 @@ export async function saveUnitSettingsToSupabase(appState, unitId = 'daidoi460')
     unit_id: unitId || 'daidoi460',
     required_lang_standard: appState.requiredLangStandard || 'A2',
     locks: cleanLocks,
-    audit_logs: Array.isArray(appState.auditLogs) ? appState.auditLogs.slice(0, 100) : [],
     updated_at: new Date().toISOString()
   };
 

@@ -354,7 +354,7 @@ export function createReportExports(context) {
     const semesters = Array.from({ length: 10 }, (_, index) => ({ semester: index + 1, subjects: context.getSubjectsForClass(cls, index + 1) }));
     const { headers, headerRows, merges, rows, completed } = context.buildClassTranscript(students, semesters, context.AppState.grades,
       context.calculateSemesterGPA, context.calculateAcademicYearGPA, context.getFullSubjectName, value => context.normalizeDateVN(value, ''));
-    if (!completed.length) { context.showToast('Lớp chưa có kỳ nào đầy đủ điểm toàn bộ học viên.', 'error'); return; }
+    if (!completed.length) { context.showToast('Lớp chưa có điểm để xuất bảng điểm.', 'error'); return; }
     const ws = XLSX.utils.aoa_to_sheet([...headerRows, ...rows]);
     ws['!reportHeaderRows'] = [1, 2, 3];
     ws['!merges'] = merges;

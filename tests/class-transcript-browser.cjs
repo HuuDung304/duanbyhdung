@@ -13,6 +13,7 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
    await page.waitForFunction(()=>window.AppState?.students.length===3);
    for(const type of ['admin','company_officer','class_account']) {
     await page.evaluate(type=>window.AuthState.setUser({type,class:'OTQS1',displayName:'Kiểm thử'}),type);
+    assert.equal(await page.locator('.u040-name').textContent(),type==='class_account'?'Ô tô quân sự 1':'Đại đội 460');
     await page.evaluate(()=>window.switchTab('tab-reports'));
     assert.equal(await page.locator('button[id^="btnExport"]').count(),4);
     await page.evaluate(()=>window.switchTab('tab-sheet'));
@@ -77,12 +78,25 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
     assert.deepEqual(rows[0].slice(0,6),['STT','MÃ HỌC VIÊN','HỌ VÀ TÊN','LỚP','NGÀY THÁNG NĂM SINH','HỌC KỲ 1']);
     assert.equal(rows[1][5],'Toán cao cấp'); assert.equal(rows[2][5],3);
     assert.equal(rows.length,5);assert.equal(rows[3][1],'HV001');assert.equal(rows[3][4],'01/02/2003');
-    assert.equal(rows[3][5],9); assert.ok(book.Sheets[book.SheetNames[0]]['!merges'].length>0);
+    assert.equal(rows[3][5],9);
+    assert.ok(rows[0].includes('HỌC KỲ 2'));
+    assert.ok(rows[0].includes('ĐIỂM TB NĂM 1'));
+    const physCol=rows[1].indexOf('Vật lý đại cương');
+    assert.equal(rows[3][physCol],3.99);
+    assert.ok(rows[4][physCol] == null || rows[4][physCol] === ''); assert.ok(book.Sheets[book.SheetNames[0]]['!merges'].length>0);
     assert.ok(!rows.flat().includes('HV003'));
     const archive=XLSX.CFB.read(bytes,{type:'buffer'});
     const styles=new TextDecoder().decode(archive.FileIndex.find(file=>file.name==='styles.xml').content);
     assert.match(styles,/Times New Roman/);assert.match(styles,/<left style="thin">/);assert.match(styles,/horizontal="center" vertical="center"/);
    }
+   for (const [cls,name] of Object.entries({OTQS1:'Ô tô quân sự 1',OTQS2:'Ô tô quân sự 2',TTG1:'Tăng thiết giáp 1',TTG2:'Tăng thiết giáp 2',XMCB:'Xe máy công binh'})) {
+    await page.evaluate(cls=>window.AuthState.setUser({type:'class_account',class:cls}),cls);
+    assert.equal(await page.locator('.u040-name').textContent(),name);
+   }
+   await page.evaluate(()=>window.AuthState.setUser({type:'admin',displayName:'Admin'}));
+   tables.unit_settings.push({unit_id:'daidoi460:audit:remote',audit_logs:[{id:'remote',createdAt:'2026-11-02T10:00:00Z',timestamp:'2026-11-02 10:00:00',actor:'Tài khoản Lớp TTG2',class:'TTG2',student:'HVTEST',subject:'Công Nghệ Thông Tin',oldVal:'Chưa có',newVal:'8',reason:'Thay đổi từ tài khoản khác'}]});
+   await page.waitForFunction(()=>document.getElementById('auditTableBody').textContent.includes('Thay đổi từ tài khoản khác'),{},{timeout:15000});
+   assert.match(await page.locator('#auditTableBody').textContent(),/Tài khoản Lớp TTG2/);
    await page.evaluate(()=>window.AuthState.setUser({type:'student',studentId:'s1',code:'HV001',class:'OTQS1'}));
    await page.evaluate(()=>window.switchTab('tab-reports'));
    assert.equal(await page.locator('#btnExportClassExcel').isVisible(),false);

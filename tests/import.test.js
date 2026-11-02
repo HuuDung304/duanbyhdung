@@ -244,7 +244,7 @@ for (const variant of ['src/js/grades.js']) {
     const applied = [];
     const context = vm.createContext({ trackImportRead() {}, sanitizeHTML: value => String(value), escapeHTML: value => String(value),
       document: { getElementById: () => null },
-      console, CloudSync: {}, AppState: {},
+      console, CloudSync: {}, AppState: {}, setInterval: () => 1, clearInterval() {},
       SUPABASE_URL: 'fixture', SUPABASE_KEY: 'fixture', initSupabaseClient() {},
       subscribeSupabaseRealtime: cb => { callback = cb; },
       isAnyEditFormActive: () => false,

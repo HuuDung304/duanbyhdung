@@ -477,6 +477,13 @@ export function updateAuthUI() {
   const btnCornerLogout = document.getElementById('btnCornerLogout');
 
   const u = AuthState.getUser() || AppState.currentUser;
+  const classNames = { OTQS1: 'Ô tô quân sự 1', OTQS2: 'Ô tô quân sự 2', TTG1: 'Tăng thiết giáp 1', TTG2: 'Tăng thiết giáp 2', XMCB: 'Xe máy công binh' };
+  const unitName = AppState.role?.startsWith('class_leader_')
+    ? classNames[AppState.role.slice('class_leader_'.length)] || 'Đại đội 460' : 'Đại đội 460';
+  const navigation = document.querySelector('nav');
+  if (navigation) navigation.dataset.unitName = unitName;
+  document.querySelectorAll('.u040-name, .u040-page-heading > small').forEach(el => { el.textContent = unitName; });
+  document.querySelector('nav.u040-rail')?.setAttribute('aria-label', `Điều hướng ${unitName}`);
 
   if (!u || AppState.role === 'guest') {
     if (authRoleIcon) authRoleIcon.textContent = '🔒';

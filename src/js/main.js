@@ -1,3 +1,4 @@
+import { clearAuditLogs } from './database/audit.js';
 import { mountResearch } from './research/ui.js';
 import { planOffering, subjectHasGrades, offeringClasses } from './subjects/offerings.js';
 import { sanitizeHTML } from './safe-html.js';
@@ -1150,7 +1151,7 @@ function registerGlobalEventDelegation() {
       await withButtonLock(clearLogBtn, '⏳ Đang xử lý...', async () => {
         const previousLogs = AppState.auditLogs;
         AppState.auditLogs = [];
-        try { await persistData(true); } catch (error) { AppState.auditLogs = previousLogs; throw error; }
+        try { await clearAuditLogs(); } catch (error) { AppState.auditLogs = previousLogs; throw error; }
         renderAuditLog();
       });
       return;
@@ -1526,7 +1527,9 @@ export function initApp() {
   }
 
   // 2. Đăng ký các hook liên kết giữa các module và biến toàn cục trên window
-  const research = mountResearch({ state: AppState, classes: DEFAULT_CLASSES, subjectsForClass: getSubjectsForClass, notify: showToast });
+  const research = mountResearch({ state: AppState, classes: DEFAULT_CLASSES, subjectsForClass: getSubjectsForClass, notify: showToast,
+    onSaved: (project, previous) => logAuditTrail(project.leaderId, '', previous?.title || 'Chưa có', project.title, previous ? 'Cập nhật đề tài nghiên cứu khoa học' : 'Thêm đề tài nghiên cứu khoa học')
+  });
   registerExternalHooks({
     renderResearch: () => research?.render(),
     refreshCadetAcademicResults,

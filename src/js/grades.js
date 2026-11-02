@@ -1,3 +1,4 @@
+import { appendAuditLog, loadAuditLogs } from './database/audit.js';
 import { renderSubjectCatalog } from './subjects/catalog-view.js';
 import { subjectHasGrades, stableOfferingId } from './subjects/offerings.js';
 import { trackImportRead } from './components/upload-state.js';
@@ -1635,14 +1636,21 @@ export function logAuditTrail(studentId, subjectId, oldVal, newVal, reason) {
   }
 
   AppState.auditLogs.unshift({
+    id: crypto.randomUUID(),
+    createdAt: now.toISOString(),
     timestamp,
     actor,
     student: student ? `${student.name} (${student.code})` : studentId,
     class: student ? student.class : (getCurrentUserClassScope() || 'Toàn ĐĐ'),
     subject: subject ? getFullSubjectName(subject) : subjectId,
-    oldVal: oldVal || 'Chưa có',
+    oldVal: oldVal ?? 'Chưa có',
     newVal: newVal,
     reason: reason || 'Chỉnh sửa dữ liệu'
+  });
+
+  void appendAuditLog(AppState.auditLogs[0], CloudSync.unitRoomId || 'daidoi460').catch(error => {
+    console.error('Không thể lưu nhật ký:', error);
+    showToast('Thay đổi đã lưu nhưng chưa gửi được nhật ký. Hãy kiểm tra kết nối.', 'error');
   });
 
   if (AppState.auditLogs.length > 200) {
@@ -2767,7 +2775,8 @@ export const CloudSync = {
   isOnline: true,
   realtimeChannel: null,
   debounceTimer: null,
-  isIncomingSync: false
+  isIncomingSync: false,
+  auditPollTimer: null
 };
 
 export function initCloudSyncConfig() {
@@ -2839,6 +2848,18 @@ export function connectFirebaseRealtime() {
     }
   };
   CloudSync.realtimeChannel = subscribeSupabaseRealtime(refreshCloudData);
+  // Also receive remote audit events when the realtime SDK/publication is unavailable.
+  clearInterval(CloudSync.auditPollTimer);
+  let auditRefreshing = false;
+  CloudSync.auditPollTimer = setInterval(async () => {
+    if (AppState.role !== 'admin' || auditRefreshing || document.hidden) return;
+    auditRefreshing = true;
+    try {
+      AppState.auditLogs = await loadAuditLogs(CloudSync.unitRoomId || 'daidoi460');
+      renderAuditLog();
+    } catch (error) { console.warn('Không thể cập nhật nhật ký:', error); }
+    finally { auditRefreshing = false; }
+  }, 10000);
 }
 
 export function pushDataToCloud(immediate = false) {

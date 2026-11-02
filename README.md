@@ -2,6 +2,14 @@
 
 Dự án Web Application phục vụ công tác quản lý điểm số (theo Năm học từ Năm 1 đến Năm 5), tính điểm tích lũy toàn khóa, quản lý chuẩn ngoại ngữ và hồ sơ trích ngang quân nhân tại **Đại đội 460 - Tiểu đoàn 4 - Học viện Kỹ thuật Quân sự**.
 
+## Xuất bảng điểm và nhật ký liên tài khoản
+
+Bảng điểm lớp xuất mọi học kỳ có ít nhất một điểm hợp lệ của một học viên, kể cả điểm 0. Ô chưa nhập để trống; học viên chưa có điểm trong kỳ/năm không bị gán ĐTB 0. ĐTB năm nằm sau học kỳ cuối có điểm của năm đó và dùng các điểm đã nhập. Năm không có điểm không được xuất.
+
+Nhật ký mới được lưu theo từng sự kiện trong `unit_settings` với khóa `daidoi460:audit:<id>`, giữ nhật ký cũ và tránh ghi đè mảng nhật ký giữa các tài khoản. Admin nhận cập nhật qua Realtime và kiểm tra bổ sung mỗi 10 giây khi trang đang hiển thị. Các thao tác hồ sơ, điểm, môn học, nhập Excel và nghiên cứu khoa học gửi nhật ký sau khi lưu thành công. Xóa nhật ký chỉ xóa các bản ghi nhật ký cùng mảng nhật ký cũ, giữ cấu hình và đề tài. Không cần migration; kiểm thử dùng dữ liệu giả lập, không ghi lên Supabase thật.
+
+Tên đơn vị ở thanh bên và đầu nội dung giữ “Đại đội 460” cho Admin/cán bộ; tài khoản lớp hiển thị tên đầy đủ của lớp tương ứng.
+
 ## Giao diện tối giản
 
 Giao diện hiện tại dùng nền trung tính và một màu nhấn, thống nhất button/form/bảng/hộp thoại, có tìm kiếm trên thanh tiêu đề và đổi sáng/tối. Menu điện thoại là ngăn kéo có hỗ trợ bàn phím; hướng dẫn dài chỉ mở khi cần. Animation ngắn và tôn trọng `prefers-reduced-motion`. Thiết kế này thay cho các kiểu màu/gradient được mô tả trong các phần giao diện cũ bên dưới. Xem [quy tắc giao diện và kiểm tra](docs/interface.md).
