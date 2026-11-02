@@ -1,3 +1,4 @@
+import { mountLeaveRoster } from './leave-roster.js';
 import { mountPartyNomination } from './party-nomination.js';
 import { SUBJECT_AUDIT_FIELDS, RESEARCH_AUDIT_FIELDS } from './audit-changes.js';
 import { clearAuditLogs } from './database/audit.js';
@@ -1526,6 +1527,7 @@ let _localAppInitialized = false;
 
 export function initApp() {
   mountPartyNomination();
+  mountLeaveRoster();
   installOfficerReadOnlyGuard(() => AppState.role, showToast);
   // Chốt chặn Idempotent trong cùng một lần tải script
   if (_localAppInitialized) return;

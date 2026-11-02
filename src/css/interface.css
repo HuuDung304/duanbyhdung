@@ -431,3 +431,6 @@ body.ui-modern .u040-content table *::before,
 body.ui-modern .u040-content table *::after { animation:none!important; transition:none!important; }
 body.ui-modern .u040-content :is(.custom-scrollbar,.readable-table-scroll,.workspace-table-scroll,.research-scroll,.catalog-table-scroll,.year-breakdown-detail-scroll) { scroll-behavior:auto; }
 body.ui-modern .u040-content .grid-cell-input:focus { transform:none; }
+
+body.ui-modern #leaveRegionList { max-height:40dvh; overflow:auto; margin-top:12px; }
+body.ui-modern #leaveRegionList label { display:block; padding:8px 0; border-bottom:1px solid var(--theme-border); font-size:13px; overflow-wrap:anywhere; }

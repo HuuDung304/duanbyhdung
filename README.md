@@ -24,6 +24,12 @@ Tài khoản học viên có khối ngang **Khả năng đạt danh hiệu / h�
 
 Admin/cán bộ chọn **Danh sách dự kiến kết nạp Đảng** trong Xuất báo cáo, tích các năm cần hiển thị và nhập ngưỡng hệ 4 (0–4). Chỉ đưa vào danh sách người có trạng thái đã học cảm tình Đảng và đạt chuẩn tiếng Nga hiện tại. Cần ít nhất một học kỳ đủ điểm trong các năm được chọn; mọi học kỳ đủ điểm đó phải đạt ngưỡng. Kỳ chưa đủ điểm để trống cả điểm và dòng xếp loại; cả năm chỉ ghi khi cả hai kỳ đã đủ. Dòng xếp loại dưới điểm luôn ghi `T` khi có điểm được hiển thị. Tính TB theo tín chỉ, sắp theo thứ tự OTQS1, OTQS2, TTG1, TTG2, XMCB rồi mã học viên. Các mốc ngày/tháng/năm và đợt kết nạp giữ dấu chấm để điền sau. Không tự xác nhận lý lịch hoặc rèn luyện thể lực. File DOCX dùng bố cục bảng nhiều tầng theo mẫu đã cung cấp; mẫu nền lưu trong assets đã loại bỏ toàn bộ dữ liệu cá nhân. Kiểm thử tải Word bằng dữ liệu giả lập, không ghi database thật.
 
+## Danh sách tranh thủ
+
+Xuất `Danh sách tranh thủ.xlsx` gồm hai sheet **Miền Bắc** và **Miền Nam**, tự lấy toàn phạm vi tài khoản Admin/cán bộ hoặc cả lớp phụ trách. Nhập ngày giờ về và lên trên web; thời gian áp dụng chung cho danh sách và được ghi bằng tiếng Việt theo mẫu. Cột xuất: TEN, CAP_BAC, CHUC_VU, DON_VI, QUE_QUAN, NGAY_VE, NGAY_LEN. Đơn vị ghi tên lớp đầy đủ, Đại đội 460, Tiểu đoàn 4.
+
+Phân theo quê quán: Hà Tĩnh trở ra là Bắc, Quảng Trị trở vào là Nam; Quảng Bình cũ được nhận diện thuộc Quảng Trị hiện nay. Hỗ trợ các tên tỉnh trước/sau sáp nhập; luôn cho kiểm tra/sửa miền từng học viên trước khi xuất. Quê quán thiếu/không nhận diện yêu cầu chọn miền, không tự bỏ người khỏi file. Không sửa hồ sơ gốc. Thời gian lên phải sau thời gian về. Kiểm thử bằng dữ liệu giả lập.
+
 ## Giao diện tối giản
 
 Giao diện hiện tại dùng nền trung tính và một màu nhấn, thống nhất button/form/bảng/hộp thoại, có tìm kiếm trên thanh tiêu đề và đổi sáng/tối. Menu điện thoại là ngăn kéo có hỗ trợ bàn phím; hướng dẫn dài chỉ mở khi cần. Animation ngắn và tôn trọng `prefers-reduced-motion`. Thiết kế này thay cho các kiểu màu/gradient được mô tả trong các phần giao diện cũ bên dưới. Xem [quy tắc giao diện và kiểm tra](docs/interface.md).
