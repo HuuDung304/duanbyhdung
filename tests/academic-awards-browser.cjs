@@ -44,11 +44,10 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
     assert.equal(scholarships.records[0][3],'03/02/2004');assert.equal(scholarships.records[0][5],9);assert.equal(scholarships.records[0][6],4);
     assert.match(scholarships.info[2][1],/Học kỳ 3/);
     const honors=await download('honors');
-    assert.deepEqual(honors.records.map(r=>r[2]),['s9','sA','sB','sGood','sDisc']);
-    const section=honors.rows.findIndex(r=>r[0]==='II. XÉT VẬN DỤNG');assert.ok(section>2);
-    assert.equal(honors.rows[section+1][2],'sDisc');assert.match(honors.rows[section+1][8],/Vật lý \(6,00 < 7,0\)/);
+    assert.deepEqual(honors.records.map(r=>r[2]),['s9','sA','sB','sGood']);
+    assert.ok(!honors.rows.flat().some(value=>String(value).includes('VẬN DỤNG')));
     assert.equal(honors.records.find(r=>r[2]==='sGood')[4],'Học viên học tốt');
-    assert.equal(honors.records.at(-1)[5],8.25);assert.equal(honors.info[2][1],'Năm 2');
+    assert.equal(honors.records.at(-1)[5],7);assert.equal(honors.info[2][1],'Năm 2');
    }
    await page.evaluate(()=>{window.AppState.requiredLangStandard='B1';});
    const higher=await download('honors');assert.equal(higher.records.length,0);assert.ok(higher.rows.flat().includes('Không có học viên đủ điều kiện.'));
@@ -69,7 +68,8 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
    const itemRows=await page.locator('.student-award-outlook-items p').evaluateAll(items=>items.map(el=>el.getBoundingClientRect().top));
    if(width>640)assert.equal(itemRows[0],itemRows[1]);
    await page.evaluate(()=>window.AuthState.setUser({type:'student',studentId:'sDisc',code:'00sDisc',class:'TTG2'}));
-   assert.match(await page.locator('#studentHonorOutlook').innerText(),/xét vận dụng/);
+   assert.match(await page.locator('#studentHonorOutlook').innerText(),/Chưa đủ điều kiện/);
+   assert.match(await page.locator('#studentHonorOutlookNote').innerText(),/Vật lý.*dưới 7,0/);
    await page.evaluate(()=>window.AuthState.setUser({type:'student',studentId:'sZero',code:'00sZero',class:'TTG2'}));
    assert.match(await page.locator('#studentScholarshipOutlookNote').innerText(),/chưa qua môn 0 tín chỉ/);
    await page.evaluate(()=>window.AuthState.setUser({type:'student',studentId:'sLang',code:'00sLang',class:'TTG2'}));
@@ -77,7 +77,7 @@ const {chromium}=require('playwright'),XLSX=require('xlsx'),fs=require('node:fs'
    await page.evaluate(()=>window.AuthState.setUser({type:'company_officer'}));
    assert.equal(await page.locator('#studentPersonalPanel').isVisible(),false);
    assert.deepEqual(errors,[]);
-   console.log(`PASS: ${width}px real XLSX downloads; thresholds, missing/zero credits, latest periods, Russian standard, discretionary notes, scoped roles and student restrictions`);
+   console.log(`PASS: ${width}px real XLSX downloads; thresholds, missing/zero credits, latest periods, Russian standard, strict subject minimums, scoped roles and student restrictions`);
    await context.close();
   }
  }finally{await browser.close();}

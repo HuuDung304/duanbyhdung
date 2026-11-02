@@ -18,7 +18,7 @@ export function buildAcademicAwards({ students, grades, subjectsForClass, langua
       if (Number.isInteger(semester) && semester >= 1 && semester <= 10 && hasScore(grades[student.id]?.[subject.id])) latestSemester = Math.max(latestSemester, semester);
     }
   }
-  const year = Math.ceil(latestSemester / 2), qualified = [], discretionary = [];
+  const year = Math.ceil(latestSemester / 2), qualified = [];
   for (const student of students) {
     if (!latestSemester) break;
     const scores = grades[student.id] || {};
@@ -36,10 +36,9 @@ export function buildAcademicAwards({ students, grades, subjectsForClass, langua
     if (!award) continue;
     const record = { student, award, average, average4, language: language.actualLevel, belowSeven: belowSeven.map(subject => ({ subject, score: Number(scores[subject.id]) })) };
     if (!belowSeven.length) qualified.push(record);
-    else if (kind === 'honors' && average >= 8) discretionary.push(record);
   }
   const compare = (a, b) => b.average - a.average || String(a.student.code).localeCompare(String(b.student.code), 'vi');
-  return { latestSemester, year, qualified: qualified.sort(compare), discretionary: discretionary.sort(compare) };
+  return { latestSemester, year, qualified: qualified.sort(compare) };
 }
 
 // Personal outlook uses the same eligibility rules as Excel, but explicitly
@@ -53,12 +52,12 @@ export function studentAwardOutlook({ student, grades, subjectsForClass, languag
   const scores = grades[student.id] || {};
   const scored = subjects.filter(subject => hasScore(scores[subject.id]));
   const missing = subjects.length - scored.length;
-  const candidate = result.qualified[0] || result.discretionary[0];
+  const candidate = result.qualified[0];
   const complete = missing === 0;
   const pending = missing ? `Chờ ${missing}/${subjects.length} môn có điểm` : 'Đã có đủ điểm trong danh mục';
   if (candidate) return {
     period, complete,
-    label: `${complete ? 'Có khả năng đạt' : 'Tạm tính'}: ${candidate.award}${result.discretionary.length ? ' (xét vận dụng)' : ''}`,
+    label: `${complete ? 'Có khả năng đạt' : 'Tạm tính'}: ${candidate.award}`,
     note: [pending, `TB ${candidate.average.toFixed(2).replace('.', ',')}`,
       ...candidate.belowSeven.map(({ subject, score }) => `${subject.name || subject.code} (${score.toFixed(2).replace('.', ',')} < 7,0)`)].join(' · ')
   };

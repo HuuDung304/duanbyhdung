@@ -618,9 +618,7 @@ export function createReportExports(context) {
           record.belowSeven.map(({ subject, score }) => `${context.getFullSubjectName(subject)} (${score.toFixed(2).replace('.', ',')} < 7,0)`).join('; ')]);
       });
     };
-    if (!scholarship) { headerRows.push(rows.length + 1); rows.push(['I. ĐỦ ĐIỀU KIỆN']); }
     addRecords(result.qualified);
-    if (!scholarship) { headerRows.push(rows.length + 1); rows.push(['II. XÉT VẬN DỤNG']); addRecords(result.discretionary); }
     const sheet = XLSX.utils.aoa_to_sheet(rows);
     sheet['!cols'] = [7, 20, 30, 25, 28, 16, 16, 18, 60].map(wch => ({ wch }));
     sheet['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 8 } }];
@@ -634,7 +632,6 @@ export function createReportExports(context) {
       ['Trung bình', 'Tính theo tín chỉ các môn đã có điểm; môn 0 tín chỉ không tính vào TB hệ 10/hệ 4.'],
       ['Điều kiện chung', 'Các môn có tín chỉ đã có điểm đều từ 7,0; môn 0 tín chỉ đã có điểm phải đạt từ 4,0; đạt chuẩn tiếng Nga hiện tại.'],
       ['Mức xét', scholarship ? 'Lê Quý Đôn: TB ≥ 9,0; loại A: TB ≥ 8,5; loại B: TB ≥ 8,0. Mỗi học viên chỉ nhận mức cao nhất.' : 'Xuất sắc: TB ≥ 9,0; học giỏi: TB ≥ 8,0; học tốt: TB ≥ 7,0. Mỗi học viên chỉ ở mức cao nhất.'],
-      ...(!scholarship ? [['II. Xét vận dụng', 'TB ≥ 8,0 và có môn có tín chỉ dưới 7,0; vẫn yêu cầu môn 0 tín chỉ qua môn và đạt chuẩn tiếng Nga. Đây là danh sách đề nghị xét, chưa phải danh hiệu đã được duyệt.']] : [])
     ]);
     info['!cols'] = [{ wch: 30 }, { wch: 115 }];
     const workbook = XLSX.utils.book_new();

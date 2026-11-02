@@ -23,20 +23,17 @@ test('latest scored semester, partial scores, zero-credit pass/fail and weighted
  assert.equal(result.latestSemester,3);assert.equal(result.year,2);
  assert.deepEqual(result.qualified.map(r=>r.student.id),['high','a','b','missingZero']);
  assert.equal(result.qualified[0].average,9);assert.equal(result.qualified[0].average4,4);
- assert.deepEqual(result.discretionary,[]);
  const honors=build(students,grades,'honors');
- assert.deepEqual(honors.discretionary.map(r=>r.student.id),['low']);
- assert.equal(honors.discretionary[0].average,8.25);
- assert.deepEqual(honors.discretionary[0].belowSeven.map(r=>[r.subject.name,r.score]),[['Lý',6]]);
+ assert.ok(!honors.qualified.some(record => record.student.id === 'low'));
 });
 test('honors use both semesters of the latest year; scholarships only the latest semester',()=>{
  const students=[student('s')],grades={s:{old:10,a:7,empty:10}};
  const scholarship=build(students,grades);assert.equal(scholarship.latestSemester,4);assert.equal(scholarship.qualified[0].average,10);
  const honors=build(students,grades,'honors');assert.equal(honors.qualified[0].average,8.2);assert.equal(honors.qualified[0].award,'Học viên học giỏi');
 });
-test('a low credited subject can be discretionary even if failed, but language and zero-credit failures cannot be waived',()=>{
+test('a credited subject below seven excludes honors even with a high annual average',()=>{
  const students=[student('ok'),student('zero'),student('lang','A2')],grades={ok:{a:10,b:3,z:4},zero:{a:10,b:3,z:0},lang:{a:10,b:3,z:4}};
- const result=build(students,grades,'honors');assert.deepEqual(result.qualified,[]);assert.deepEqual(result.discretionary.map(r=>r.student.id),['ok']);
+ const result=build(students,grades,'honors');assert.deepEqual(result.qualified,[]);assert.equal(result.qualified.length,0);
 });
 test('scope and applicable curriculum exclude foreign scores when choosing latest period',()=>{
  const result=build([student('s')],{s:{a:9,foreign:10}},'scholarships');assert.equal(result.latestSemester,3);
@@ -59,4 +56,14 @@ test('personal outlook separates full and provisional results, retains the 7.0 h
  const failed=studentAwardOutlook({...input,grades:{s:{a:10,z:0}},kind:'scholarships'});
  assert.equal(failed.label,'Chưa đủ điều kiện');assert.match(failed.note,/chưa qua môn 0 tín chỉ/);
  const noData=studentAwardOutlook({...input,grades:{},kind:'honors'});assert.equal(noData.period,'');assert.equal(noData.label,'Chưa có điểm để xét');
+});
+
+test('hoc vien hoc tot uses the latest annual average of at least seven, every credited score and current language standard',()=>{
+ const students=[student('good'),student('below'),student('language','A2')];
+ const grades={good:{old:3.99,a:7,b:7,z:4,empty:7},below:{a:7,b:6.99,empty:7},language:{a:7,b:7,empty:7}};
+ const result=build(students,grades,'honors');
+ assert.equal(result.year,2);
+ assert.deepEqual(result.qualified.map(item=>item.student.id),['good']);
+ assert.equal(result.qualified[0].average,7);
+ assert.equal(result.qualified[0].award,'Học viên học tốt');
 });
