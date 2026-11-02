@@ -484,3 +484,35 @@ body.ui-modern .report-export-dialog { overscroll-behavior:contain; }
 }
 /* Keep the profile editor above the navigation, including when utility CSS loads late. */
 body.ui-modern #modalStudentProfile:not(.hidden) { position:fixed; inset:0; z-index:100; overflow:auto; }
+
+/* Cohesive visual language for navigation, content and actions. */
+body.bento-app.ui-modern {
+ --theme-canvas:#f4f7fb; --theme-surface:#ffffff; --theme-card:#ffffff; --theme-soft:#eef3f8;
+ --theme-selected:#e8efff; --theme-primary:#2849a1; --theme-primary-hover:#203b83;
+ --theme-focus:#2849a1; --ui-action:#2849a1; --ui-action-hover:#203b83;
+ --theme-border:#c7d3df; --theme-border-strong:#8294a8; --theme-muted:#43556a;
+ --ui-shadow:0 8px 24px #1b38500d;
+}
+html[data-theme="dark"] body.bento-app.ui-modern {
+ --theme-canvas:#101827; --theme-surface:#192537; --theme-card:#1c293b; --theme-soft:#26354a;
+ --theme-selected:#2b4062; --theme-primary:#b4ceff; --theme-primary-hover:#d3e0ff;
+ --theme-focus:#b4ceff; --ui-action:#b4ceff; --ui-action-hover:#d3e0ff;
+ --theme-border:#53657a; --theme-border-strong:#8091a5; --theme-muted:#d0dae6;
+}
+body.ui-modern .ui-toolbar { background:var(--theme-surface); border-bottom:1px solid var(--theme-border); }
+body.ui-modern .u040-content :is(.bento-card,.workspace-settings-card,.report-export-card,.catalog-semester,.year-breakdown-card,.research-table-card) { box-shadow:var(--ui-shadow); }
+body.ui-modern .u040-content :is(h2,h3,h4) { line-height:1.3; }
+body.ui-modern .u040-content :is(input,select,textarea) { accent-color:var(--ui-action); }
+body.ui-modern .u040-content button:disabled { cursor:not-allowed; opacity:.6; }
+body.ui-modern .u040-content table th { background:var(--theme-soft); }
+body.ui-modern .u040-content table tbody tr:focus-within>td { background:var(--theme-selected); }
+body.ui-modern .u040-content .grid-cell-input:focus-visible { position:relative; z-index:2; }
+body.ui-modern #tab-reports .report-gallery .report-export-card { gap:0; }
+body.ui-modern #tab-reports .report-card-actions { align-items:center; }
+body.ui-modern .report-export-dialog { border-radius:16px; }
+@media(max-width:760px) {
+ body.ui-modern .bento-shell .u040-main { padding-inline:16px!important; }
+ body.ui-modern .u040-content .tab-content { padding-top:18px; }
+ body.ui-modern .report-export-dialog { width:calc(100vw - 24px); max-height:calc(100dvh - 24px); padding:18px; }
+ body.ui-modern .u040-content :is(.bento-card,.workspace-settings-card,.report-export-card,.catalog-semester,.year-breakdown-card,.research-table-card) { box-shadow:none; }
+}
