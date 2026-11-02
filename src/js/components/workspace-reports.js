@@ -7,6 +7,12 @@ const $ = id => document.getElementById(id);
 const make = (tag, className, text) => { const e=document.createElement(tag);if(className)e.className=className;if(text!==undefined)e.textContent=text;return e; };
 const main = document.querySelector('.u040-content');
 const dashboard = $('tab-dashboard');
+const reportSearch=$('reportGallerySearch'),reportClear=$('reportGalleryClear'),reportGallery=$('reportGallery');
+if(reportSearch&&reportClear&&reportGallery){
+  const normalize=value=>value.toLocaleLowerCase('vi').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').trim();
+  const filter=()=>{const query=normalize(reportSearch.value);for(const card of reportGallery.querySelectorAll('.report-export-card'))card.classList.toggle('report-search-mismatch',!normalize(card.querySelector('h3')?.textContent||'').includes(query));reportClear.disabled=!query;};
+  reportSearch.addEventListener('input',filter);reportClear.addEventListener('click',()=>{reportSearch.value='';filter();reportSearch.focus();});filter();
+}
 if (main && dashboard) {
   document.body.classList.add('workspace-reports');
   const subjectLink=document.querySelector('.u040-it[data-tab="tab-settings"] span');
