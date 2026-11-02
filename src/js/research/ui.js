@@ -29,10 +29,13 @@ export function mountResearch({ state, classes, subjectsForClass, notify, onSave
   const button = (label, action, id) => `<button type="button" class="research-btn" data-research-action="${action}" data-project-id="${esc(id)}">${label}</button>`;
   const studentLine = (student, project) => `<div class="research-person"><button type="button" class="btn-view-cadet-detail research-student-link" data-id="${esc(student.studentId)}">${esc(student.name || student.code)}</button>${student.studentId === project.leaderId ? ' <span class="research-owner">Chủ đề tài</span>' : ''}</div>`;
   const blankGuides = (project, values) => project.advisors?.length ? `<div class="research-guide-label" aria-hidden="true">&nbsp;</div>${project.advisors.map((a, i) => `<div class="research-person">${esc(values(a, i))}</div>`).join('')}` : '';
+  const normalizeSearch = value => String(value || '').toLocaleLowerCase('vi').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').trim();
+  $('researchSearch').addEventListener('input', () => render());
+  $('researchSearchClear').addEventListener('click', () => { $('researchSearch').value = ''; render(); $('researchSearch').focus(); });
   function render() {
     const key = identityKey();
     if (key !== identity) {
-      identity = key; filter = 'all'; generation++; projects = []; loaded = false; error = ''; loading = false;
+      identity = key; filter = 'all'; $('researchSearch').value = ''; generation++; projects = []; loaded = false; error = ''; loading = false;
       pendingImport = null; detail.reset(); memberPicker?.destroy();
       if (resolveDialog.open) resolveDialog.close();
       if (editor.open) editor.close();
@@ -42,8 +45,10 @@ export function mountResearch({ state, classes, subjectsForClass, notify, onSave
       importing = [];
     }
     if (editor.open || importDialog.open || uploadDialog.open || resolveDialog.open || $('researchFieldDialog').open) return;
-    const global = ['admin', 'company_officer'].includes(state.role), visible = scopedProjects(projects, state, filter);
-    const stats = researchStats(visible);
+    const global = ['admin', 'company_officer'].includes(state.role), scoped = scopedProjects(projects, state, filter);
+    const query = normalizeSearch($('researchSearch').value);
+    const visible = query ? scoped.filter(project => normalizeSearch([project.title, ...participants(project, state.students).flatMap(person => [person.name, person.code])].join(' ')).includes(query)) : scoped;
+    const stats = researchStats(scoped);
     $('researchTopicCount').textContent = loaded ? stats.projects : '—';
     $('researchStudentCount').textContent = loaded ? stats.students : '—';
     $('researchScope').textContent = global ? (filter === 'all' ? 'Toàn đại đội · Xếp theo lớp của chủ đề tài' : `Chủ đề tài thuộc lớp ${filter}`) : actor(state).className ? `Đề tài có học viên lớp ${actor(state).className} tham gia` : 'Đề tài bạn tham gia';
@@ -52,11 +57,11 @@ export function mountResearch({ state, classes, subjectsForClass, notify, onSave
     $('researchImport').hidden = !canCreate(state);
     $('researchExport').disabled = loading;
     $('researchReportCard').hidden = state.role === 'guest';
-    $('researchStatus').textContent = error || (loading ? 'Đang tải đề tài…' : !loaded ? 'Mở mục này để tải đề tài.' : `${visible.length} đề tài`);
+    $('researchStatus').textContent = error || (loading ? 'Đang tải đề tài…' : !loaded ? 'Mở mục này để tải đề tài.' : query ? `${visible.length} đề tài phù hợp` : `${visible.length} đề tài`);
     $('researchStatus').title = 'Điểm trung bình của năm học mới nhất có điểm của từng học viên; học viên được đếm không trùng.';
     $('researchStatus').setAttribute('role', error ? 'alert' : 'status');
     if (error) { const retry = document.createElement('button'); retry.type = 'button'; retry.className = 'research-btn'; retry.dataset.researchRetry = 'true'; retry.textContent = 'Thử lại'; $('researchStatus').append(' ', retry); }
-    setHTML($('researchTableBody'), !loaded ? '<tr><td colspan="9" class="research-empty">Chưa tải được danh sách đề tài.</td></tr>' : !visible.length ? '<tr><td colspan="9" class="research-empty">Chưa có đề tài trong phạm vi này.</td></tr>' : visible.map((project, i) => {
+    setHTML($('researchTableBody'), !loaded ? '<tr><td colspan="9" class="research-empty">Chưa tải được danh sách đề tài.</td></tr>' : !visible.length ? `<tr><td colspan="9" class="research-empty">${query ? 'Không tìm thấy đề tài phù hợp.' : 'Chưa có đề tài trong phạm vi này.'}</td></tr>` : visible.map((project, i) => {
       const people = participants(project, state.students);
       const gpas = people.map(p => latestYearGPA(p, state, subjectsForClass(p.class)));
       const awards = `<div class="research-award-list">${AWARDS.map(a => `<label class="research-award-check"><input type="checkbox" data-research-award="${esc(a)}" data-project-id="${esc(project.id)}" aria-label="${esc(a + ': ' + project.title)}" ${normalizeAwards(project.awards || []).includes(a) ? 'checked' : ''} ${canAward(project, state) ? '' : 'disabled'}><span>${esc(a)}</span></label>`).join('')}</div>`;
