@@ -456,3 +456,31 @@ body.ui-modern #leaveRosterNotice:empty { display:none; }
 body.ui-modern #leaveRosterForm .leave-time-fields { display:grid; grid-template-columns:minmax(0,1.65fr) minmax(0,1fr) minmax(0,1fr); gap:10px; }
 body.ui-modern #leaveRosterForm .leave-time-fields label { display:block; min-width:0; font-size:12px; }
 body.ui-modern #leaveRosterForm .leave-time-fields :is(input,select) { margin-top:6px; padding:10px 8px; }
+
+/* Refined workspace: clearer hierarchy and consistent, calm surfaces. */
+body.ui-modern { --workspace-radius:14px; }
+body.ui-modern .ui-toolbar { border-bottom:1px solid var(--theme-border); padding-block:12px; gap:16px; }
+body.ui-modern #interfacePageTitle { font-size:clamp(20px,2vw,27px); line-height:1.25; letter-spacing:-.025em; }
+body.ui-modern .u040-content { line-height:1.55; }
+body.ui-modern .u040-content .tab-content { padding-bottom:32px; }
+body.ui-modern .u040-content :is(.bento-card,.workspace-settings-card,.report-export-card,.research-table-card,.catalog-semester,.year-breakdown-card) { border-radius:var(--workspace-radius); }
+body.ui-modern .u040-content :is(input,select,textarea):focus-visible,
+body.ui-modern .u040-content button:focus-visible,
+body.ui-modern dialog :is(input,select,textarea,button):focus-visible { outline:2px solid var(--theme-primary); outline-offset:2px; }
+body.ui-modern .u040-content :is(.readable-table-scroll,.workspace-table-scroll,.research-scroll,.catalog-table-scroll) { border:1px solid var(--theme-border); border-radius:10px; }
+body.ui-modern .u040-content table th { font-weight:650; letter-spacing:.005em; }
+body.ui-modern .u040-content table td { line-height:1.5; }
+body.ui-modern #tab-reports .report-gallery { gap:16px; }
+body.ui-modern #tab-reports .report-gallery .report-export-card { min-height:150px; padding:20px; }
+body.ui-modern #tab-reports .report-gallery .report-export-card p { max-width:none; margin:8px 0 20px; }
+body.ui-modern .report-export-dialog { overscroll-behavior:contain; }
+@media(max-width:760px) {
+ body.ui-modern .ui-toolbar { padding-block:8px; gap:8px; }
+ body.ui-modern .u040-content .tab-content { padding-bottom:24px; }
+ body.ui-modern #tab-reports .report-gallery { gap:12px; }
+ body.ui-modern #tab-reports .report-gallery .report-export-card { min-height:0; padding:18px; }
+ body.ui-modern #tab-reports .report-gallery .report-export-card p { margin:6px 0 16px; }
+ body.ui-modern .u040-content :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea) { font-size:16px; }
+}
+/* Keep the profile editor above the navigation, including when utility CSS loads late. */
+body.ui-modern #modalStudentProfile:not(.hidden) { position:fixed; inset:0; z-index:100; overflow:auto; }

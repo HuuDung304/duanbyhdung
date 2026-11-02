@@ -62,7 +62,7 @@ const base=process.env.TEST_BASE_URL||'http://127.0.0.1:3000';
   assert.equal(await page.locator('#researchDropZone .u032-zone').isVisible(),true);
   await page.screenshot({path:`/tmp/interface-import-${width}.png`,animations:'disabled'});
   await page.keyboard.press('Escape');
-  await navigate('tab-reports');assert.equal(await page.locator('.report-gallery .report-export-card').count(),5);
+  await navigate('tab-reports');assert.equal(await page.locator('.report-gallery .report-export-card').count(),9);
   await page.screenshot({path:`/tmp/interface-reports-${width}-light.png`,fullPage:true,animations:'disabled'});
   await page.locator('#interfaceThemeButton').click();
   assert.equal(await page.evaluate(()=>document.documentElement.dataset.theme),'dark');
