@@ -26,9 +26,9 @@ Admin/cán bộ chọn **Danh sách dự kiến kết nạp Đảng** trong Xu�
 
 ## Danh sách tranh thủ
 
-Hai mục **Danh sách tranh thủ miền Nam** và **Danh sách tranh thủ miền Bắc** xuất thành hai file Excel riêng; mỗi file chỉ có sheet của miền đã chọn, lấy trong phạm vi tài khoản Admin/cán bộ hoặc lớp phụ trách. Nhập ngày giờ về và lên trên web; thời gian áp dụng chung cho danh sách và được ghi bằng tiếng Việt theo mẫu. Cột xuất: TEN, CAP_BAC, CHUC_VU, DON_VI, QUE_QUAN, NGAY_VE, NGAY_LEN. Đơn vị ghi tên lớp đầy đủ, Đại đội 460, Tiểu đoàn 4.
+Một mục **Danh sách tranh thủ** mở hộp thoại giữa màn hình, chỉ có hai ô ngày giờ về/lên và hai khối miền Nam/Bắc với nút tải riêng. Mỗi nút xuất một file Excel chỉ chứa miền tương ứng, theo phạm vi tài khoản. Tải xuống không đóng hộp thoại và không xóa thời gian, có thể tải Nam rồi Bắc liên tiếp; chỉ nút Đóng, Escape hoặc đổi tài khoản mới đóng hộp thoại.
 
-Phân theo quê quán: Hà Tĩnh trở ra là Bắc, Quảng Trị trở vào là Nam; Quảng Bình cũ được nhận diện thuộc Quảng Trị hiện nay. Hỗ trợ các tên tỉnh trước/sau sáp nhập; luôn cho kiểm tra/sửa miền từng học viên trước khi xuất. Quê quán thiếu/không nhận diện yêu cầu chọn miền, không tự bỏ người khỏi file. Không sửa hồ sơ gốc. Các học viên đã xác định thuộc miền còn lại không đưa vào file; quê quán chưa rõ vẫn được liệt kê để người xuất chọn miền trước khi lọc. Thời gian lên phải sau thời gian về. Tất cả báo cáo dùng chung lưới thẻ và nút tải; các hộp nhập thông tin xuất được căn giữa màn hình, có giới hạn chiều cao và cuộn trên điện thoại. Kiểm thử bằng dữ liệu giả lập.
+Cột xuất theo mẫu: TEN, CAP_BAC, CHUC_VU, DON_VI, QUE_QUAN, NGAY_VE, NGAY_LEN. Đơn vị ghi đầy đủ tên lớp, Đại đội 460, Tiểu đoàn 4. Hà Tĩnh trở ra là Bắc, Quảng Trị trở vào là Nam; Quảng Bình cũ được nhận diện thuộc Quảng Trị hiện nay. Không hiển thị danh sách chọn miền từng người; phân miền tự động theo quê quán. Nếu quê quán chưa rõ, hộp thoại thông báo số người chưa phân được miền để bổ sung hồ sơ, không tự đoán. Thời gian lên phải sau thời gian về. Không sửa hồ sơ gốc. Kiểm thử tải Nam và Bắc liên tiếp, giữ hộp thoại và thời gian trên máy tính/điện thoại bằng dữ liệu giả lập.
 
 ## Giao diện tối giản
 

@@ -28,36 +28,38 @@ export function leaveRows(students,regions,depart,returning){
  return result;
 }
 export function mountLeaveRoster(){
- const buttons=[...document.querySelectorAll('[data-leave-region]')],button=buttons[0],dialog=document.getElementById('leaveRosterDialog'),form=document.getElementById('leaveRosterForm'),list=document.getElementById('leaveRegionList');
- if(!button||button.dataset.mounted)return;button.dataset.mounted='true';let students=[],identity='',selectedRegion='north';
+ const button=document.getElementById('btnExportLeaveRoster'),dialog=document.getElementById('leaveRosterDialog'),form=document.getElementById('leaveRosterForm');
+ if(!button||button.dataset.mounted)return;button.dataset.mounted='true';let identity='';
  const allowed=()=>['admin','company_officer'].includes(AppState.role)||AppState.role?.startsWith('class_leader_');
  const currentIdentity=()=>JSON.stringify([AppState.role,AppState.currentUser?.code,AppState.currentUser?.studentId]);
- for(const option of buttons) option.addEventListener('click',()=>{
-  if(!allowed())return;selectedRegion=option.dataset.leaveRegion;
-  document.getElementById('leaveRosterTitle').textContent=`Danh sách tranh thủ miền ${selectedRegion==='north'?'Bắc':'Nam'}`;
-  students=getScopedStudents().filter(s=>!hometownRegion(s.hometown)||hometownRegion(s.hometown)===selectedRegion);identity=currentIdentity();list.replaceChildren();
-  for(const s of students){
-   const label=document.createElement('label');label.textContent=`${s.name} (${s.code}) — ${s.hometown||'Chưa có quê quán'} `;
-   const select=document.createElement('select');select.dataset.student=s.id;select.required=true;select.setAttribute('aria-label',`Miền của ${s.code}`);
-   for(const [value,text]of [['','Chọn miền'],['north','Miền Bắc'],['south','Miền Nam']])select.add(new Option(text,value));select.value=hometownRegion(s.hometown);label.append(select);list.append(label);
-  }
-  dialog.showModal();
+ const updateCounts=()=>{
+  const students=getScopedStudents();
+  for(const region of ['north','south'])document.getElementById(`leaveCount-${region}`).textContent=`${students.filter(s=>hometownRegion(s.hometown)===region).length} học viên`;
+  const unknown=students.filter(s=>!hometownRegion(s.hometown)).length;
+  document.getElementById('leaveRosterNotice').textContent=unknown?`${unknown} học viên chưa xác định được miền từ quê quán nên chưa đưa vào danh sách. Cần bổ sung quê quán trong hồ sơ.`:'';
+ };
+ button.addEventListener('click',()=>{
+  if(!allowed())return;identity=currentIdentity();updateCounts();dialog.showModal();
  });
  document.getElementById('leaveRosterCancel').addEventListener('click',()=>dialog.close());
  window.addEventListener('report-role-change',()=>dialog.close());
  form.addEventListener('submit',event=>{
   event.preventDefault();if(!allowed()||identity!==currentIdentity()||!form.reportValidity())return;
+  const selectedRegion=event.submitter?.dataset.leaveDownload;
+  if(!['north','south'].includes(selectedRegion))return;
   try{
+   const students=getScopedStudents();
    if(!students.length)throw new Error('Phạm vi tài khoản chưa có học viên.');
    const departInput=document.getElementById('leaveDeparture').value,returnInput=document.getElementById('leaveReturn').value;
    const depart=leaveTime(departInput),returning=leaveTime(returnInput);
    if(returnInput<=departInput)throw new Error('Thời gian lên phải sau thời gian về.');
-   const regions=Object.fromEntries([...list.querySelectorAll('select')].map(select=>[select.dataset.student,select.value]));
-   const groups=leaveRows(students,regions,depart,returning),book=XLSX.utils.book_new();
-   for(const [region,name]of [[selectedRegion,selectedRegion==='north'?'Miền Bắc':'Miền Nam']]){
-    const sheet=XLSX.utils.aoa_to_sheet([['TEN','CAP_BAC','CHUC_VU','DON_VI','QUE_QUAN','NGAY_VE','NGAY_LEN'],...groups[region]]);sheet['!cols']=[28,15,20,55,55,42,42].map(wch=>({wch}));sheet['!reportHeaderRows']=[1];sheet['!reportRepeatRows']=1;XLSX.utils.book_append_sheet(book,sheet,name);
-   }
-   writeReportWorkbook(book,`Danh sách tranh thủ miền ${selectedRegion==='north'?'Bắc':'Nam'}.xlsx`);dialog.close();
+   const groups=leaveRows(students.filter(s=>hometownRegion(s.hometown)===selectedRegion),{},depart,returning),book=XLSX.utils.book_new();
+   const name=selectedRegion==='north'?'Miền Bắc':'Miền Nam';
+   const sheet=XLSX.utils.aoa_to_sheet([['TEN','CAP_BAC','CHUC_VU','DON_VI','QUE_QUAN','NGAY_VE','NGAY_LEN'],...groups[selectedRegion]]);
+   sheet['!cols']=[28,15,20,55,55,42,42].map(wch=>({wch}));sheet['!reportHeaderRows']=[1];sheet['!reportRepeatRows']=1;
+   XLSX.utils.book_append_sheet(book,sheet,name);
+   writeReportWorkbook(book,`Danh sách tranh thủ miền ${selectedRegion==='north'?'Bắc':'Nam'}.xlsx`);
+   updateCounts();
   }catch(error){showToast(error.message,'error');}
  });
 }

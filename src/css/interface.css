@@ -432,8 +432,6 @@ body.ui-modern .u040-content table *::after { animation:none!important; transiti
 body.ui-modern .u040-content :is(.custom-scrollbar,.readable-table-scroll,.workspace-table-scroll,.research-scroll,.catalog-table-scroll,.year-breakdown-detail-scroll) { scroll-behavior:auto; }
 body.ui-modern .u040-content .grid-cell-input:focus { transform:none; }
 
-body.ui-modern #leaveRegionList { max-height:40dvh; overflow:auto; margin-top:12px; }
-body.ui-modern #leaveRegionList label { display:block; padding:8px 0; border-bottom:1px solid var(--theme-border); font-size:13px; overflow-wrap:anywhere; }
 
 /* Center export forms independently of page scroll and reset styles. */
 body.ui-modern :is(.report-export-dialog,#researchExportDialog) {
@@ -446,3 +444,11 @@ body.ui-modern .report-export-dialog fieldset legend { margin-bottom:10px; font-
 body.ui-modern .report-export-dialog fieldset label { display:inline-flex; align-items:center; gap:6px; margin:0; }
 body.ui-modern .report-dialog-actions { position:sticky; bottom:-24px; background:var(--theme-surface); padding:16px 0 0; }
 body.ui-modern .report-dialog-actions [type="submit"] { background:var(--theme-selected); color:var(--theme-primary); font-weight:650; }
+
+body.ui-modern .leave-download-options { display:grid; gap:12px; margin-top:20px; }
+body.ui-modern .leave-download-option { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:14px; background:var(--theme-card); border:1px solid var(--theme-border); border-radius:10px; }
+body.ui-modern .leave-download-option h4 { margin:0; font-size:15px; font-weight:650; }
+body.ui-modern .leave-download-option small { color:var(--theme-muted); font-size:12px; }
+body.ui-modern .leave-download-option button { display:inline-flex; align-items:center; gap:8px; flex-shrink:0; }
+body.ui-modern .leave-download-option svg { width:18px; height:18px; }
+body.ui-modern #leaveRosterNotice:empty { display:none; }
