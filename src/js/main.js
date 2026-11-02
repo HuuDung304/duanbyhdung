@@ -1,4 +1,3 @@
-import { mountProfileBulk } from './components/profile-bulk.js';
 import { mountFormFeedback } from './components/form-feedback.js';
 import { mountTableDialogs } from './components/table-dialogs.js';
 import { mountLeaveRoster } from './leave-roster.js';
@@ -1534,7 +1533,6 @@ export function initApp() {
   const auditSearch = document.getElementById('auditSearch');
   auditSearch?.addEventListener('input', renderAuditLog);
   document.getElementById('auditSearchClear')?.addEventListener('click', () => { auditSearch.value = ''; renderAuditLog(); auditSearch.focus(); });
-  mountProfileBulk();
   mountPartyNomination();
   mountLeaveRoster();
   installOfficerReadOnlyGuard(() => AppState.role, showToast);

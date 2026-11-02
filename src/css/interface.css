@@ -602,9 +602,6 @@ body.ui-modern .ui-toast-success .ui-toast-label { color:var(--theme-positive); 
 body.ui-modern .ui-toast-error .ui-toast-label { color:var(--theme-danger); }
 body.ui-modern .ui-toast-warning .ui-toast-label { color:var(--theme-amber); }
 
-body.ui-modern .profile-select-row,body.ui-modern #adminProfilesTableCard thead input[type="checkbox"] { width:18px; height:18px; margin:0; vertical-align:middle; accent-color:var(--ui-action); }
-body.ui-modern .profile-bulk-export { min-height:44px; padding:8px 12px; border:1px solid var(--theme-border); border-radius:8px; color:var(--theme-ink); background:var(--theme-card); }
-body.ui-modern .profile-bulk-export:disabled { opacity:.6; cursor:not-allowed; }
 
 body.ui-modern .report-search { display:flex; align-items:end; flex-wrap:wrap; gap:8px 12px; padding:16px; border:1px solid var(--theme-border); border-radius:var(--ui-radius); background:var(--theme-card); }
 body.ui-modern .report-search label { flex-basis:100%; font-weight:650; color:var(--theme-ink); }
