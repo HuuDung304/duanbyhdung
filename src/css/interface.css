@@ -626,3 +626,21 @@ body.ui-modern .audit-search label { font-weight:650; color:var(--theme-ink); }
 body.ui-modern .audit-search input { flex:1 1 240px; min-width:0; min-height:44px; padding:9px 12px; border:1px solid var(--theme-border-strong); border-radius:8px; background:var(--theme-surface); color:var(--theme-ink); }
 body.ui-modern .audit-search button { min-height:44px; padding:8px 14px; border:1px solid var(--theme-border); border-radius:8px; background:var(--theme-card); color:var(--theme-ink); }
 body.ui-modern #auditSearchStatus { color:var(--theme-muted); font-size:13px; }
+
+/* Give the workspace a distinct visual hierarchy in both themes. */
+body.ui-modern .bento-shell .u040-rail { background:#10234a; border-right:0; box-shadow:8px 0 32px #07142d22; }
+body.ui-modern .bento-shell .u040-name { color:#fff; }
+body.ui-modern .bento-shell .u040-it { color:#cbd9f1; }
+body.ui-modern .bento-shell .u040-it:hover { background:#ffffff18; color:#fff; }
+body.ui-modern .bento-shell .u040-it[aria-current="page"] { background:#2563eb; color:#fff; box-shadow:0 5px 15px #08162f55; }
+body.ui-modern .u040-group-label { color:#a7bddd; }
+body.ui-modern .u037 .u037-chip { background:#1c3562; border-color:#536b91; }
+body.ui-modern .u037 .u037-chip:hover { background:#294777; }
+body.ui-modern .u037 .u037-chip :is(b,small) { color:#fff; }
+body.ui-modern .ui-toolbar { height:96px; border-bottom:1px solid var(--theme-border); }
+body.ui-modern #interfacePageTitle { font-size:30px; font-weight:750; }
+body.ui-modern .u040-content :is(.bento-card,.workspace-settings-card,.report-export-card,.catalog-semester,.research-table-card) { border-radius:16px; box-shadow:0 8px 25px #0f172a12; }
+body.ui-modern .table-dialog-launcher { min-height:104px; border-left:5px solid #2563eb!important; }
+body.ui-modern .table-dialog-launcher strong { font-size:18px; }
+html[data-theme="dark"] body.ui-modern .bento-shell .u040-rail { background:#08162f; }
+@media(max-width:760px) { body.ui-modern .ui-toolbar { height:72px; } body.ui-modern #interfacePageTitle { font-size:23px; } }
