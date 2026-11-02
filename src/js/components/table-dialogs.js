@@ -32,7 +32,11 @@ function installYearButtons(select) {
 
 // Move the existing table card into a modal, retaining its nodes and event handlers.
 export function mountTableDialogs() {
- const configs=[['tab-sheet','spreadsheetTable','Bảng điểm'],['tab-profiles','profilesTableBody','Hồ sơ quân nhân'],['tab-cumulative','cumulativeTableBody','Tiếng Nga · Tích lũy'],['tab-master','masterTableBody','Toàn đại đội']];
+ // These data workspaces show their existing tables and filters directly on the page.
+ installYearButtons(document.getElementById('sheetSemesterSelect'));
+ installYearButtons(document.getElementById('masterFilterSemester'));
+ for(const id of ['cumulFilterYear','cumulFilterRank','cumulFilterDebt']) {const input=document.getElementById(id);if(input?.parentElement)input.parentElement.hidden=true;}
+ const configs=[['tab-profiles','profilesTableBody','Hồ sơ quân nhân']];
  for(const [sectionId,targetId,title] of configs){
   const section=document.getElementById(sectionId),target=document.getElementById(targetId);
   const table=target?.matches('table')?target:target?.closest('table');

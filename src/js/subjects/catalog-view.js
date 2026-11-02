@@ -1,3 +1,4 @@
+import { normalizeSearchText } from '../search-text.js';
 // Scope and semester are explicit; render controls without mutating curriculum or grades.
 const node=(tag,className,text)=>{const e=document.createElement(tag);if(className)e.className=className;if(text!==undefined)e.textContent=text;return e;};
 export function renderSubjectCatalog(context){
@@ -63,7 +64,7 @@ export function renderSubjectCatalog(context){
 
 function applySubjectSearch(){
   const search=document.getElementById('subjectCatalogSearch'),container=document.getElementById('settingsSemestersContainer');if(!search||!container)return;
-  const normalize=value=>value.toLocaleLowerCase('vi').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').trim();
+  const normalize=normalizeSearchText;
   const query=normalize(search.value),rows=[...container.querySelectorAll('tr[data-subject-id]')];let count=0;
   for(const row of rows){const match=normalize(row.querySelector('.catalog-subject-name')?.textContent||'').includes(query);row.hidden=!match;if(match)count++;}
   const status=document.getElementById('subjectCatalogSearchStatus');if(status)status.textContent=query?`${count} môn phù hợp trong năm đang chọn`:'';

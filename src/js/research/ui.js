@@ -1,4 +1,5 @@
 import { mountResearchDetail } from './detail.js';
+import { normalizeSearchText } from '../search-text.js';
 import { createResearchPeoplePicker } from './people-picker.js';
 import { escapeHTML as esc, sanitizeHTML } from '../safe-html.js';
 import { AWARDS, actor, participants, leaderClass, canView, canEdit, canAward, canCreate, scopedProjects, researchStats, latestYearGPA, EXCEL_HEADERS, EXPORT_HEADERS, normalizeAwards, parseResearchRows, researchStudentCandidates, studentNameKey, ResearchStudentChoiceError } from './model.js';
@@ -29,7 +30,7 @@ export function mountResearch({ state, classes, subjectsForClass, notify, onSave
   const button = (label, action, id) => `<button type="button" class="research-btn" data-research-action="${action}" data-project-id="${esc(id)}">${label}</button>`;
   const studentLine = (student, project) => `<div class="research-person"><button type="button" class="btn-view-cadet-detail research-student-link" data-id="${esc(student.studentId)}">${esc(student.name || student.code)}</button>${student.studentId === project.leaderId ? ' <span class="research-owner">Chủ đề tài</span>' : ''}</div>`;
   const blankGuides = (project, values) => project.advisors?.length ? `<div class="research-guide-label" aria-hidden="true">&nbsp;</div>${project.advisors.map((a, i) => `<div class="research-person">${esc(values(a, i))}</div>`).join('')}` : '';
-  const normalizeSearch = value => String(value || '').toLocaleLowerCase('vi').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').trim();
+  const normalizeSearch = normalizeSearchText;
   $('researchSearch').addEventListener('input', () => render());
   $('researchSearchClear').addEventListener('click', () => { $('researchSearch').value = ''; render(); $('researchSearch').focus(); });
   function render() {
