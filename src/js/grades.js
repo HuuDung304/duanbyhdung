@@ -1870,12 +1870,17 @@ export function renderAuditLog() {
   if (!tbody) return;
 
   const classScope = getCurrentUserClassScope();
-  const logs = classScope
+  const scopedLogs = classScope
     ? AppState.auditLogs.filter(l => l.class === classScope)
     : AppState.auditLogs;
+  const normalize = value => String(value ?? '').toLocaleLowerCase('vi').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').trim();
+  const query = normalize(document.getElementById('auditSearch')?.value);
+  const logs = query ? scopedLogs.filter(log => normalize([log.timestamp, log.actor, log.student, log.class, log.subject, log.oldVal, log.newVal, log.reason].join(' ')).includes(query)) : scopedLogs;
+  const status = document.getElementById('auditSearchStatus');
+  if (status) status.textContent = query ? `${logs.length} bản ghi phù hợp` : '';
 
   if (logs.length === 0) {
-    tbody.innerHTML = sanitizeHTML(`<tr><td colspan="8" class="p-6 text-center text-slate-400">Chưa có bản ghi lịch sử chỉnh sửa nào.</td></tr>`);
+    tbody.innerHTML = sanitizeHTML(`<tr><td colspan="8" class="p-6 text-center text-slate-400">${query ? 'Không tìm thấy bản ghi phù hợp.' : 'Chưa có bản ghi lịch sử chỉnh sửa nào.'}</td></tr>`);
     return;
   }
 

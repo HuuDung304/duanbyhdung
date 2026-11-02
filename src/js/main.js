@@ -1531,6 +1531,9 @@ let _localAppInitialized = false;
 export function initApp() {
   mountFormFeedback();
   mountTableDialogs();
+  const auditSearch = document.getElementById('auditSearch');
+  auditSearch?.addEventListener('input', renderAuditLog);
+  document.getElementById('auditSearchClear')?.addEventListener('click', () => { auditSearch.value = ''; renderAuditLog(); auditSearch.focus(); });
   mountProfileBulk();
   mountPartyNomination();
   mountLeaveRoster();

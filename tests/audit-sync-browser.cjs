@@ -38,6 +38,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict');
   const leader=await session({type:'class_account',class:'TTG2',displayName:'Lớp TTG2'});
   await admin.page.evaluate(()=>window.switchTab('tab-audit'));
   await leader.page.evaluate(()=>{window.switchTab('tab-sheet');window.AppState.currentSheetSemester=2;window.updateAllViews?.();});
+  await leader.page.locator('#tab-sheet .table-dialog-launcher').click();
   // Choose year 2 using the application's real selector and edit a real grid input.
   await leader.page.locator('#sheetSemesterSelect').selectOption('2');
   let input=leader.page.locator('.grid-cell-input[data-student="s1"][data-subject="m1"]');
@@ -50,10 +51,17 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict');
   await admin.page.waitForFunction(()=>document.querySelector('#auditTableBody').textContent.includes('8.25'),null,{timeout:30000});
   const text=await admin.page.locator('#auditTableBody').innerText();
   assert.match(text,/Tài khoản Lớp TTG2/);assert.match(text,/Công Nghệ Thông Tin · Học kỳ 3/);assert.match(text,/\b0\b/);assert.match(text,/8.25/);
+  await admin.page.locator('#auditSearch').fill('cong nghe thong tin');
+  assert.match(await admin.page.locator('#auditSearchStatus').innerText(),/1 bản ghi/);
+  await admin.page.locator('#auditSearch').fill('khong co ban ghi');
+  assert.match(await admin.page.locator('#auditTableBody').innerText(),/Không tìm thấy/);
+  await admin.page.locator('#auditSearchClear').click();
+  assert.match(await admin.page.locator('#auditTableBody').innerText(),/8.25/);
   assert.equal(tables.unit_settings.filter(row=>row.unit_id.includes(':audit:')).length,1);
   // The unsuccessful grade mutation must not create a second audit record.
   rejectGrades=true;
   await leader.page.evaluate(()=>window.switchTab('tab-sheet'));
+  await leader.page.locator('#tab-sheet .table-dialog-launcher').click();
   await leader.page.locator('#sheetSemesterSelect').selectOption('2');
   input=leader.page.locator('.grid-cell-input[data-student="s1"][data-subject="m1"]');
   await input.fill('9');await input.press('Tab');

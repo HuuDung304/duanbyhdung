@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="app-release" content="1d8db440984d">
+  <meta name="app-release" content="1c422ba4fa85">
   <script id="theme-preference-bootstrap">
     try { document.documentElement.dataset.theme = localStorage.getItem('dd460_display_theme') === 'dark' ? 'dark' : 'light'; }
     catch { document.documentElement.dataset.theme = 'light'; }
@@ -132,7 +132,7 @@ body {
   <link rel="stylesheet" href="./src/css/rose-theme.css?v=16d10467d42b">
   <link rel="stylesheet" href="./src/css/display-settings.css?v=80ac2f7100da">
   <link rel="stylesheet" href="./src/css/research.css?v=8de29711d174">
-  <link rel="stylesheet" href="./src/css/interface.css?v=a3c221014a54">
+  <link rel="stylesheet" href="./src/css/interface.css?v=dd2018752427">
 </head>
 <body class="bento-app ui-modern bg-slate-100 text-slate-800 min-h-screen flex flex-col">
 
@@ -1094,6 +1094,7 @@ body {
 
       </div>
 
+      <div class="audit-search"><label for="auditSearch">Tìm trong nhật ký</label><input id="auditSearch" type="search" placeholder="Người thao tác, học viên, nội dung…" autocomplete="off" aria-controls="auditTableBody" aria-describedby="auditSearchStatus"><button type="button" id="auditSearchClear">Xóa tìm kiếm</button><span id="auditSearchStatus" role="status" aria-live="polite"></span></div>
       <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <div class="overflow-x-auto custom-scrollbar max-h-[500px]">
           <table class="w-full text-xs text-left border-collapse whitespace-nowrap">
@@ -2276,9 +2277,9 @@ body {
     "./src/js/database/mappers.js": "./src/js/database/mappers.js?v=7ccb750e7ed7",
     "./src/js/database/realtime.js": "./src/js/database/realtime.js?v=08238ad1e200",
     "./src/js/database/repository.js": "./src/js/database/repository.js?v=fb5a353f7938",
-    "./src/js/grades.js": "./src/js/grades.js?v=22997efc742f",
+    "./src/js/grades.js": "./src/js/grades.js?v=827d039c4dd4",
     "./src/js/leave-roster.js": "./src/js/leave-roster.js?v=08dd6ae8d93f",
-    "./src/js/main.js": "./src/js/main.js?v=1d8db440984d",
+    "./src/js/main.js": "./src/js/main.js?v=1c422ba4fa85",
     "./src/js/party-nomination.js": "./src/js/party-nomination.js?v=d1c23bdac2e7",
     "./src/js/profile-rules.js": "./src/js/profile-rules.js?v=3a3bbf350b00",
     "./src/js/report-workbook.js": "./src/js/report-workbook.js?v=1cd3836da746",
@@ -2300,7 +2301,7 @@ body {
   }
 }
   </script>
-  <script type="module" src="./src/js/main.js?v=1d8db440984d"></script>
+  <script type="module" src="./src/js/main.js?v=1c422ba4fa85"></script>
   <script type="module" src="./src/js/components/expanding-rail.js?v=458ce093c8b5"></script>
   <script type="module" src="./src/js/components/notched-field.js?v=553608c192ae"></script>
   <script type="module" src="./src/js/components/bento-dashboard.js?v=c76ec853266e"></script>
