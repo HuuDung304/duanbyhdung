@@ -57,3 +57,19 @@ Giao diện cần đồng bộ, tiếng Việt rõ ràng, thích ứng máy tín
 - Supabase cung cấp phần dữ liệu và đồng bộ; các chức năng xuất Excel/Word được xử lý từ ứng dụng.
 - `npm run build` tạo bản dựng và cập nhật phiên bản tài nguyên; `npm test` chạy kiểm thử tự động. Các bài kiểm thử có dữ liệu giả lập không chứng minh đầy đủ quyền và hoạt động trên môi trường thật.
 - Tài liệu chi tiết: [README](README.md), [cấu trúc module](docs/module-architecture.md), [nghiên cứu khoa học](docs/research.md), [danh mục môn học](docs/subject-offerings.md) và [nhập Excel](docs/excel-import.md).
+
+### Công nghệ và thư viện đang dùng
+
+| Thành phần | Công nghệ | Vai trò |
+| --- | --- | --- |
+| Giao diện | HTML5, CSS3, JavaScript thuần với ES modules | Xây dựng trang, tương tác và điều phối các màn hình; hiện không dùng React, Vue hoặc Angular |
+| Kiểu dáng | Tailwind CSS 3.4.17 qua CDN và các tệp CSS của dự án | Bố cục, màu sắc, khả năng thích ứng màn hình |
+| Dữ liệu và đồng bộ | Supabase JS SDK v2, Supabase/PostgreSQL, Realtime | Đọc, ghi và cập nhật dữ liệu giữa các tài khoản |
+| Biểu đồ | Chart.js 4.4.1 | Trực quan hóa số liệu học tập |
+| Excel | SheetJS/XLSX 0.18.5 | Nhập và tạo tệp Excel |
+| Word | Bộ tạo DOCX trong mã dự án | Tạo danh sách dự kiến kết nạp Đảng |
+| Công cụ phát triển | Node.js, npm và script `scripts/build.mjs` | Chạy kiểm thử, tạo bản dựng tĩnh và gắn phiên bản cho tài nguyên |
+| Kiểm thử | `node:test`; các bài kiểm thử trình duyệt dùng Playwright/Chromium trong môi trường phát triển | Kiểm tra quy tắc nghiệp vụ và luồng giao diện |
+| Triển khai | Website tĩnh; repository có cấu hình Netlify và đang được xuất bản qua GitHub Pages | Phục vụ ứng dụng trên trình duyệt |
+
+Các thư viện giao diện và xuất Excel/Supabase được nạp qua CDN trong `index.html`; `package.json` hiện không khai báo framework frontend hay các thư viện này như dependency npm.
