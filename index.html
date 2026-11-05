@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="app-release" content="3f97cd822c32">
+  <meta name="app-release" content="8276c685f0f9">
   <script id="theme-preference-bootstrap">
     try { document.documentElement.dataset.theme = localStorage.getItem('dd460_display_theme') === 'dark' ? 'dark' : 'light'; }
     catch { document.documentElement.dataset.theme = 'light'; }
@@ -1173,7 +1173,7 @@ body {
       <section class="leave-download-option"><div><h4>Miền Nam</h4><small id="leaveCount-south"></small></div><button type="submit" data-leave-download="south" aria-label="Tải danh sách tranh thủ miền Nam"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m-5-5 5 5 5-5M5 16v4h14v-4"/></svg><span>Tải xuống</span></button></section>
       <section class="leave-download-option"><div><h4>Miền Bắc</h4><small id="leaveCount-north"></small></div><button type="submit" data-leave-download="north" aria-label="Tải danh sách tranh thủ miền Bắc"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m-5-5 5 5 5-5M5 16v4h14v-4"/></svg><span>Tải xuống</span></button></section>
       </div><p id="leaveRosterNotice" role="status"></p><div class="report-dialog-actions"><button type="button" id="leaveRosterCancel">Đóng</button></div></form></dialog>
-      <dialog id="partyNominationDialog" class="report-export-dialog" aria-labelledby="partyNominationTitle"><form id="partyNominationForm"><h3 id="partyNominationTitle">Danh sách dự kiến kết nạp Đảng</h3><fieldset><legend>Năm học đưa vào kết quả học tập</legend><label><input type="checkbox" name="partyYear" value="1"> Năm 1</label><label><input type="checkbox" name="partyYear" value="2"> Năm 2</label><label><input type="checkbox" name="partyYear" value="3"> Năm 3</label><label><input type="checkbox" name="partyYear" value="4"> Năm 4</label><label><input type="checkbox" name="partyYear" value="5"> Năm 5</label></fieldset><label for="partyThreshold">Điểm tối thiểu mỗi học kỳ đã đủ điểm (hệ 4)</label><input id="partyThreshold" type="number" min="0" max="4" step="0.01" placeholder="Nhập ngưỡng hệ 4" required><p>Chỉ xét học kỳ đã đủ điểm. Mỗi học kỳ đó phải đạt ngưỡng; cần ít nhất một học kỳ đủ điểm. Điểm và xếp loại của kỳ chưa đủ để trống.</p><div class="report-dialog-actions"><button type="button" id="partyNominationCancel">Hủy</button><button type="submit">Tải Word</button></div></form></dialog>
+      <dialog id="partyNominationDialog" class="report-export-dialog" aria-labelledby="partyNominationTitle"><form id="partyNominationForm"><h3 id="partyNominationTitle">Danh sách dự kiến kết nạp Đảng</h3><fieldset><legend>Chọn đúng 3 học kỳ để xét</legend><label><input type="checkbox" name="partySemester" value="1"> Kỳ 1</label><label><input type="checkbox" name="partySemester" value="2"> Kỳ 2</label><label><input type="checkbox" name="partySemester" value="3"> Kỳ 3</label><label><input type="checkbox" name="partySemester" value="4"> Kỳ 4</label><label><input type="checkbox" name="partySemester" value="5"> Kỳ 5</label><label><input type="checkbox" name="partySemester" value="6"> Kỳ 6</label><label><input type="checkbox" name="partySemester" value="7"> Kỳ 7</label><label><input type="checkbox" name="partySemester" value="8"> Kỳ 8</label><label><input type="checkbox" name="partySemester" value="9"> Kỳ 9</label><label><input type="checkbox" name="partySemester" value="10"> Kỳ 10</label></fieldset><p>File Word hiển thị đủ hai kỳ của các năm chứa kỳ đã chọn; chỉ 3 kỳ được chọn dùng để xét ngưỡng.</p><label for="partyThreshold">Điểm tối thiểu mỗi học kỳ đã đủ điểm (hệ 4)</label><input id="partyThreshold" type="number" min="0" max="4" step="0.01" placeholder="Nhập ngưỡng hệ 4" required><p>Chỉ xét học kỳ đã đủ điểm. Mỗi học kỳ đó phải đạt ngưỡng; cần ít nhất một học kỳ đủ điểm. Điểm và xếp loại của kỳ chưa đủ để trống.</p><div class="report-dialog-actions"><button type="button" id="partyNominationCancel">Hủy</button><button type="submit">Tải Word</button></div></form></dialog>
       <dialog id="reportExportDialog" class="report-export-dialog" aria-labelledby="reportExportDialogTitle">
         <form method="dialog" id="reportExportForm">
           <h3 id="reportExportDialogTitle">Tải báo cáo</h3><p id="reportExportDialogDescription"></p>
@@ -2278,8 +2278,8 @@ body {
     "./src/js/database/repository.js": "./src/js/database/repository.js?v=fb5a353f7938",
     "./src/js/grades.js": "./src/js/grades.js?v=827d039c4dd4",
     "./src/js/leave-roster.js": "./src/js/leave-roster.js?v=08dd6ae8d93f",
-    "./src/js/main.js": "./src/js/main.js?v=3f97cd822c32",
-    "./src/js/party-nomination.js": "./src/js/party-nomination.js?v=d1c23bdac2e7",
+    "./src/js/main.js": "./src/js/main.js?v=8276c685f0f9",
+    "./src/js/party-nomination.js": "./src/js/party-nomination.js?v=b99d13600e8c",
     "./src/js/profile-rules.js": "./src/js/profile-rules.js?v=3a3bbf350b00",
     "./src/js/report-workbook.js": "./src/js/report-workbook.js?v=1cd3836da746",
     "./src/js/reports/dashboard.js": "./src/js/reports/dashboard.js?v=ecacb5e5a926",
@@ -2301,7 +2301,7 @@ body {
   }
 }
   </script>
-  <script type="module" src="./src/js/main.js?v=3f97cd822c32"></script>
+  <script type="module" src="./src/js/main.js?v=8276c685f0f9"></script>
   <script type="module" src="./src/js/components/expanding-rail.js?v=458ce093c8b5"></script>
   <script type="module" src="./src/js/components/notched-field.js?v=553608c192ae"></script>
   <script type="module" src="./src/js/components/bento-dashboard.js?v=c76ec853266e"></script>
