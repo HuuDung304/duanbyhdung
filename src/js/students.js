@@ -5,6 +5,7 @@ import { trackImportRead } from './components/upload-state.js';
 import { reviewImport } from './components/import-review.js';
 import { sanitizeHTML, escapeHTML } from './safe-html.js';
 import { writeReportWorkbook } from './report-workbook.js';
+import { sortStudentsForRoster } from './student-roster-order.js';
 import { requestDestructiveConfirmation } from './components/destructive-confirm.js';
 import { calendarDate, parentBirthYear, displayParentYear, politicalDates } from './profile-rules.js';
 
@@ -1563,7 +1564,7 @@ export function exportCadetRoster() {
   if (!['admin', 'company_officer'].includes(AppState.role) && !AppState.role?.startsWith('class_leader_')) {
     showToast('Tài khoản không có quyền tải danh sách trích ngang.', 'error'); return;
   }
-  const students = getScopedStudents();
+  const students = sortStudentsForRoster(getScopedStudents());
   if (!students.length) { showToast('Chưa có học viên để xuất danh sách.', 'error'); return; }
   const enlistment = value => {
     const text = String(value || '').trim();
@@ -1631,7 +1632,7 @@ export function exportStudentProfiles(className, filterStatus, position) {
     headers
   ];
 
-  studentsToExport.forEach((s, idx) => {
+  sortStudentsForRoster(studentsToExport).forEach((s, idx) => {
     const yearGpa = calculateYearGPA(s.id);
     rows.push([
       idx + 1,

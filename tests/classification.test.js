@@ -3,6 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
+import { sortStudentsForRoster } from '../src/js/student-roster-order.js';
 
 const source = academicFixtureSource();
 function declaration(name) {
@@ -16,6 +17,7 @@ function fixture() {
   const students = scores.map((gpa, i) => ({ id: `hv${i}`, code: `HV${i}`, name: `Học viên ${i}`, class: 'OTQS1', gpa }));
   const subjects = [{ id: 'math', name: 'Toán', credits: 3, semester: 1 }];
   const context = vm.createContext({ escapeHTML: value => String(value),
+    sortStudentsForRoster,
     AppState: { students, grades: Object.fromEntries(students.map(student => [student.id, { math: student.gpa }])), dashboardFilters: {}, role: 'admin' },
     DEFAULT_CLASSES: ['OTQS1'],
     getCurrentUserClassScope: () => null,

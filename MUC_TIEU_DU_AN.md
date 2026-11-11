@@ -41,6 +41,7 @@ Quyền cụ thể phải được kiểm tra ở các chức năng và phía d�
 - Danh sách dự kiến kết nạp Đảng yêu cầu đã học cảm tình Đảng, đạt chuẩn tiếng Nga và đáp ứng ngưỡng hệ 4 do người xuất nhập. Người xuất chọn đúng 3 học kỳ để xét ngưỡng; file Word hiển thị đủ hai học kỳ của từng năm chứa các kỳ được chọn (ví dụ kỳ 2, 3, 4 thành kỳ 1–4). Chỉ các kỳ được chọn và đã đủ điểm tham gia xét ngưỡng; kỳ chưa đủ điểm để trống. File Word giữ chỗ trống cho ngày, tháng, năm và đợt.
 - Danh sách tranh thủ chia miền theo quê quán: Hà Tĩnh trở ra là Bắc, Quảng Trị trở vào là Nam. Thời gian về và lên được nhập trên web theo giờ 24 giờ; có thể tải từng miền liên tiếp. Trường hợp chưa xác định được miền cần được thông báo, không tự đoán.
 - Báo cáo và dữ liệu phải tuân theo phạm vi tài khoản: Admin/cán bộ toàn đại đội, tài khoản lớp trong lớp phụ trách, học viên trong phạm vi cá nhân theo từng chức năng.
+- Các file danh sách trích ngang và bảng điểm dạng danh sách không yêu cầu xếp hạng sắp lớp theo OTQS1, OTQS2, TTG1, TTG2, XMCB; trong mỗi lớp sắp theo tên gọi A–Z, rồi họ tên đầy đủ và mã học viên khi trùng tên. Báo cáo xếp hạng tiếp tục dùng tiêu chí xếp hạng riêng.
 - Không thay đổi hoặc xóa dữ liệu thật, công thức, hợp đồng kết nối và quyền chỉ vì thay đổi giao diện. Thao tác dữ liệu phải xử lý lỗi và không thông báo thành công khi lưu thất bại.
 
 ## Định hướng sản phẩm và trải nghiệm

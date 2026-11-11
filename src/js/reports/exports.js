@@ -1,4 +1,5 @@
 import { buildAcademicAwards } from '../academic/awards.js';
+import { sortStudentsForRoster } from '../student-roster-order.js';
 // Dependencies are injected by grades.js; this module does not import the application shell.
 export function createReportExports(context) {
   function exportReportExcel() {
@@ -350,7 +351,7 @@ export function createReportExports(context) {
       context.showToast('Vui lòng chọn một lớp để tải bảng điểm.', 'error');
       return;
     }
-    const students = context.getScopedStudents().filter(student => student.class === cls);
+    const students = sortStudentsForRoster(context.getScopedStudents().filter(student => student.class === cls));
     if (!students.length) { context.showToast('Lớp chưa có học viên để xuất bảng điểm.', 'error'); return; }
     const semesters = Array.from({ length: 10 }, (_, index) => ({ semester: index + 1, subjects: context.getSubjectsForClass(cls, index + 1) }));
     const { headers, headerRows, merges, rows, completed } = context.buildClassTranscript(students, semesters, context.AppState.grades,
@@ -388,7 +389,7 @@ export function createReportExports(context) {
       headers
     ];
 
-    context.getScopedStudents().forEach((student, idx) => {
+    sortStudentsForRoster(context.getScopedStudents()).forEach((student, idx) => {
       const g1 = context.calculateSemesterGPA(student.id, sem1);
       const g2 = context.calculateSemesterGPA(student.id, sem2);
       const gy = context.calculateAcademicYearGPA(student.id, year);
@@ -581,7 +582,7 @@ export function createReportExports(context) {
   function exportAcademicAchievementsExcel() {
     if (!['admin','company_officer'].includes(context.AppState.role) && !context.AppState.role?.startsWith('class_leader_')) return;
     const selected = context.getCurrentUserClassScope() || document.getElementById('reportsClassSelect')?.value || 'all';
-    const students = context.getScopedStudents().filter(student => selected === 'all' || student.class === selected);
+    const students = sortStudentsForRoster(context.getScopedStudents().filter(student => selected === 'all' || student.class === selected));
     const sheet = XLSX.utils.aoa_to_sheet([
       ['ĐẠI ĐỘI 460'],['BÁO CÁO THÀNH TÍCH HỌC TẬP'],[`Phạm vi: ${selected}`],[],
       ['Mã học viên','Họ và tên','Ngày sinh','Lớp','Điểm tích lũy hệ 10','Điểm tích lũy hệ 4','Xếp loại','Danh hiệu / Thành tích'],
@@ -657,7 +658,7 @@ export function createReportExports(context) {
       studentsToExport = studentsToExport.filter(s => context.getClassification(context.calculateYearGPA(s.id)) === targetRank);
     }
 
-    studentsToExport.sort((a, b) => context.calculateYearGPA(b.id) - context.calculateYearGPA(a.id));
+    studentsToExport = sortStudentsForRoster(studentsToExport);
 
     const headers = [
       'STT', 'Mã HV', 'Họ và Tên', 'Cấp bậc', 'Lớp',
