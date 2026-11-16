@@ -13,3 +13,13 @@ test('party nomination filters learned status, language and all complete semeste
  assert.deepEqual(result.map(r=>r.student.id),['other','ok','partial']);assert.deepEqual(result.at(-1).periods[0].cells,[3,null,null]);
  const xml=nominationDocumentXml(result,[2],()=> '01/02/2004');assert.match(xml,/ĐỢT THÁNG .... NĂM ..../);assert.match(xml,/ngày ... tháng ... năm .../);assert.match(xml,/>T<\/w:t>/);assert.doesNotMatch(xml,/Lý lịch gia đình trong sạch/);assert.match(xml,/Tổng: 3 đồng chí/);
 });
+test('official transfer includes provisional members only and has its own Word heading',()=>{
+ const students=[{id:'p',code:'002',name:'Đảng viên dự bị',class:'TTG1',politicalStatus:'DANG_VIEN_DU_BI'},
+  {id:'c',code:'001',name:'Cảm tình Đảng',class:'TTG1',politicalStatus:'CAM_TINH_DANG'}];
+ const records=nominationRecords({students,grades:{p:{a:8},c:{a:8}},semesters:[3,4,5],politicalStatus:'DANG_VIEN_DU_BI',
+  subjectsForClass:(_class,semester)=>semester===3?[{id:'a',credits:3}]:[],languageStatus:()=>({isPassed:true,actualLevel:'A2'}),scale4:()=>3.5,threshold:3});
+ assert.deepEqual(records.map(row=>row.student.id),['p']);
+ const document=nominationDocumentXml(records,[2,3],()=>'', '', 'official');
+ assert.match(document,/CHUYỂN ĐẢNG CHÍNH THỨC/);
+ assert.doesNotMatch(document,/KẾT NẠP QUẦN CHÚNG ƯU TÚ/);
+});

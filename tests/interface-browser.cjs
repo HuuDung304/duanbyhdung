@@ -66,7 +66,7 @@ const base=process.env.TEST_BASE_URL||'http://127.0.0.1:3000';
   assert.equal(await page.locator('#researchDropZone .u032-zone').isVisible(),true);
   await page.screenshot({path:`/tmp/interface-import-${width}.png`,animations:'disabled'});
   await page.keyboard.press('Escape');
-  await navigate('tab-reports');assert.equal(await page.locator('.report-gallery .report-export-card').count(),9);
+  await navigate('tab-reports');assert.equal(await page.locator('.report-gallery .report-export-card').count(),10);
   await page.locator('#reportGallerySearch').fill('hoc bong');
   assert.equal(await page.locator('#btnExportScholarships').isVisible(),true);
   assert.equal(await page.locator('#btnExportRanking').isVisible(),false);
