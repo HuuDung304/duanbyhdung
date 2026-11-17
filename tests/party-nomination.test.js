@@ -23,3 +23,18 @@ test('official transfer includes provisional members only and has its own Word h
  assert.match(document,/CHUYỂN ĐẢNG CHÍNH THỨC/);
  assert.doesNotMatch(document,/KẾT NẠP QUẦN CHÚNG ƯU TÚ/);
 });
+
+test('official transfer sorts oldest party entry first and prints the entry date',()=>{
+ const students=[
+  {id:'later',code:'001',name:'Vào sau',class:'OTQS1',politicalStatus:'DANG_VIEN_DU_BI',party_joined_date:'01/06/2024'},
+  {id:'earlier',code:'999',name:'Vào trước',class:'TTG2',politicalStatus:'DANG_VIEN_DU_BI',party_joined_date:'2022-02-15'}
+ ];
+ const records=nominationRecords({students,grades:{later:{a:8},earlier:{a:8}},semesters:[3,4,5],politicalStatus:'DANG_VIEN_DU_BI',
+  subjectsForClass:(_class,semester)=>semester===3?[{id:'a',credits:3}]:[],languageStatus:()=>({isPassed:true,actualLevel:'A2'}),scale4:()=>3.5,threshold:3});
+ assert.deepEqual(records.map(row=>row.student.id),['earlier','later']);
+ const document=nominationDocumentXml(records,[2,3],value=>!value?'':value==='2022-02-15'?'15/02/2022':'01/06/2024','','official');
+ assert.match(document,/NGÀY VÀO ĐẢNG/);assert.match(document,/15\/02\/2022/);
+ assert.ok(document.indexOf('15/02/2022')<document.indexOf('01/06/2024'));
+ const nomination=nominationDocumentXml(records,[2,3],()=>'', '', 'nomination');
+ assert.match(nomination,/GHI CHÚ/);
+});

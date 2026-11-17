@@ -1,3 +1,4 @@
+import { calendarDate } from './profile-rules.js';
 import { AppState, DEFAULT_CLASSES, getScopedStudents, getSubjectsForClass, evaluateLangLevelStatus, getGradeLetterAndScale4, normalizeDateVN, showToast } from './grades.js';
 const valid=value=>value!=null&&String(value).trim()!==''&&Number.isFinite(Number(value))&&Number(value)>=0&&Number(value)<=10;
 export function nominationYears(semesters) {
@@ -21,7 +22,14 @@ export function nominationRecords({students,grades,years,semesters,subjectsForCl
   });
   const completed=periods.flatMap(p=>p.cells.slice(0,2).map((value,index)=>({semester:p.year*2-1+index,value}))).filter(term=>selected.has(term.semester)&&term.value!==null).map(term=>term.value);
   return {student,periods,eligible:completed.length>0&&completed.every(v=>v>=threshold),language:languageStatus(student).actualLevel};
- }).filter(row=>row.eligible).sort((a,b)=>classes.indexOf(a.student.class)-classes.indexOf(b.student.class)||String(a.student.code).localeCompare(String(b.student.code),'vi'));
+ }).filter(row=>row.eligible).sort((a,b)=>{
+  if(politicalStatus==='DANG_VIEN_DU_BI'){
+   const first=calendarDate(a.student.party_joined_date)||'9999-12-31';
+   const second=calendarDate(b.student.party_joined_date)||'9999-12-31';
+   if(first!==second)return first.localeCompare(second);
+  }
+  return classes.indexOf(a.student.class)-classes.indexOf(b.student.class)||String(a.student.code).localeCompare(String(b.student.code),'vi');
+ });
 }
 const xml=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
 const paragraph=(text,format=false)=>{
@@ -33,11 +41,11 @@ export function nominationDocumentXml(records,years,formatDate,section='',kind='
  const count=7+years.length*3;
  const borders='<w:tblBorders>'+['top','left','bottom','right','insideH','insideV'].map(side=>`<w:${side} w:val="single" w:sz="4" w:color="000000"/>`).join('')+'</w:tblBorders>';
  const tableHeader='<w:trPr><w:tblHeader/></w:trPr>';
- let rows='<w:tr>'+tableHeader+['SỐ\nTT','HỌ VÀ TÊN\nNGÀY SINH','ĐƠN VỊ\n(Lớp, Đại đội, Tiểu đoàn)','QUÊ QUÁN'].map(t=>cell(t,{bold:true,merge:'restart'})).join('')+cell('KẾT QUẢ HỌC TẬP',{span:years.length*3,bold:true})+['TRÌNH ĐỘ NGOẠI NGỮ','RÈN LUYỆN THỂ LỰC','GHI CHÚ'].map(t=>cell(t,{bold:true,merge:'restart'})).join('')+'</w:tr>';
+ let rows='<w:tr>'+tableHeader+['SỐ\nTT','HỌ VÀ TÊN\nNGÀY SINH','ĐƠN VỊ\n(Lớp, Đại đội, Tiểu đoàn)','QUÊ QUÁN'].map(t=>cell(t,{bold:true,merge:'restart'})).join('')+cell('KẾT QUẢ HỌC TẬP',{span:years.length*3,bold:true})+['TRÌNH ĐỘ NGOẠI NGỮ','RÈN LUYỆN THỂ LỰC',kind==='official'?'NGÀY VÀO ĐẢNG':'GHI CHÚ'].map(t=>cell(t,{bold:true,merge:'restart'})).join('')+'</w:tr>';
  for(const labels of [years.flatMap(year=>[{text:`NĂM THỨ ${year}`,span:3}]),years.flatMap(()=>['HK1','HK2','CN'].map(text=>({text,span:1})))]) rows+='<w:tr>'+tableHeader+Array.from({length:4},()=>cell('',{merge:'continue'})).join('')+labels.map(item=>cell(item.text,{bold:true,span:item.span})).join('')+Array.from({length:3},()=>cell('',{merge:'continue'})).join('')+'</w:tr>';
  records.forEach(({student,periods,language},index)=>{
   const identity=[index+1,`${student.name}\n${formatDate(student.dob)}`,`Lớp ${student.class}, c460, d4`,student.hometown||''];
-  for(let line=0;line<2;line++) rows+='<w:tr>'+identity.map(t=>cell(line?'':t,{merge:line?'continue':'restart'})).join('')+periods.flatMap(p=>p.cells).map(value=>cell(value===null?'':line?'T':value.toFixed(2))).join('')+[language,'',''].map(t=>cell(line?'':t,{merge:line?'continue':'restart'})).join('')+'</w:tr>';
+  for(let line=0;line<2;line++) rows+='<w:tr>'+identity.map(t=>cell(line?'':t,{merge:line?'continue':'restart'})).join('')+periods.flatMap(p=>p.cells).map(value=>cell(value===null?'':line?'T':value.toFixed(2))).join('')+[language,'',kind==='official'?formatDate(student.party_joined_date):''].map(t=>cell(line?'':t,{merge:line?'continue':'restart'})).join('')+'</w:tr>';
  });
  const heading=kind==='official'?'CHUYỂN ĐẢNG CHÍNH THỨC':'KẾT NẠP QUẦN CHÚNG ƯU TÚ VÀO ĐẢNG CỘNG SẢN VIỆT NAM';
  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:tbl><w:tblPr><w:tblW w:w="5000" w:type="pct"/></w:tblPr><w:tblGrid><w:gridCol w:w="7000"/><w:gridCol w:w="7000"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:vAlign w:val="top"/></w:tcPr>${paragraph('ĐẢNG BỘ TIỂU ĐOÀN 4',{size:14,spacing:180})}${paragraph('CHI BỘ ĐẠI ĐỘI 460',{size:14,bold:true,spacing:180})}${paragraph('*',{size:14,bold:true})}</w:tc><w:tc><w:tcPr><w:vAlign w:val="top"/></w:tcPr>${paragraph('ĐẢNG CỘNG SẢN VIỆT NAM',{size:15,bold:true,underline:true,spacing:400})}${paragraph('Hà Nội, ngày ... tháng ... năm ...',{size:14,italic:true})}</w:tc></w:tr></w:tbl>${paragraph('DANH SÁCH DỰ KIẾN',{size:14,bold:true,spacing:180})}${paragraph(heading,{size:15,bold:true,spacing:180})}${paragraph('ĐỢT THÁNG .... NĂM ....',{size:14,bold:true,spacing:180})}<w:tbl><w:tblPr><w:tblW w:w="5000" w:type="pct"/>${borders}</w:tblPr><w:tblGrid>${Array.from({length:count},()=>'<w:gridCol w:w="1200"/>').join('')}</w:tblGrid>${rows}</w:tbl>${paragraph(`Tổng: ${records.length} đồng chí.`)}${section}</w:body></w:document>`;
