@@ -4,7 +4,7 @@ import { renderSubjectCatalog } from './subjects/catalog-view.js';
 import { subjectHasGrades, stableOfferingId } from './subjects/offerings.js';
 import { trackImportRead } from './components/upload-state.js';
 import { createGradeCalculations } from './academic/calculations.js';
-import { loadFailedSubjectMarks } from './academic/failed-subjects.js';
+import { loadFailedSubjectMarks, isFailedSubject, canMarkFailedSubject, saveFailedSubjectMark } from './academic/failed-subjects.js';
 import { createTranscript } from './academic/transcript.js';
 import { createReportStatistics } from './reports/statistics.js';
 import { createDashboardReports } from './reports/dashboard.js';
@@ -1410,12 +1410,14 @@ export function renderStudentVerticalGrades() {
       const sc = studentGrades[s.id];
       const hasScore = sc !== undefined && sc !== null && sc !== '' && !isNaN(sc);
       const isFail = hasScore && Number(sc) < 4.0;
+      const wasFailed = Boolean(AppState.failedSubjectMarks?.[student.id]?.[s.id]);
+      const markedFailed = isFailedSubject(AppState,student.id,s.id);
       const { letter, scale4 } = getGradeLetterAndScale4(sc);
       const dispScore = !hasScore ? '-' : isScale4 ? `${scale4.toFixed(1)} (${letter})` : Number(sc).toFixed(2);
       const isSpec = s.category === 'specialized';
 
       return `
-        <div class="student-course-card p-3 rounded-lg border ${isFail ? 'bg-rose-50 border-rose-300' : 'bg-white border-slate-200'} shadow-sm flex items-center justify-between gap-2">
+        <div class="student-course-card p-3 rounded-lg border ${markedFailed ? 'bg-rose-50 border-rose-300' : 'bg-white border-slate-200'} shadow-sm flex items-center justify-between gap-2">
           <div class="min-w-0">
             <div class="flex items-center gap-1.5">
               <span class="font-mono font-bold text-[11px] text-army-800">${escapeHTML(s.code)}</span>
@@ -1425,10 +1427,11 @@ export function renderStudentVerticalGrades() {
               <span class="text-[10px] text-slate-400 font-semibold">(${s.credits} TC)</span>
             </div>
             <div class="student-course-title text-xs font-bold text-slate-900 truncate mt-0.5" title="${escapeHTML(getFullSubjectName(s))}">${escapeHTML(getFullSubjectName(s))}</div>
+            <label class="student-failed-mark"><input type="checkbox" data-student-failed-mark data-subject="${escapeHTML(s.id)}" ${wasFailed ? 'checked' : ''} ${canMarkFailedSubject(AppState,student) ? '' : 'disabled'}> Đã từng rớt môn</label>
           </div>
           <div class="text-right shrink-0">
             <div class="student-course-score text-sm font-black ${isFail ? 'text-rose-700' : isScale4 ? 'text-blue-800' : 'text-army-900'}">${dispScore}</div>
-            <div class="text-[10px] font-semibold ${isFail ? 'text-rose-600' : 'text-emerald-600'}">${!hasScore ? 'Chưa có' : isFail ? 'Rớt (< 4.0)' : 'Đạt'}</div>
+            <div class="text-[10px] font-semibold ${isFail ? 'text-rose-600' : 'text-emerald-600'}">${isFail ? 'Đang rớt (< 4.0)' : wasFailed ? 'Đã từng rớt' : !hasScore ? 'Chưa có' : 'Đạt'}</div>
           </div>
         </div>
       `;
@@ -1509,6 +1512,26 @@ export function renderStudentVerticalGrades() {
   }
 
   container.innerHTML = sanitizeHTML(`<div class="space-y-6">${blocksHtml}</div>`);
+  if (!container.dataset.failedMarkListener) {
+    container.dataset.failedMarkListener = 'true';
+    container.addEventListener('change', async event => {
+      const input = event.target.closest('[data-student-failed-mark]');
+      if (!input) return;
+      const ownStudent = getLoggedInStudent();
+      if (!ownStudent || !canMarkFailedSubject(AppState, ownStudent)) { input.checked = !input.checked; return; }
+      const old = Boolean(AppState.failedSubjectMarks?.[ownStudent.id]?.[input.dataset.subject]);
+      input.disabled = true;
+      try {
+        await saveFailedSubjectMark(AppState, ownStudent.id, input.dataset.subject, input.checked);
+        logAuditTrail(ownStudent.id, input.dataset.subject, old, input.checked, 'Đánh dấu lịch sử rớt môn');
+        updateAllViews();
+      } catch (error) {
+        input.checked = old;
+        input.disabled = false;
+        showToast(error.message, 'error');
+      }
+    });
+  }
 }
 
 export function attachSpreadsheetGridEvents() {
