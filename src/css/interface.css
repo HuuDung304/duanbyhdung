@@ -653,3 +653,5 @@ body.ui-modern .research-table-toolbar { padding:18px 20px; border:1px solid var
 body.ui-modern .research-table-toolbar>strong { font-size:18px; }
 @media(max-width:1000px) { body.ui-modern #profileStatsCardsGrid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media(max-width:520px) { body.ui-modern #profileStatsCardsGrid>div { min-height:115px; padding:14px; } body.ui-modern #profileStatsCardsGrid>div>div:first-child>div:nth-child(2) { font-size:25px; } body.ui-modern #adminProfilesToolbar { padding:16px; } }
+body.ui-modern .cadet-failed-label { display:flex; align-items:center; gap:6px; width:100%; font-size:12px; color:var(--theme-muted); cursor:pointer; }
+body.ui-modern .cadet-failed-label input { width:16px; height:16px; accent-color:#be123c; }

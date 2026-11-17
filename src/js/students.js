@@ -1,6 +1,7 @@
 import { studentAwardOutlook } from './academic/awards.js';
 import { highestLanguageLevel } from './dashboard-statistics.js';
 import { mountCadetResults } from './academic/cadet-results.js';
+import { failedSubjectSummary, saveFailedSubjectMark } from './academic/failed-subjects.js';
 import { trackImportRead } from './components/upload-state.js';
 import { reviewImport } from './components/import-review.js';
 import { sanitizeHTML, escapeHTML } from './safe-html.js';
@@ -120,6 +121,7 @@ export function renderStudentView() {
   const passedTC = calculateCreditsPassed(student.id);
   const totalTC = getTotalCourseCredits(student.class);
   const debts = getDebtSubjects(student.id);
+  const failed = failedSubjectSummary(AppState,student,getSubjectsForClass(student.class));
   const certInfo = getHighestRussianCertInfo(student.id);
   const achList = normalizeAchievements(student.achievements);
 
@@ -128,7 +130,7 @@ export function renderStudentView() {
   setElText('studentMetricHK2', `${gpa4.toFixed(2)} / 4.00`);
   setElText('studentMetricGpa4Sub', `Quy đổi Thang điểm 4.00`);
   setElText('studentMetricYear', rank);
-  setElText('studentMetricRank', debts.length > 0 ? `Rớt ${debts.length} học phần (< 4.0)` : `Đạt 100% học phần`);
+  setElText('studentMetricRank', failed.count ? `Đã rớt ${failed.count} môn · ${failed.credits} tín chỉ` : 'Chưa có môn rớt');
   const langEval = evaluateLangLevelStatus(student.currentLangLevel || 'Chưa đạt', AppState.requiredLangStandard);
   setElText('studentMetricLang', `Trình độ hiện tại: ${langEval.actualLevel}`);
   const languageMetric = document.getElementById('studentMetricLang');
@@ -137,7 +139,7 @@ export function renderStudentView() {
   const languageNote=document.getElementById('studentMetricLangSub');
   if(languageNote)languageNote.style.color=langEval.isPassed?'var(--theme-positive, #047857)':'var(--theme-danger, #be123c)';
   const debtNote=document.getElementById('studentMetricRank');
-  if(debtNote)debtNote.style.color=debts.length?'var(--theme-danger, #be123c)':'var(--theme-positive, #047857)';
+  if(debtNote)debtNote.style.color=failed.count?'var(--theme-danger, #be123c)':'var(--theme-positive, #047857)';
   setElText('studentMetricAchievements', achList.length > 0 ? achList.join(' • ') : 'Chưa có danh hiệu');
   setElText('studentMetricAchievementsSub', `${achList.length} danh hiệu lưu trữ`);
 
@@ -326,8 +328,8 @@ export function openCadetDetailPage(studentId) {
   cadetResultsController = mountCadetResults(document.getElementById('cadetAcademicResults'), {
     state:AppState,studentId:student.id,subjectsForClass:getSubjectsForClass,fullSubjectName:getFullSubjectName,
     semesterGPA:calculateSemesterGPA,academicYearGPA:calculateAcademicYearGPA,courseGPA:calculateCourseGPA10,
-    creditsPassed:calculateCreditsPassed,totalCredits:getTotalCourseCredits,upsert:upsertGradeToSupabase,remove:deleteGradeFromSupabase,
-    notify:showToast,onSaved:({studentId,subjectId,previous,value})=>{logAuditTrail(studentId,subjectId,previous??'',value??'Trống','Cập nhật điểm từ hồ sơ quân nhân');updateAllViews();}
+    creditsPassed:calculateCreditsPassed,totalCredits:getTotalCourseCredits,upsert:upsertGradeToSupabase,remove:deleteGradeFromSupabase,saveFailedMark:saveFailedSubjectMark,
+    notify:showToast,onSaved:({studentId,subjectId,previous,value,failedMark})=>{logAuditTrail(studentId,subjectId,previous??'',value??'Trống',failedMark?'Đánh dấu lịch sử rớt môn':'Cập nhật điểm từ hồ sơ quân nhân');updateAllViews();}
   });
   const canEditProfile=AppState.role==='admin'||AppState.role==='student'||AppState.role==='class_leader_'+student.class;
   const editProfileButton=document.getElementById('btnEditFromCadetDetail');if(editProfileButton)editProfileButton.hidden=!canEditProfile;
@@ -1518,6 +1520,7 @@ export function openStudentProfileModal(studentId, options = {}) {
     const gpa2 = calculateSemesterGPA(student.id, 2);
     const yearGpa = calculateYearGPA(student.id);
     const debts = getDebtSubjects(student.id);
+    const failed = failedSubjectSummary(AppState,student,getSubjectsForClass(student.class));
 
     document.getElementById('profAcademicSummaryBox').innerHTML = sanitizeHTML(`
       <div class="grid grid-cols-3 gap-3 text-center mb-3">
@@ -1539,7 +1542,8 @@ export function openStudentProfileModal(studentId, options = {}) {
         <div>Chức vụ hiện tại: <strong class="text-army-800">${pos}</strong></div>
         <div>Thành tích / Danh hiệu: <strong class="text-purple-800">${formatAchievementsText(student.achievements)}</strong></div>
         <div>Trình độ ngoại ngữ: <strong>${student.currentLangLevel || 'Chưa đạt'}</strong></div>
-        <div>Học phần rớt (&lt; 4.0): ${debts.length > 0 ? `<span class="text-rose-600 font-bold">⚠️ ${debts.map(d => formatFailedSubjectItem(d.subject)).join(', ')}</span>` : '<span class="text-emerald-600 font-bold">✅ Đạt 100% học phần</span>'}</div>
+        <div>Đã rớt: <strong>${failed.count} môn · ${failed.credits} tín chỉ</strong></div>
+        <div>Đang nợ (&lt; 4.0): ${debts.length > 0 ? `<span class="text-rose-600 font-bold">⚠️ ${debts.map(d => formatFailedSubjectItem(d.subject)).join(', ')}</span>` : '<span class="text-emerald-600 font-bold">✅ Đạt 100% học phần</span>'}</div>
       </div>
     `);
   }

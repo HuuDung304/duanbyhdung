@@ -16,6 +16,7 @@ function formatReportArchive(archive, workbook) {
   const fill = append('fills', '<fill><patternFill patternType="solid"><fgColor rgb="FFEFF6FF"/><bgColor indexed="64"/></patternFill></fill>');
   const greenFill = append('fills', '<fill><patternFill patternType="solid"><fgColor rgb="FFDCFCE7"/><bgColor indexed="64"/></patternFill></fill>');
   const yellowFill = append('fills', '<fill><patternFill patternType="solid"><fgColor rgb="FFFEF9C3"/><bgColor indexed="64"/></patternFill></fill>');
+  const redFill = append('fills', '<fill><patternFill patternType="solid"><fgColor rgb="FFFEE2E2"/><bgColor indexed="64"/></patternFill></fill>');
   let styleCount = 0;
   styles = styles.replace(/<cellXfs\b[^>]*>([\s\S]*?)<\/cellXfs>/, (_, content) => {
     const original = content.match(/<xf\b[^>]*(?:\/>|>[\s\S]*?<\/xf>)/g) || [];
@@ -26,10 +27,11 @@ function formatReportArchive(archive, workbook) {
       attr('borderId', border); attr('applyBorder', 1); attr('applyAlignment', 1);
       if (mode === 1) { attr('fontId', boldFont); attr('fillId', fill); attr('applyFont', 1); attr('applyFill', 1); }
       if (mode === 2 || mode === 3) { attr('fillId', mode === 2 ? greenFill : yellowFill); attr('applyFill', 1); }
+      if (mode === 5) { attr('fillId', redFill); attr('applyFill', 1); }
       if (mode === 4) { attr('borderId', 0); attr('fillId', 0); attr('applyFill', 1); }
       return `${opening}<alignment horizontal="center" vertical="center" wrapText="1"/></xf>`;
     };
-    return `<cellXfs count="${styleCount * 5}">${[0,1,2,3,4].map(mode => original.map(xf => decorate(xf, mode)).join('')).join('')}</cellXfs>`;
+    return `<cellXfs count="${styleCount * 6}">${[0,1,2,3,4,5].map(mode => original.map(xf => decorate(xf, mode)).join('')).join('')}</cellXfs>`;
   });
   store(styleFile, styles);
   archive.FullPaths.forEach((path, index) => {
@@ -44,7 +46,7 @@ function formatReportArchive(archive, workbook) {
         const address = attributes.match(/\br="([A-Z]+\d+)"/)?.[1];
         const tint = sheet['!reportCellFills']?.[address];
         const column = address?.replace(/\d+$/, '');
-        const mode = sheet['!reportBlankColumns']?.includes(column) ? 4 : headerRows.has(row) ? 1 : tint === 'green' ? 2 : tint === 'yellow' ? 3 : 0;
+        const mode = sheet['!reportBlankColumns']?.includes(column) ? 4 : headerRows.has(row) ? 1 : tint === 'green' ? 2 : tint === 'yellow' ? 3 : tint === 'red' ? 5 : 0;
         const style = Math.min(previous, styleCount - 1) + mode * styleCount;
         return `<c${attributes.replace(/\s+s="\d+"/, '')} s="${style}">`;
       })}</row>`;

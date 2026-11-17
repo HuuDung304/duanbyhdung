@@ -1,3 +1,4 @@
+import { isFailedSubject, canMarkFailedSubject, failedSubjectSummary } from './failed-subjects.js';
 import { escapeHTML as esc, sanitizeHTML } from '../safe-html.js';
 export const hasCadetScore = value => value !== '' && value !== null && value !== undefined && Number.isFinite(Number(value));
 export const cadetScoreFails = value => hasCadetScore(value) && Number(value) < 4;
@@ -23,7 +24,7 @@ export async function saveCadetGrade({state,studentId,subjectId,rawValue,subject
   return{changed:true,value,previous};
 }
 
-export function mountCadetResults(root,{state,studentId,subjectsForClass,fullSubjectName,semesterGPA,academicYearGPA,courseGPA,creditsPassed,totalCredits,upsert,remove,onSaved,notify}) {
+export function mountCadetResults(root,{state,studentId,subjectsForClass,fullSubjectName,semesterGPA,academicYearGPA,courseGPA,creditsPassed,totalCredits,upsert,remove,saveFailedMark,onSaved,notify}) {
   const abort=new AbortController();let catalogKey='';
   const identity=()=>JSON.stringify([state.role,state.currentUser?.studentId,state.currentUser?.code]);
   const current=()=>state.students.find(s=>s.id===studentId);
@@ -35,6 +36,7 @@ export function mountCadetResults(root,{state,studentId,subjectsForClass,fullSub
     root.querySelectorAll('[data-cadet-year-gpa]').forEach(el=>{el.textContent=format(academicYearGPA(studentId,Number(el.dataset.cadetYearGpa)));});
     const student=current();
     if(root.querySelector('[data-cadet-overall]'))root.querySelector('[data-cadet-overall]').textContent=format(courseGPA(studentId));
+    if(student&&root.querySelector('[data-cadet-failed-credits]'))root.querySelector('[data-cadet-failed-credits]').textContent=`Đã rớt ${failedSubjectSummary(state,student,courses()).credits} TC`;
     if(student&&root.querySelector('[data-cadet-credits]'))root.querySelector('[data-cadet-credits]').textContent=`${creditsPassed(studentId)}/${totalCredits(student.class)} TC`;
   }
   function refresh(){
@@ -44,11 +46,12 @@ export function mountCadetResults(root,{state,studentId,subjectsForClass,fullSub
     if(key!==catalogKey&&!root.querySelector('[data-cadet-score]:focus,[data-saving="true"]')){render();return;}
     root.querySelectorAll('[data-cadet-course]').forEach(card=>{
       const subject=subjects.find(s=>s.id===card.dataset.cadetCourse),value=state.grades[studentId]?.[card.dataset.cadetCourse];
-      card.classList.toggle('is-failed',cadetScoreFails(value));
+      card.classList.toggle('is-failed',isFailedSubject(state,studentId,card.dataset.cadetCourse));
+      const mark=card.querySelector('[data-cadet-failed-mark]');if(mark){mark.checked=Boolean(state.failedSubjectMarks?.[studentId]?.[card.dataset.cadetCourse]);mark.disabled=!canMarkFailedSubject(state,student);}
       const input=card.querySelector('[data-cadet-score]');
       if(input&&document.activeElement!==input&&input.dataset.saving!=='true'){input.value=scoreText(value);input.readOnly=!canEditCadetGrade(state,student,subject);}
       const result=card.querySelector('[data-cadet-readonly-score]');if(result)result.textContent=hasCadetScore(value)?format(value):'—';
-      const label=card.querySelector('[data-cadet-result]');if(label)label.textContent=!hasCadetScore(value)?'Chưa có điểm':cadetScoreFails(value)?'Rớt môn':'Đạt';
+      const label=card.querySelector('[data-cadet-result]');if(label)label.textContent=!hasCadetScore(value)?state.failedSubjectMarks?.[studentId]?.[card.dataset.cadetCourse]?'Đã từng rớt':'Chưa có điểm':cadetScoreFails(value)?'Đang rớt':state.failedSubjectMarks?.[studentId]?.[card.dataset.cadetCourse]?'Đã từng rớt':'Đạt';
     });metrics();
   }
   function render(){
@@ -59,12 +62,14 @@ export function mountCadetResults(root,{state,studentId,subjectsForClass,fullSub
       const selected=subjects.filter(s=>Number(s.semester)===semester);
       return `<div class="cadet-semester"><div class="cadet-semester-heading"><h5>Học kỳ ${semester%2?1:2} <small>· Kỳ ${semester}</small></h5><span>ĐTB <strong data-cadet-semester-gpa="${semester}"></strong></span></div><div class="cadet-course-grid">${selected.map(subject=>{
         const score=grades[subject.id],editable=canEditCadetGrade(state,student,subject);
-        return `<article class="cadet-course ${cadetScoreFails(score)?'is-failed':''}" data-cadet-course="${esc(subject.id)}"><div class="cadet-course-info"><small>${esc(subject.code||'')} · ${Number(subject.credits)||0} TC</small><h6>${esc(fullSubjectName(subject))}</h6><span data-cadet-result>${!hasCadetScore(score)?'Chưa có điểm':cadetScoreFails(score)?'Rớt môn':'Đạt'}</span></div><div class="cadet-course-mark">${editable?`<input type="text" inputmode="decimal" data-cadet-score data-subject="${esc(subject.id)}" aria-label="Điểm ${esc(fullSubjectName(subject))}" placeholder="—" value="${scoreText(score)}" maxlength="6">`:`<strong data-cadet-readonly-score>${hasCadetScore(score)?format(score):'—'}</strong>`}<small>/ 10</small></div><p class="cadet-grade-error" role="alert"></p></article>`;
+        return `<article class="cadet-course ${isFailedSubject(state,studentId,subject.id)?'is-failed':''}" data-cadet-course="${esc(subject.id)}"><div class="cadet-course-info"><small>${esc(subject.code||'')} · ${Number(subject.credits)||0} TC</small><h6>${esc(fullSubjectName(subject))}</h6><span data-cadet-result>${!hasCadetScore(score)?state.failedSubjectMarks?.[studentId]?.[subject.id]?'Đã từng rớt':'Chưa có điểm':cadetScoreFails(score)?'Đang rớt':state.failedSubjectMarks?.[studentId]?.[subject.id]?'Đã từng rớt':'Đạt'}</span></div><div class="cadet-course-mark">${editable?`<input type="text" inputmode="decimal" data-cadet-score data-subject="${esc(subject.id)}" aria-label="Điểm ${esc(fullSubjectName(subject))}" placeholder="—" value="${scoreText(score)}" maxlength="6">`:`<strong data-cadet-readonly-score>${hasCadetScore(score)?format(score):'—'}</strong>`}<small>/ 10</small></div><label class="cadet-failed-label"><input type="checkbox" data-cadet-failed-mark data-subject="${esc(subject.id)}" ${state.failedSubjectMarks?.[studentId]?.[subject.id]?'checked':''} ${canMarkFailedSubject(state,student)?'':'disabled'}> Đã từng rớt môn</label><p class="cadet-grade-error" role="alert"></p></article>`;
       }).join('')||'<p class="research-muted">Chưa có môn học trong học kỳ này.</p>'}</div></div>`;
     };
-    root.innerHTML=sanitizeHTML(`<div class="cadet-results-heading"><h4>3. Kết quả học tập</h4><div><span>Tích lũy <strong data-cadet-overall></strong></span><span data-cadet-credits></span></div></div>${[1,2,3,4,5].map(year=>`<details class="cadet-academic-year" data-cadet-year="${year}" ${first||opened.has(String(year))?'open':''}><summary><span>▾ Năm ${year}</span><span>ĐTB <strong data-cadet-year-gpa="${year}"></strong></span></summary>${term(year*2-1)}${term(year*2)}</details>`).join('')}`);metrics();
+    root.innerHTML=sanitizeHTML(`<div class="cadet-results-heading"><h4>3. Kết quả học tập</h4><div><span>Tích lũy <strong data-cadet-overall></strong></span><span data-cadet-credits></span><span data-cadet-failed-credits></span></div></div>${[1,2,3,4,5].map(year=>`<details class="cadet-academic-year" data-cadet-year="${year}" ${first||opened.has(String(year))?'open':''}><summary><span>▾ Năm ${year}</span><span>ĐTB <strong data-cadet-year-gpa="${year}"></strong></span></summary>${term(year*2-1)}${term(year*2)}</details>`).join('')}`);metrics();
   }
   root.addEventListener('change',async event=>{
+    const mark=event.target.closest('[data-cadet-failed-mark]');
+    if(mark){const key=identity(),old=Boolean(state.failedSubjectMarks?.[studentId]?.[mark.dataset.subject]);mark.disabled=true;try{await saveFailedMark(state,studentId,mark.dataset.subject,mark.checked);if(key===identity()){refresh();onSaved({studentId,subjectId:mark.dataset.subject,previous:old,value:mark.checked,failedMark:true});}}catch(error){mark.checked=old;notify(error.message,'error');}finally{mark.disabled=false;}return;}
     const input=event.target.closest('[data-cadet-score]');if(!input||input.dataset.saving==='true')return;
     const card=input.closest('[data-cadet-course]'),error=card.querySelector('[role="alert"]'),old=state.grades[studentId]?.[input.dataset.subject],key=identity();
     input.dataset.saving='true';input.disabled=true;card.setAttribute('aria-busy','true');error.textContent='';

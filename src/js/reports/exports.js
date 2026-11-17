@@ -1,3 +1,4 @@
+import { isFailedSubject } from '../academic/failed-subjects.js';
 import { buildAcademicAwards } from '../academic/awards.js';
 import { sortStudentsForRoster } from '../student-roster-order.js';
 // Dependencies are injected by grades.js; this module does not import the application shell.
@@ -304,6 +305,7 @@ export function createReportExports(context) {
       ['II. BẢNG ĐIỂM CHI TIẾT TỪ NĂM NHẤT ĐẾN NĂM NĂM (5 NĂM - 10 HỌC KỲ)']
     ];
 
+    const personalFills = {};
     for (let y = 1; y <= 5; y++) {
       const sem1 = 2 * y - 1;
       const sem2 = 2 * y;
@@ -316,12 +318,17 @@ export function createReportExports(context) {
 
       rows.push([]);
       rows.push([`NĂM HỌC THỨ ${y} (HỌC KỲ ${sem1} & HỌC KỲ ${sem2})`]);
+      const row1 = rows.length;
+      subs1.forEach((subject,index) => { if (isFailedSubject(context.AppState,student.id,subject.id)) personalFills[XLSX.utils.encode_cell({r:row1,c:index+1})]='red'; });
       rows.push(['Hàng 1 - Học kỳ 1:', ...subs1.map(s => `${context.getFullSubjectName(s)} (${s.credits} TC): ${studentGrades[s.id] !== undefined ? studentGrades[s.id] : '-'}`), `ĐTB HK1: ${gpa1.toFixed(2)}`]);
+      const row2 = rows.length;
+      subs2.forEach((subject,index) => { if (isFailedSubject(context.AppState,student.id,subject.id)) personalFills[XLSX.utils.encode_cell({r:row2,c:index+1})]='red'; });
       rows.push(['Hàng 2 - Học kỳ 2:', ...subs2.map(s => `${context.getFullSubjectName(s)} (${s.credits} TC): ${studentGrades[s.id] !== undefined ? studentGrades[s.id] : '-'}`), `ĐTB HK2: ${gpa2.toFixed(2)}`]);
       rows.push(['Hàng 3 - Tổng kết Năm học:', `Điểm trung bình Năm thứ ${y}: ${yearGpa.toFixed(2)}`, `Xếp loại Năm thứ ${y}: ${yearRank}`]);
     }
 
     const ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!reportCellFills'] = personalFills;
     ws['!cols'] = [{ wch: 24 }, { wch: 28 }, { wch: 28 }, { wch: 28 }, { wch: 28 }, { wch: 28 }, { wch: 22 }];
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Bang_Diem_Ca_Nhan');
@@ -361,6 +368,16 @@ export function createReportExports(context) {
     ws['!reportHeaderRows'] = [1, 2, 3];
     ws['!merges'] = merges;
     ws['!rows'] = [{ hpt: 28 }, { hpt: 100 }, { hpt: 22 }];
+    ws['!reportCellFills'] = {};
+    completed.reduce((column,period) => {
+      for (const subject of period.subjects) {
+        students.forEach((student,index) => {
+          if (isFailedSubject(context.AppState,student.id,subject.id)) ws['!reportCellFills'][XLSX.utils.encode_cell({r:headerRows.length+index,c:column})]='red';
+        });
+        column++;
+      }
+      return column + 1 + (completed.filter(item => Math.ceil(item.semester/2)===Math.ceil(period.semester/2)).at(-1)===period ? 1 : 0);
+    },5);
     ws['!cols'] = headers.map((header, index) => ({ wch: header === 'GHI CHÚ' ? 30 : index === 0 ? 7 : index === 2 ? 28 : index < 5 ? 18 : header.startsWith('ĐIỂM TB') ? 16 : 12 }));
     for (let row = headerRows.length; row < rows.length + headerRows.length; row++) {
       for (let column = 5; column < headers.length - 1; column++) {

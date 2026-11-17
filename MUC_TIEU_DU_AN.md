@@ -34,6 +34,7 @@ Quyền cụ thể phải được kiểm tra ở các chức năng và phía d�
 
 ## Các quy tắc cần giữ khi thay đổi sản phẩm
 
+- Môn đã từng rớt được đánh dấu thủ công theo từng học viên và môn, giữ dấu cho đến khi người có quyền bỏ dấu. Admin, tài khoản lớp và học viên trong phạm vi của mình được đánh dấu; cán bộ chỉ xem. Hồ sơ hiển thị số môn và tín chỉ đã rớt (gộp môn đang dưới 4 và môn có dấu lịch sử, không đếm trùng). Bảng điểm Excel tô đỏ nhạt ô môn đã hoặc đang rớt.
 - Điểm trung bình và xếp loại phải dùng đúng quy tắc, tín chỉ, phạm vi lớp và thời kỳ áp dụng. Điểm chưa nhập không được tự biến thành điểm 0; điểm 0 đã nhập phải được giữ đúng.
 - Học bổng xét **học kỳ gần nhất có điểm**, danh hiệu học viên xét **năm học gần nhất có điểm**; xét theo các môn đã có điểm trong kỳ hoặc năm tương ứng, kể cả khi chưa đủ điểm. Không xét vận dụng danh hiệu.
 - Với hai danh sách trên, môn có tín chỉ đã có điểm phải đạt từ 7,0; môn 0 tín chỉ đã có điểm phải qua môn; học viên phải đạt chuẩn tiếng Nga hiện tại. Danh hiệu học tốt yêu cầu điểm trung bình năm từ 7,0. Các mức cụ thể và công thức được quy định trong mã nghiệp vụ và tài liệu hiện hành.

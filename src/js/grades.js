@@ -4,6 +4,7 @@ import { renderSubjectCatalog } from './subjects/catalog-view.js';
 import { subjectHasGrades, stableOfferingId } from './subjects/offerings.js';
 import { trackImportRead } from './components/upload-state.js';
 import { createGradeCalculations } from './academic/calculations.js';
+import { loadFailedSubjectMarks } from './academic/failed-subjects.js';
 import { createTranscript } from './academic/transcript.js';
 import { createReportStatistics } from './reports/statistics.js';
 import { createDashboardReports } from './reports/dashboard.js';
@@ -842,6 +843,7 @@ export const AppState = {
   subjects: [...DEFAULT_SUBJECTS],
   students: [],
   grades: {},
+  failedSubjectMarks: {},
   languages: {},
   locks: {},
   auditLogs: [],
@@ -951,6 +953,7 @@ export async function initData() {
   AppState.subjects = [];
   AppState.students = [];
   AppState.grades = {};
+  AppState.failedSubjectMarks = {};
   AppState.languages = {};
   AppState.locks = generateInitialLocks();
   AppState.auditLogs = [];
@@ -962,6 +965,8 @@ export async function initData() {
 
   try {
     const cloudData = await loadAllDataFromSupabase(CloudSync.unitRoomId || 'daidoi460');
+    try { AppState.failedSubjectMarks = await loadFailedSubjectMarks(); }
+    catch (error) { console.warn(error); showToast(error.message, 'error'); }
     if (cloudData && typeof cloudData === 'object') {
       if (isAnyEditFormActive()) {
         // Nếu người dùng đã mở form chỉnh sửa trong lúc đang tải, hoãn đồng bộ ngược để không reset form
