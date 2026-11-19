@@ -1,0 +1,834 @@
+/* Soft Glassmorphism UI · Focus Mode · Enhanced Tables · Subtle Micro-interactions
+   Presentation layer sitting cleanly on top of interface.css without altering DOM contracts or logic. */
+
+/* ==========================================================================
+   1. DESIGN TOKENS (LIGHT & DARK GLASSMORPHISM)
+   ========================================================================== */
+body.bento-app.ui-modern {
+  --ui-radius: 18px;
+  --ui-radius-sm: 12px;
+  --ui-radius-pill: 999px;
+  --ui-control-radius: 12px;
+  --ui-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --ui-ease-fast: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  --theme-canvas: #f2f5fb;
+  --theme-surface: rgba(255, 255, 255, 0.76);
+  --theme-card: rgba(255, 255, 255, 0.72);
+  --theme-soft: rgba(241, 245, 252, 0.82);
+  --theme-selected: rgba(79, 70, 229, 0.11);
+  --theme-border: rgba(148, 163, 184, 0.28);
+  --theme-border-strong: rgba(148, 163, 184, 0.48);
+  --theme-ink: #0f172a;
+  --theme-muted: #475569;
+  --theme-primary: #4f46e5;
+  --theme-primary-hover: #4338ca;
+  --theme-focus: #6366f1;
+  --theme-on-primary: #ffffff;
+  --theme-positive: #0f766e;
+  --theme-positive-soft: rgba(20, 184, 166, 0.13);
+  --theme-danger: #be123c;
+  --theme-danger-soft: rgba(244, 63, 94, 0.12);
+  --theme-amber: #b45309;
+
+  --ui-action: #4f46e5;
+  --ui-action-hover: #4338ca;
+  --glass-bg: rgba(255, 255, 255, 0.68);
+  --glass-bg-strong: rgba(255, 255, 255, 0.86);
+  --glass-bg-solid: #ffffff;
+  --glass-blur: blur(18px) saturate(155%);
+  --glass-blur-sm: blur(12px) saturate(140%);
+  --glass-highlight: rgba(255, 255, 255, 0.82);
+  --glass-shadow: 0 12px 32px -10px rgba(15, 23, 42, 0.08), 0 2px 8px -2px rgba(15, 23, 42, 0.04);
+  --glass-shadow-hover: 0 18px 40px -12px rgba(79, 70, 229, 0.16), 0 4px 14px -4px rgba(15, 23, 42, 0.06);
+  --glass-focus-ring: rgba(99, 102, 241, 0.22);
+  --glass-btn-gradient: linear-gradient(135deg, #6366f1 0%, #4f46e5 60%, #4338ca 100%);
+  --glass-btn-gradient-hover: linear-gradient(135deg, #585be8 0%, #4338ca 60%, #3730a3 100%);
+
+  /* Opaque table tones so sticky columns never bleed through */
+  --table-head-solid: #eef2fa;
+  --table-row-solid: #ffffff;
+  --table-zebra-solid: #f7f9fd;
+  --table-hover-solid: #eef2ff;
+  --table-active-solid: #e4e9ff;
+  --table-sticky-shadow-x: 8px 0 16px -8px rgba(15, 23, 42, 0.18);
+  --table-sticky-shadow-y: 0 8px 16px -8px rgba(15, 23, 42, 0.14);
+
+  background-color: var(--theme-canvas);
+  background-image:
+    radial-gradient(ellipse 68% 54% at 8% 4%, rgba(165, 180, 252, 0.34), transparent 60%),
+    radial-gradient(ellipse 60% 50% at 92% 16%, rgba(186, 230, 253, 0.34), transparent 58%),
+    radial-gradient(ellipse 55% 48% at 62% 94%, rgba(251, 207, 232, 0.24), transparent 60%);
+  background-attachment: fixed;
+}
+
+html[data-theme="dark"] body.bento-app.ui-modern {
+  --theme-canvas: #0b1120;
+  --theme-surface: rgba(20, 29, 48, 0.74);
+  --theme-card: rgba(22, 32, 52, 0.68);
+  --theme-soft: rgba(30, 41, 64, 0.78);
+  --theme-selected: rgba(129, 140, 248, 0.20);
+  --theme-border: rgba(148, 163, 184, 0.20);
+  --theme-border-strong: rgba(148, 163, 184, 0.36);
+  --theme-ink: #f1f5f9;
+  --theme-muted: #94a3b8;
+  --theme-primary: #a5b4fc;
+  --theme-primary-hover: #c7d2fe;
+  --theme-focus: #818cf8;
+  --theme-on-primary: #0f172a;
+  --theme-positive: #5eead4;
+  --theme-positive-soft: rgba(45, 212, 191, 0.15);
+  --theme-danger: #fda4af;
+  --theme-danger-soft: rgba(244, 63, 94, 0.18);
+  --theme-amber: #fcd34d;
+
+  --ui-action: #818cf8;
+  --ui-action-hover: #a5b4fc;
+  --glass-bg: rgba(20, 29, 48, 0.68);
+  --glass-bg-strong: rgba(22, 32, 52, 0.88);
+  --glass-bg-solid: #162034;
+  --glass-highlight: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 14px 36px -10px rgba(0, 0, 0, 0.48), 0 2px 10px rgba(0, 0, 0, 0.24);
+  --glass-shadow-hover: 0 20px 44px -10px rgba(0, 0, 0, 0.58), 0 0 0 1px rgba(129, 140, 248, 0.22);
+  --glass-focus-ring: rgba(129, 140, 248, 0.28);
+  --glass-btn-gradient: linear-gradient(135deg, #a5b4fc 0%, #818cf8 65%, #6366f1 100%);
+  --glass-btn-gradient-hover: linear-gradient(135deg, #c7d2fe 0%, #a5b4fc 65%, #818cf8 100%);
+
+  --table-head-solid: #1b263d;
+  --table-row-solid: #131c2e;
+  --table-zebra-solid: #172236;
+  --table-hover-solid: #1f2d47;
+  --table-active-solid: #263659;
+  --table-sticky-shadow-x: 8px 0 18px -6px rgba(0, 0, 0, 0.55);
+  --table-sticky-shadow-y: 0 8px 18px -6px rgba(0, 0, 0, 0.5);
+
+  background-color: var(--theme-canvas);
+  background-image:
+    radial-gradient(ellipse 65% 52% at 10% 6%, rgba(99, 102, 241, 0.16), transparent 60%),
+    radial-gradient(ellipse 58% 48% at 92% 18%, rgba(56, 189, 248, 0.12), transparent 58%),
+    radial-gradient(ellipse 52% 45% at 60% 95%, rgba(168, 85, 247, 0.10), transparent 60%);
+}
+
+/* ==========================================================================
+   2. GLASS SHELL, SIDEBAR RAIL & STICKY TOOLBAR
+   ========================================================================== */
+body.ui-modern .bento-shell .u040-rail {
+  background: var(--glass-bg-strong);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-right: 1px solid var(--theme-border);
+  box-shadow: 4px 0 28px -12px rgba(15, 23, 42, 0.08), inset -1px 0 0 var(--glass-highlight);
+  transition: width 240ms var(--ui-ease), transform 260ms var(--ui-ease), opacity 220ms ease;
+}
+
+body.ui-modern .bento-shell .u040-logo {
+  border-radius: 13px;
+  background: var(--glass-btn-gradient);
+  box-shadow: 0 6px 16px -4px rgba(79, 70, 229, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+body.ui-modern .bento-shell .u040-it {
+  border-radius: 12px;
+  transition: background-color 160ms ease, color 160ms ease, transform 140ms var(--ui-ease-fast), box-shadow 180ms ease;
+}
+
+body.ui-modern .bento-shell .u040-it:hover {
+  background: var(--theme-soft);
+  transform: translateX(2px);
+}
+
+body.ui-modern .bento-shell .u040-it[aria-current="page"] {
+  background: var(--theme-selected);
+  color: var(--theme-primary);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--theme-primary) 22%, transparent), 0 4px 12px -4px rgba(79, 70, 229, 0.15);
+}
+
+body.ui-modern .u037 .u037-chip {
+  border-radius: 14px;
+  background: var(--glass-bg);
+  border: 1px solid var(--theme-border);
+  box-shadow: inset 0 1px 0 var(--glass-highlight);
+  transition: background-color 160ms ease, border-color 160ms ease, transform 140ms var(--ui-ease-fast);
+}
+
+body.ui-modern .u037 .u037-chip:hover {
+  background: var(--glass-bg-strong);
+  border-color: var(--theme-border-strong);
+}
+
+body.ui-modern .u037 .u037-menu {
+  border-radius: 16px;
+  background: var(--glass-bg-strong);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--theme-border);
+  box-shadow: var(--glass-shadow-hover), inset 0 1px 0 var(--glass-highlight);
+}
+
+body.ui-modern .ui-toolbar {
+  position: sticky;
+  top: 0;
+  height: 76px;
+  margin: 0 -32px;
+  padding: 0 32px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid var(--theme-border);
+  box-shadow: 0 6px 24px -12px rgba(15, 23, 42, 0.08), inset 0 -1px 0 var(--glass-highlight);
+  transition: height 220ms var(--ui-ease), padding 220ms var(--ui-ease), background-color 180ms ease;
+}
+
+body.ui-modern .ui-search .bento-search {
+  border-radius: var(--ui-radius-pill);
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--theme-border);
+  box-shadow: inset 0 1px 0 var(--glass-highlight);
+  transition: border-color 160ms ease, box-shadow 180ms var(--ui-ease), background-color 160ms ease;
+}
+
+body.ui-modern .ui-search .bento-search:focus-within {
+  border-color: var(--theme-focus);
+  box-shadow: 0 0 0 3px var(--glass-focus-ring), var(--glass-shadow);
+}
+
+body.ui-modern .ui-search .bento-search-results {
+  border-radius: 16px;
+  background: var(--glass-bg-strong);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--theme-border);
+  box-shadow: var(--glass-shadow-hover);
+}
+
+/* ==========================================================================
+   3. GLASS CARDS, PANELS, MODALS & DIALOGS
+   ========================================================================== */
+body.ui-modern :is(
+  .bento-card,
+  .workspace-settings-card,
+  .report-export-card,
+  .catalog-semester,
+  .year-breakdown-card,
+  .settings-class-card,
+  .research-stat,
+  .research-table-card
+),
+body.ui-modern .u040-content > .tab-content > div.bg-white,
+body.ui-modern .workspace-report-panel > div,
+body.ui-modern #dashboardKpis > div,
+body.ui-modern #tab-profiles > div.grid:first-child > div,
+body.ui-modern #cadetDetailViewSection > div > div {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur-sm);
+  -webkit-backdrop-filter: var(--glass-blur-sm);
+  border: 1px solid var(--theme-border);
+  border-radius: var(--ui-radius);
+  box-shadow: var(--glass-shadow), inset 0 1px 0 var(--glass-highlight);
+  transition: box-shadow 220ms var(--ui-ease), border-color 180ms ease, transform 200ms var(--ui-ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  body.ui-modern :is(#dashboardKpis > div, .report-export-card, .research-stat, .settings-class-card):hover {
+    box-shadow: var(--glass-shadow-hover), inset 0 1px 0 var(--glass-highlight);
+    border-color: color-mix(in srgb, var(--theme-primary) 30%, var(--theme-border));
+    transform: translateY(-2px);
+  }
+}
+
+/* Segmented tabs & filter bars */
+body.ui-modern .u040-content :is(.research-tabs, .workspace-report-tabs, .year-breakdown-picker, .subject-catalog-filter) {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur-sm);
+  -webkit-backdrop-filter: var(--glass-blur-sm);
+  border: 1px solid var(--theme-border);
+  border-radius: 14px;
+  box-shadow: inset 0 1px 0 var(--glass-highlight);
+}
+
+body.ui-modern .workspace-tab-indicator {
+  border-radius: 10px;
+  background: var(--glass-bg-strong);
+  box-shadow: 0 2px 10px -2px rgba(15, 23, 42, 0.10);
+}
+
+/* Modals, Dialogs & Toast notifications */
+body.ui-modern [id^="modal"].fixed,
+body.ui-modern :is(.report-export-dialog, .research-dialog, .import-review, .danger-confirm)::backdrop {
+  background: rgba(15, 23, 42, 0.36);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+body.ui-modern [id^="modal"].fixed > div,
+body.ui-modern :is(.report-export-dialog, .research-dialog, .import-review, .danger-confirm) {
+  border-radius: 22px;
+  background: var(--glass-bg-strong);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--theme-border);
+  box-shadow: 0 24px 64px -16px rgba(15, 23, 42, 0.32), inset 0 1px 0 var(--glass-highlight);
+}
+
+body.ui-modern #modalAuthLogin {
+  background: transparent;
+}
+
+body.ui-modern #modalAuthLogin > div {
+  border-radius: 24px;
+  background: var(--glass-bg-strong);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow: 0 24px 64px -16px rgba(15, 23, 42, 0.22), inset 0 1px 0 var(--glass-highlight);
+}
+
+body.ui-modern #toastContainer > div {
+  border-radius: 14px;
+  backdrop-filter: var(--glass-blur-sm);
+  -webkit-backdrop-filter: var(--glass-blur-sm);
+  box-shadow: var(--glass-shadow-hover);
+}
+
+/* ==========================================================================
+   4. REFINED BUTTONS, INPUTS & SUBTLE MICRO-INTERACTIONS
+   ========================================================================== */
+body.ui-modern .ui-icon-button,
+body.ui-modern #interfaceToolbar .u040-tog {
+  width: 38px;
+  height: 38px;
+  min-height: 38px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, transform 120ms var(--ui-ease-fast), box-shadow 180ms ease;
+}
+
+body.ui-modern .ui-icon-button:hover,
+body.ui-modern #interfaceToolbar .u040-tog:hover {
+  background: var(--glass-bg-strong);
+  border-color: var(--theme-border);
+  color: var(--theme-ink);
+  box-shadow: 0 4px 12px -4px rgba(15, 23, 42, 0.10);
+}
+
+body.ui-modern .ui-icon-button:active,
+body.ui-modern #interfaceToolbar .u040-tog:active {
+  transform: scale(0.94);
+}
+
+body.ui-modern .ui-icon-button[aria-pressed="true"] {
+  background: var(--theme-selected);
+  border-color: color-mix(in srgb, var(--theme-primary) 34%, transparent);
+  color: var(--theme-primary);
+}
+
+body.ui-modern :is(.u040-content, [id^="modal"], dialog) button:not(.nav-tab):not(.u032-zone):not(.u037-it):not(.u025-eye) {
+  border-radius: var(--ui-control-radius);
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--theme-border);
+  box-shadow: 0 2px 6px -2px rgba(15, 23, 42, 0.06), inset 0 1px 0 var(--glass-highlight);
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, box-shadow 180ms var(--ui-ease), transform 110ms var(--ui-ease-fast);
+}
+
+body.ui-modern :is(.u040-content, [id^="modal"], dialog) button:not(.nav-tab):not(.u032-zone):not(.u037-it):not(.u025-eye):enabled:hover {
+  background: var(--glass-bg-solid);
+  border-color: var(--theme-border-strong);
+  box-shadow: 0 6px 16px -6px rgba(15, 23, 42, 0.12), inset 0 1px 0 var(--glass-highlight);
+  transform: translateY(-1px);
+}
+
+body.ui-modern :is(.u040-content, [id^="modal"], dialog) button:not(.nav-tab):not(.u032-zone):not(.u037-it):not(.u025-eye):enabled:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
+/* Primary CTA Buttons */
+body.ui-modern :is(.u040-content, [id^="modal"], dialog) button:is(
+  [type="submit"],
+  .bg-army-700,
+  .bg-army-800,
+  .bg-blue-600,
+  .bg-blue-700,
+  .bg-emerald-700,
+  .research-btn.primary,
+  #researchImportConfirm,
+  #btnSubmitAdminLogin,
+  #btnSubmitCadetLogin
+) {
+  background: var(--glass-btn-gradient);
+  border-color: transparent;
+  color: var(--theme-on-primary);
+  box-shadow: 0 8px 20px -6px rgba(79, 70, 229, 0.44), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+
+body.ui-modern :is(.u040-content, [id^="modal"], dialog) button:is(
+  [type="submit"],
+  .bg-army-700,
+  .bg-army-800,
+  .bg-blue-600,
+  .bg-blue-700,
+  .bg-emerald-700,
+  .research-btn.primary,
+  #researchImportConfirm,
+  #btnSubmitAdminLogin,
+  #btnSubmitCadetLogin
+):enabled:hover {
+  background: var(--glass-btn-gradient-hover);
+  box-shadow: 0 12px 24px -6px rgba(79, 70, 229, 0.52), inset 0 1px 0 rgba(255, 255, 255, 0.34);
+  transform: translateY(-1px);
+}
+
+body.ui-modern :is(.u040-content, [id^="modal"], dialog) button:is(
+  [type="submit"],
+  .bg-army-700,
+  .bg-army-800,
+  .bg-blue-600,
+  .bg-blue-700,
+  .bg-emerald-700,
+  .research-btn.primary,
+  #researchImportConfirm,
+  #btnSubmitAdminLogin,
+  #btnSubmitCadetLogin
+):enabled:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Inputs & Selects */
+body.ui-modern :is(.u040-content, [id^="modal"], dialog) :is(input:not([type="checkbox"]):not([type="radio"]):not(.grid-cell-input):not(.u025-in), select, textarea) {
+  border-radius: var(--ui-control-radius);
+  background: var(--glass-bg-strong);
+  border-color: var(--theme-border);
+  transition: border-color 150ms ease, box-shadow 180ms var(--ui-ease), background-color 150ms ease;
+}
+
+body.ui-modern :is(.u040-content, [id^="modal"], dialog) :is(input:not([type="checkbox"]):not([type="radio"]):not(.grid-cell-input):not(.u025-in), select, textarea):focus {
+  border-color: var(--theme-focus);
+  box-shadow: 0 0 0 3px var(--glass-focus-ring);
+  outline: none;
+}
+
+/* ==========================================================================
+   5. ENHANCED DATA TABLES (ZEBRA, ACTIVE ROW, STICKY SHADOWS, TABULAR NUMS)
+   ========================================================================== */
+body.ui-modern .u040-content :is(.readable-table-scroll, .workspace-table-scroll, .research-scroll, .catalog-table-scroll) {
+  border-radius: 14px;
+  scroll-behavior: smooth;
+}
+
+body.ui-modern .u040-content table {
+  border-collapse: separate;
+  border-spacing: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+body.ui-modern .u040-content table :is(th, td) {
+  font-variant-numeric: tabular-nums;
+  border-color: var(--theme-border);
+}
+
+body.ui-modern .u040-content table thead th {
+  background: var(--table-head-solid);
+  color: var(--theme-ink);
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  transition: box-shadow 180ms ease;
+}
+
+/* Sticky header drop shadow when scrolled vertically */
+body.ui-modern .u040-content [data-scrolled-y="true"] table thead th {
+  box-shadow: var(--table-sticky-shadow-y);
+}
+
+/* Clear zebra striping (opaque so sticky columns match seamlessly) */
+body.ui-modern .u040-content table tbody tr > td,
+body.ui-modern .u040-content table tbody tr > td[data-identity-column] {
+  background-color: var(--table-row-solid);
+  transition: background-color 120ms ease;
+}
+
+body.ui-modern .u040-content table tbody tr:nth-child(even) > td,
+body.ui-modern .u040-content table tbody tr:nth-child(even) > td[data-identity-column] {
+  background-color: var(--table-zebra-solid);
+}
+
+/* Hover highlight */
+@media (hover: hover) and (pointer: fine) {
+  body.ui-modern .u040-content table tbody tr:hover > td,
+  body.ui-modern .u040-content table tbody tr:hover > td[data-identity-column] {
+    background-color: var(--table-hover-solid);
+  }
+}
+
+/* Selected / Focused row highlight (works for both clicking a row & editing a score cell) */
+body.ui-modern .u040-content table tbody tr:focus-within > td,
+body.ui-modern .u040-content table tbody tr:focus-within > td[data-identity-column],
+body.ui-modern .u040-content table tbody tr.ui-row-active > td,
+body.ui-modern .u040-content table tbody tr.ui-row-active > td[data-identity-column] {
+  background-color: var(--table-active-solid);
+}
+
+body.ui-modern .u040-content table tbody tr:focus-within > td:first-child,
+body.ui-modern .u040-content table tbody tr.ui-row-active > td:first-child {
+  box-shadow: inset 3px 0 0 var(--theme-primary);
+}
+
+/* Sticky identity columns (STT, Mã HV, Họ tên) & dynamic horizontal scroll shadow */
+body.ui-modern .u040-content .readable-data-table th[data-identity-column] {
+  background-color: var(--table-head-solid);
+  z-index: 26;
+}
+
+body.ui-modern .u040-content .readable-data-table [data-identity-column="2"] {
+  box-shadow: 1px 0 0 var(--theme-border);
+  transition: box-shadow 180ms ease, background-color 120ms ease;
+}
+
+body.ui-modern .u040-content [data-scrolled-x="true"] .readable-data-table [data-identity-column="2"] {
+  box-shadow: 1px 0 0 var(--theme-border-strong), var(--table-sticky-shadow-x);
+}
+
+body.ui-modern .u040-content [data-scrolled-x="true"][data-scrolled-y="true"] .readable-data-table th[data-identity-column="2"] {
+  box-shadow: 1px 0 0 var(--theme-border-strong), var(--table-sticky-shadow-x), var(--table-sticky-shadow-y);
+}
+
+/* Snappy spreadsheet inputs (zero-lag editing) */
+body.ui-modern #spreadsheetTable .grid-cell-input {
+  border-radius: 8px;
+  transition: background-color 110ms ease, outline-color 110ms ease;
+}
+
+body.ui-modern #spreadsheetTable .grid-cell-input:focus {
+  background: var(--glass-bg-solid);
+  outline: 2px solid var(--theme-focus);
+  outline-offset: -2px;
+  box-shadow: 0 0 0 3px var(--glass-focus-ring);
+}
+
+/* ==========================================================================
+   6. FOCUS MODE (FULL-WIDTH DATA WORKSPACE)
+   ========================================================================== */
+.ui-focus-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: var(--ui-radius-pill);
+  border: 1px solid var(--theme-border);
+  background: var(--glass-bg-strong);
+  color: var(--theme-muted);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease, transform 120ms var(--ui-ease-fast), box-shadow 160ms ease;
+}
+
+.ui-focus-pill svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+.ui-focus-pill:hover {
+  color: var(--theme-ink);
+  border-color: var(--theme-border-strong);
+  box-shadow: 0 4px 12px -4px rgba(15, 23, 42, 0.12);
+}
+
+.ui-focus-pill:active {
+  transform: scale(0.96);
+}
+
+.ui-focus-pill[aria-pressed="true"] {
+  background: var(--theme-selected);
+  border-color: color-mix(in srgb, var(--theme-primary) 42%, transparent);
+  color: var(--theme-primary);
+}
+
+html[data-focus-mode="on"] body.ui-modern .bento-shell,
+html[data-focus-mode="on"] body.ui-modern .bento-shell.is-wide {
+  margin-left: 0 !important;
+}
+
+html[data-focus-mode="on"] body.ui-modern .bento-shell .u040-rail {
+  transform: translateX(-104%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+html[data-focus-mode="on"] body.ui-modern .bento-shell .u040-main {
+  max-width: none !important;
+  padding: 0 18px 24px !important;
+}
+
+html[data-focus-mode="on"] body.ui-modern .ui-toolbar {
+  height: 58px;
+  margin: 0 -18px;
+  padding: 0 18px;
+}
+
+html[data-focus-mode="on"] body.ui-modern #interfacePageTitle {
+  font-size: 20px;
+}
+
+html[data-focus-mode="on"] body.ui-modern .ui-context-label {
+  display: none;
+}
+
+html[data-focus-mode="on"] body.ui-modern .u040-content .tab-content {
+  padding-top: 14px;
+}
+
+html[data-focus-mode="on"] body.ui-modern .u040-content :is(.readable-table-scroll, .workspace-table-scroll, .research-scroll) {
+  max-height: calc(100dvh - 150px);
+}
+
+/* ==========================================================================
+   7. TABLE ↔ CARD VIEW TOGGLE (RESPONSIVE & ON-DEMAND)
+   ========================================================================== */
+.ui-view-switcher {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px;
+  gap: 2px;
+  border-radius: var(--ui-radius-pill);
+  border: 1px solid var(--theme-border);
+  background: var(--glass-bg);
+  box-shadow: inset 0 1px 0 var(--glass-highlight);
+}
+
+.ui-view-switcher button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 30px;
+  min-height: 30px !important;
+  padding: 0 10px !important;
+  border: 0 !important;
+  border-radius: var(--ui-radius-pill) !important;
+  background: transparent !important;
+  color: var(--theme-muted) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  box-shadow: none !important;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.ui-view-switcher button svg {
+  width: 14px;
+  height: 14px;
+}
+
+.ui-view-switcher button[aria-pressed="true"] {
+  background: var(--glass-bg-solid) !important;
+  color: var(--theme-primary) !important;
+  box-shadow: 0 2px 8px -2px rgba(15, 23, 42, 0.14) !important;
+}
+
+/* Card presentation for data tables when data-table-view="cards" */
+html[data-table-view="cards"] body.ui-modern .u040-content :is(.readable-table-scroll, .workspace-table-scroll, .research-scroll, .catalog-table-scroll) {
+  max-height: none;
+  overflow: visible;
+}
+
+html[data-table-view="cards"] body.ui-modern .u040-content table.ui-cardable-table {
+  display: block;
+  width: 100%;
+  border: 0;
+}
+
+html[data-table-view="cards"] body.ui-modern .u040-content table.ui-cardable-table thead,
+html[data-table-view="cards"] body.ui-modern .u040-content table.ui-cardable-table tfoot {
+  display: none;
+}
+
+html[data-table-view="cards"] body.ui-modern .u040-content table.ui-cardable-table tbody {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 310px), 1fr));
+  gap: 14px;
+  padding: 6px 2px;
+}
+
+html[data-table-view="cards"] body.ui-modern .u040-content table.ui-cardable-table tbody tr {
+  display: flex;
+  flex-direction: column;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid var(--theme-border);
+  background: var(--glass-bg-strong);
+  backdrop-filter: var(--glass-blur-sm);
+  -webkit-backdrop-filter: var(--glass-blur-sm);
+  box-shadow: var(--glass-shadow), inset 0 1px 0 var(--glass-highlight);
+  transition: transform 180ms var(--ui-ease), box-shadow 180ms var(--ui-ease), border-color 160ms ease;
+}
+
+html[data-table-view="cards"] body.ui-modern .u040-content table.ui-cardable-table tbody tr:hover {
+  border-color: color-mix(in srgb, var(--theme-primary) 34%, var(--theme-border));
+  box-shadow: var(--glass-shadow-hover);
+}
+
+html[data-table-view="cards"] body.ui-modern .u040-content table.ui-cardable-table tbody tr > td {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100% !important;
+  max-width: none !important;
+  position: static !important;
+  left: auto !important;
+  padding: 7px 0;
+  border: 0;
+  border-bottom: 1px dashed var(--theme-border);
+  background: transparent !important;
+  box-shadow: none !important;
+  text-align: right;
+  white-space: normal;
+}
+
+html[data-table-view="cards"] body.ui-modern .u040-content table.ui-cardable-table tbody tr > td:last-child {
+  border-bottom: 0;
+  padding-bottom: 2px;
+}
+
+html[data-table-view="cards"] body.ui-modern .u040-content table.ui-cardable-table tbody tr > td::before {
+  content: attr(data-col-label);
+  flex: 0 0 auto;
+  max-width: 52%;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--theme-muted);
+  text-align: left;
+}
+
+html[data-table-view="cards"] body.ui-modern .u040-content table.ui-cardable-table tbody tr > td[data-col-label=""]::before {
+  display: none;
+}
+
+/* Highlight student name cell as card header */
+html[data-table-view="cards"] body.ui-modern .u040-content table.ui-cardable-table tbody tr > td[data-identity-column="2"] {
+  order: -2;
+  padding: 0 0 10px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--theme-border);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--theme-ink);
+  justify-content: flex-start;
+  text-align: left;
+}
+
+html[data-table-view="cards"] body.ui-modern .u040-content table.ui-cardable-table tbody tr > td[data-identity-column="2"]::before {
+  display: none;
+}
+
+html[data-table-view="cards"] body.ui-modern .u040-content table.ui-cardable-table tbody tr > td[data-identity-column="1"] {
+  order: -1;
+}
+
+html[data-table-view="cards"] body.ui-modern .u040-content table.ui-cardable-table tbody tr > td:has(>.grid-cell-input) .grid-cell-input {
+  width: 96px;
+  min-height: 36px;
+  border: 1px solid var(--theme-border);
+  background: var(--glass-bg-solid);
+  text-align: right;
+  padding: 4px 10px;
+}
+
+/* Empty/colspan rows stay full-width centered in card mode */
+html[data-table-view="cards"] body.ui-modern .u040-content table.ui-cardable-table tbody tr:has(> td[colspan]) {
+  grid-column: 1 / -1;
+  align-items: center;
+  text-align: center;
+}
+
+html[data-table-view="cards"] body.ui-modern .u040-content table.ui-cardable-table tbody tr > td[colspan] {
+  justify-content: center;
+  text-align: center;
+  border-bottom: 0;
+}
+
+html[data-table-view="cards"] body.ui-modern .u040-content table.ui-cardable-table tbody tr > td[colspan]::before {
+  display: none;
+}
+
+/* Display Settings switches for Focus Mode & Table View */
+body.ui-modern .display-settings-row + .display-settings-row {
+  border-top: 1px solid var(--theme-border);
+  padding-top: 18px;
+}
+
+body.ui-modern .display-settings-switch {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px !important;
+  border: 1px solid var(--theme-border) !important;
+  border-radius: 14px !important;
+  background: var(--glass-bg-strong) !important;
+  color: var(--theme-ink) !important;
+  font: inherit;
+  cursor: pointer;
+  flex: none;
+}
+
+body.ui-modern .display-settings-switch[aria-checked="true"] .display-settings-track {
+  background: var(--theme-primary);
+}
+
+body.ui-modern .display-settings-switch[aria-checked="true"] .display-settings-track > span {
+  transform: translateX(18px);
+}
+
+/* ==========================================================================
+   8. RESPONSIVE & ACCESSIBILITY
+   ========================================================================== */
+@media (max-width: 760px) {
+  body.ui-modern .ui-toolbar {
+    margin: 0 -16px;
+    padding: 0 16px;
+    height: 66px;
+  }
+
+  .ui-focus-pill span {
+    display: none;
+  }
+
+  .ui-focus-pill {
+    width: 38px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .ui-view-switcher button span {
+    display: none;
+  }
+
+  .ui-view-switcher button {
+    width: 32px;
+    padding: 0 !important;
+    justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.ui-modern,
+  body.ui-modern *,
+  body.ui-modern *::before,
+  body.ui-modern *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media print {
+  html[data-focus-mode="on"] body.ui-modern .bento-shell .u040-main {
+    padding: 0 !important;
+  }
+
+  .ui-focus-pill,
+  .ui-view-switcher {
+    display: none !important;
+  }
+}
